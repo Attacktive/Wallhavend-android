@@ -15,19 +15,19 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val stateRepository: ServiceStateRepository,
-    @ApplicationContext private val context: Context
+	private val stateRepository: ServiceStateRepository,
+	@ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    val serviceState: StateFlow<ServiceState> = stateRepository.state
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
+	val serviceState: StateFlow<ServiceState> = stateRepository.state
+		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
 
-    fun startService() = WallpaperService.start(context)
-    fun stopService() = WallpaperService.stop(context)
-    fun updateNow() = WallpaperService.updateNow(context)
-    fun previous() = WallpaperService.previous(context)
+	fun startService() = WallpaperService.start(context)
+	fun stopService() = WallpaperService.stop(context)
+	fun updateNow() = WallpaperService.updateNow(context)
+	fun previous() = WallpaperService.previous(context)
 
-    fun applyFromPool(path: String) {
-        WallpaperService.applyPath(context, path)
-    }
+	fun applyFromPool(path: String) {
+		WallpaperService.applyPath(context, path)
+	}
 }

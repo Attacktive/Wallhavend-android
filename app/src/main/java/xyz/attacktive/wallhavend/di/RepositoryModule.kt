@@ -20,18 +20,18 @@ private val Context.dataStore by preferencesDataStore(name = "wallhavend_setting
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
 
-    @Provides
-    @Singleton
-    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
-        context.dataStore
+	@Provides
+	@Singleton
+	fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
+		context.dataStore
 
-    @Provides
-    @Singleton
-    fun provideWallpaperFileManager(
-        @ApplicationContext context: Context,
-        okHttpClient: OkHttpClient
-    ): WallpaperFileManager {
-        val dir = File(context.filesDir, "wallpapers")
-        return WallpaperFileManager(dir, okHttpClient)
-    }
+	@Provides
+	@Singleton
+	fun provideWallpaperFileManager(
+		@ApplicationContext context: Context,
+		okHttpClient: OkHttpClient
+	): WallpaperFileManager {
+		val dir = File(context.filesDir, "wallpapers")
+		return WallpaperFileManager(dir, okHttpClient)
+	}
 }

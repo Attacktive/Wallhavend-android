@@ -10,10 +10,10 @@ import javax.inject.Singleton
 
 @Singleton
 class ServiceStateRepository @Inject constructor() {
-    private val _state = MutableStateFlow(ServiceState())
-    val state: StateFlow<ServiceState> = _state.asStateFlow()
+	private val _state = MutableStateFlow(ServiceState())
+	val state: StateFlow<ServiceState> = _state.asStateFlow()
 
-    fun update(transform: (ServiceState) -> ServiceState) {
-        _state.update(transform)
-    }
+	fun update(transform: (ServiceState) -> ServiceState) {
+		_state.update(transform)
+	}
 }

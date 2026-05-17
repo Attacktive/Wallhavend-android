@@ -19,35 +19,35 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    @Provides
-    @Singleton
-    fun provideJson(): Json = Json { ignoreUnknownKeys = true }
+	@Provides
+	@Singleton
+	fun provideJson(): Json = Json { ignoreUnknownKeys = true }
 
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .apply {
-            if (BuildConfig.DEBUG) {
-                addInterceptor(HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BASIC
-                })
-            }
-        }
-        .build()
+	@Provides
+	@Singleton
+	fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+		.connectTimeout(30, TimeUnit.SECONDS)
+		.readTimeout(30, TimeUnit.SECONDS)
+		.writeTimeout(30, TimeUnit.SECONDS)
+		.apply {
+			if (BuildConfig.DEBUG) {
+				addInterceptor(HttpLoggingInterceptor().apply {
+					level = HttpLoggingInterceptor.Level.BASIC
+				})
+			}
+		}
+		.build()
 
-    @Provides
-    @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
-        .baseUrl("https://wallhaven.cc/api/v1/")
-        .client(okHttpClient)
-        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-        .build()
+	@Provides
+	@Singleton
+	fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
+		.baseUrl("https://wallhaven.cc/api/v1/")
+		.client(okHttpClient)
+		.addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+		.build()
 
-    @Provides
-    @Singleton
-    fun provideWallhavenApiService(retrofit: Retrofit): WallhavenApiService =
-        retrofit.create(WallhavenApiService::class.java)
+	@Provides
+	@Singleton
+	fun provideWallhavenApiService(retrofit: Retrofit): WallhavenApiService =
+		retrofit.create(WallhavenApiService::class.java)
 }

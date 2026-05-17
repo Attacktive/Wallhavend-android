@@ -14,20 +14,20 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var settingsRepository: SettingsRepository
+	@Inject lateinit var settingsRepository: SettingsRepository
 
-    override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
-        val pending = goAsync()
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val settings = settingsRepository.settings.first()
-                if (settings.autoStartOnBoot) {
-                    WallpaperService.start(context)
-                }
-            } finally {
-                pending.finish()
-            }
-        }
-    }
+	override fun onReceive(context: Context, intent: Intent) {
+		if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+		val pending = goAsync()
+		CoroutineScope(Dispatchers.IO).launch {
+			try {
+				val settings = settingsRepository.settings.first()
+				if (settings.autoStartOnBoot) {
+					WallpaperService.start(context)
+				}
+			} finally {
+				pending.finish()
+			}
+		}
+	}
 }

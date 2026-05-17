@@ -13,13 +13,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+	private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    val settings: StateFlow<AppSettings> = settingsRepository.settings
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
+	val settings: StateFlow<AppSettings> = settingsRepository.settings
+		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
 
-    fun save(settings: AppSettings) {
-        viewModelScope.launch { settingsRepository.save(settings) }
-    }
+	fun save(settings: AppSettings) {
+		viewModelScope.launch { settingsRepository.save(settings) }
+	}
 }
