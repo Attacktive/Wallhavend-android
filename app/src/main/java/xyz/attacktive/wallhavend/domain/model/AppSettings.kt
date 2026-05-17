@@ -6,11 +6,11 @@ data class AppSettings(
 	val purity: Set<Purity> = setOf(Purity.SFW),
 	val aspectRatio: String = "",
 	val updateIntervalMinutes: Int = 60,
-	val wallpaperTarget: WallpaperTarget = WallpaperTarget.BOTH,
+	val wallpaperTarget: WallpaperTarget = WallpaperTarget.HOME,
 	val unmeteredOnly: Boolean = true,
 	val poolSize: Int = 10,
 	val apiKey: String = "",
-	val autoStartOnBoot: Boolean = false
+	val autoStartOnBoot: Boolean = true
 )
 
 val UPDATE_INTERVAL_OPTIONS = listOf(15, 30, 60, 180, 360, 1440)

@@ -159,7 +159,13 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 					}
 					onSave(settings.copy(purity = newSet))
 				},
-				label = { Text(purity.name.lowercase().replaceFirstChar { it.uppercase() }) },
+				label = {
+					Text(when (purity) {
+						Purity.SFW -> "SFW"
+						Purity.SKETCHY -> "Sketchy"
+						Purity.NSFW -> "NSFW"
+					})
+				},
 				modifier = Modifier.padding(end = 8.dp)
 			)
 		}
