@@ -7,11 +7,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class WallpaperFileManager @Inject constructor(
+class WallpaperFileManager(
     private val wallpaperDir: File,
     private val okHttpClient: OkHttpClient
 ) {
@@ -20,17 +17,18 @@ class WallpaperFileManager @Inject constructor(
     suspend fun download(wallpaper: Wallpaper): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
             val request = Request.Builder().url(wallpaper.directUrl).build()
-            val response = okHttpClient.newCall(request).execute()
-            check(response.isSuccessful) { "HTTP ${response.code}" }
-            val contentType = response.body?.contentType()?.toString() ?: ""
-            if (!contentType.contains("image/jpeg") && !contentType.contains("image/png")) {
-                throw UnsupportedFormatException(contentType)
+            okHttpClient.newCall(request).execute().use { response ->
+                check(response.isSuccessful) { "HTTP ${response.code}" }
+                val contentType = response.body?.contentType()?.toString() ?: ""
+                if (!contentType.contains("image/jpeg") && !contentType.contains("image/png")) {
+                    throw UnsupportedFormatException(contentType)
+                }
+                val file = File(dir, "${wallpaper.id}.${wallpaper.fileExtension}")
+                requireNotNull(response.body).byteStream().use { input ->
+                    file.outputStream().use { output -> input.copyTo(output) }
+                }
+                file
             }
-            val file = File(dir, "${wallpaper.id}.${wallpaper.fileExtension}")
-            response.body!!.byteStream().use { input ->
-                file.outputStream().use { output -> input.copyTo(output) }
-            }
-            file
         }
     }
 

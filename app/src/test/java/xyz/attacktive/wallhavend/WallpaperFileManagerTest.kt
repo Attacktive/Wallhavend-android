@@ -67,8 +67,9 @@ class WallpaperFileManagerTest {
     @Test
     fun `trimToSize with 0 deletes all files`() {
         val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-        repeat(3) { File(wallpapersDir, "w$it.jpg").writeText("data") }
+        val files = (0..2).map { File(wallpapersDir, "w$it.jpg").also { f -> f.writeText("data") } }
         val kept = manager.trimToSize(0)
         assertEquals(0, kept.size)
+        files.forEach { assertTrue("${it.name} should be deleted", !it.exists()) }
     }
 }
