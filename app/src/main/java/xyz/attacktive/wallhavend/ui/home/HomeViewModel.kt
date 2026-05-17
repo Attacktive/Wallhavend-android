@@ -15,10 +15,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-	private val stateRepository: ServiceStateRepository,
+	stateRepository: ServiceStateRepository,
 	@ApplicationContext private val context: Context
 ) : ViewModel() {
-
 	val serviceState: StateFlow<ServiceState> = stateRepository.state
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
 

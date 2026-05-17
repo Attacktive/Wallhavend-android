@@ -108,9 +108,11 @@ fun SettingsScreen(
 @Composable
 private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
+
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) searchQuery = settings.searchQuery
 	}
+
 	SectionLabel("SEARCH QUERY (OPTIONAL)")
 	OutlinedTextField(
 		value = searchQuery,
@@ -120,6 +122,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			.fillMaxWidth()
 			.onFocusChanged { if (!it.isFocused) onSave(settings.copy(searchQuery = searchQuery)) }
 	)
+
 	Spacer(Modifier.height(16.dp))
 	SectionLabel("CATEGORIES")
 	Row {
@@ -135,6 +138,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 					} else {
 						settings.categories
 					}
+
 					onSave(settings.copy(categories = newSet))
 				},
 				label = { Text(category.name.lowercase().replaceFirstChar { it.uppercase() }) },
@@ -142,6 +146,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			)
 		}
 	}
+
 	Spacer(Modifier.height(16.dp))
 	SectionLabel("CONTENT RATING")
 	Row {
@@ -170,12 +175,14 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			)
 		}
 	}
+
 	Spacer(Modifier.height(16.dp))
 	SectionLabel("ASPECT RATIO")
 	AspectRatioField(
 		value = settings.aspectRatio,
 		onValueChange = { onSave(settings.copy(aspectRatio = it)) }
 	)
+
 	Text(
 		"Leave blank to skip ratio filtering",
 		style = MaterialTheme.typography.bodySmall,
@@ -191,6 +198,7 @@ private fun AspectRatioField(value: String, onValueChange: (String) -> Unit) {
 	val filtered = ASPECT_RATIO_SUGGESTIONS.filter {
 		it.startsWith(value, ignoreCase = true) && it != value
 	}
+
 	ExposedDropdownMenuBox(
 		expanded = expanded && filtered.isNotEmpty(),
 		onExpandedChange = { expanded = it }
@@ -206,10 +214,8 @@ private fun AspectRatioField(value: String, onValueChange: (String) -> Unit) {
 				.fillMaxWidth()
 				.menuAnchor()
 		)
-		ExposedDropdownMenu(
-			expanded = expanded && filtered.isNotEmpty(),
-			onDismissRequest = { expanded = false }
-		) {
+
+		ExposedDropdownMenu(expanded = expanded && filtered.isNotEmpty(), onDismissRequest = { expanded = false }) {
 			filtered.forEach { suggestion ->
 				DropdownMenuItem(
 					text = { Text(suggestion) },
@@ -242,10 +248,8 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 				.fillMaxWidth()
 				.menuAnchor()
 		)
-		ExposedDropdownMenu(
-			expanded = intervalExpanded,
-			onDismissRequest = { intervalExpanded = false }
-		) {
+
+		ExposedDropdownMenu(expanded = intervalExpanded, onDismissRequest = { intervalExpanded = false }) {
 			UPDATE_INTERVAL_OPTIONS.forEach { minutes ->
 				DropdownMenuItem(
 					text = { Text(formatInterval(minutes)) },
@@ -266,12 +270,14 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(bottom = 8.dp)
 	)
+
 	WallpaperTarget.entries.forEach { target ->
 		Row(verticalAlignment = Alignment.CenterVertically) {
 			RadioButton(
 				selected = settings.wallpaperTarget == target,
 				onClick = { onSave(settings.copy(wallpaperTarget = target)) }
 			)
+
 			Text(
 				text = when (target) {
 					WallpaperTarget.HOME -> "Home screen only"
@@ -303,9 +309,11 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 @Composable
 private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var apiKey by rememberSaveable { mutableStateOf(settings.apiKey) }
+
 	LaunchedEffect(settings.apiKey) {
 		if (apiKey != settings.apiKey) apiKey = settings.apiKey
 	}
+
 	SectionLabel("WALLPAPER POOL SIZE")
 	Text(
 		"Wallpapers kept on device and shown in gallery",
@@ -313,12 +321,14 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(bottom = 8.dp)
 	)
+
 	POOL_SIZE_OPTIONS.forEach { size ->
 		Row(verticalAlignment = Alignment.CenterVertically) {
 			RadioButton(
 				selected = settings.poolSize == size,
 				onClick = { onSave(settings.copy(poolSize = size)) }
 			)
+
 			Text(
 				text = if (size == 0) "0 — current only, no gallery" else "$size",
 				modifier = Modifier.padding(start = 4.dp)
@@ -341,16 +351,8 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 }
 
 @Composable
-private fun ToggleSetting(
-	label: String,
-	subtitle: String,
-	checked: Boolean,
-	onToggle: (Boolean) -> Unit
-) {
-	Row(
-		modifier = Modifier.fillMaxWidth(),
-		verticalAlignment = Alignment.CenterVertically
-	) {
+private fun ToggleSetting(label: String, subtitle: String, checked: Boolean, onToggle: (Boolean) -> Unit) {
+	Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
 		Column(modifier = Modifier.weight(1f)) {
 			Text(label)
 			Text(

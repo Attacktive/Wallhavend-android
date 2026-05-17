@@ -41,7 +41,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class WallpaperService : Service() {
-
 	@Inject lateinit var settingsRepository: SettingsRepository
 	@Inject lateinit var wallhavenRepository: WallhavenRepository
 	@Inject lateinit var fileManager: WallpaperFileManager
@@ -64,12 +63,17 @@ class WallpaperService : Service() {
 			}
 			else -> startTimerLoop()
 		}
+
 		return START_STICKY
 	}
 
 	private fun startTimerLoop() {
-		if (timerJob?.isActive == true) return
+		if (timerJob?.isActive == true) {
+			return
+		}
+
 		stateRepository.update { it.copy(isRunning = true) }
+
 		timerJob = serviceScope.launch {
 			performUpdate()
 			while (true) {
@@ -82,8 +86,14 @@ class WallpaperService : Service() {
 
 	private suspend fun performUpdate() {
 		val settings = settingsRepository.settings.first()
-		if (!isOnline()) return
-		if (settings.unmeteredOnly && isMetered()) return
+
+		if (!isOnline()) {
+			return
+		}
+
+		if (settings.unmeteredOnly && isMetered()) {
+			return
+		}
 
 		val result = wallhavenRepository.next(settings)
 		result.fold(
@@ -97,8 +107,10 @@ class WallpaperService : Service() {
 						} else {
 							fileManager.trimToSize(settings.poolSize)
 						}
+
 						val paths = remaining.map { it.absolutePath }
 						val now = System.currentTimeMillis()
+
 						stateRepository.update { state ->
 							state.copy(
 								lastUpdatedMs = now,
@@ -108,51 +120,66 @@ class WallpaperService : Service() {
 								error = null
 							)
 						}
+
 						settingsRepository.saveServiceState(now, paths.firstOrNull(), paths.getOrNull(1))
 						updateNotification()
 					},
-					onFailure = { e ->
-						postError(AppError.WallpaperApplyFailed(e.message ?: "Unknown"))
+					onFailure = { throwable ->
+						postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
 					}
 				)
 			},
-			onFailure = { e ->
-				val error = when (e) {
+			onFailure = { throwable ->
+				val error = when (throwable) {
 					is NoResultsException -> AppError.NoResults
 					is UnsupportedFormatException -> AppError.UnsupportedFormat
-					is HttpException -> AppError.ApiError(e.code())
+					is HttpException -> AppError.ApiError(throwable.code())
 					else -> null
 				}
-				if (error != null) postError(error)
+
+				if (error != null) {
+					postError(error)
+				}
 			}
 		)
 	}
 
 	private suspend fun applySpecificPath(path: String) {
 		val file = File(path)
-		if (!file.exists()) return
-		val settings = settingsRepository.settings.first()
-		applyWallpaper(file, settings.wallpaperTarget).onSuccess {
-			val state = stateRepository.state.value
-			val newPrev = if (state.currentWallpaperPath != path) state.currentWallpaperPath else state.previousWallpaperPath
-			stateRepository.update { s ->
-				s.copy(currentWallpaperPath = path, previousWallpaperPath = newPrev)
-			}
-			updateNotification()
+		if (!file.exists()) {
+			return
 		}
+
+		val settings = settingsRepository.settings.first()
+
+		applyWallpaper(file, settings.wallpaperTarget)
+			.onSuccess {
+				val state = stateRepository.state.value
+				val newPrev = if (state.currentWallpaperPath != path) state.currentWallpaperPath else state.previousWallpaperPath
+				stateRepository.update {
+					it.copy(currentWallpaperPath = path, previousWallpaperPath = newPrev)
+				}
+
+				updateNotification()
+			}
 	}
 
 	private suspend fun applyPrevious() {
 		val state = stateRepository.state.value
 		val prevPath = state.previousWallpaperPath ?: return
+
 		val file = File(prevPath)
-		if (!file.exists()) return
+		if (!file.exists()) {
+			return
+		}
+
 		val settings = settingsRepository.settings.first()
+
 		applyWallpaper(file, settings.wallpaperTarget).onSuccess {
-			stateRepository.update { s ->
-				s.copy(
+			stateRepository.update {
+				it.copy(
 					currentWallpaperPath = prevPath,
-					previousWallpaperPath = s.currentWallpaperPath
+					previousWallpaperPath = it.currentWallpaperPath
 				)
 			}
 		}
@@ -161,17 +188,20 @@ class WallpaperService : Service() {
 	private fun applyWallpaper(file: File, target: WallpaperTarget): Result<Unit> = runCatching {
 		val bitmap = BitmapFactory.decodeFile(file.absolutePath)
 			?: error("Failed to decode bitmap from ${file.name}")
+
 		val flags = when (target) {
 			WallpaperTarget.HOME -> WallpaperManager.FLAG_SYSTEM
 			WallpaperTarget.LOCK -> WallpaperManager.FLAG_LOCK
 			WallpaperTarget.BOTH -> WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
 		}
+
 		getSystemService(WallpaperManager::class.java).setBitmap(bitmap, null, true, flags)
 		bitmap.recycle()
 	}
 
 	private fun postError(error: AppError) {
 		stateRepository.update { it.copy(error = error) }
+
 		serviceScope.launch {
 			delay(10_000)
 			stateRepository.update { it.copy(error = null) }
@@ -180,17 +210,20 @@ class WallpaperService : Service() {
 
 	private fun isOnline(): Boolean {
 		val cm = getSystemService(ConnectivityManager::class.java)
+
 		return cm.activeNetwork?.let { cm.getNetworkCapabilities(it) }
 			?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
 	}
 
 	private fun isMetered(): Boolean {
 		val cm = getSystemService(ConnectivityManager::class.java)
+
 		return cm.isActiveNetworkMetered
 	}
 
 	private fun buildNotification(): Notification {
 		val state = stateRepository.state.value
+
 		val lastUpdated = state.lastUpdatedMs?.let {
 			"Last: ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))}"
 		} ?: "Never updated"
@@ -200,19 +233,25 @@ class WallpaperService : Service() {
 			Intent(this, MainActivity::class.java),
 			PendingIntent.FLAG_IMMUTABLE
 		)
+
 		val updateNowIntent = PendingIntent.getService(
 			this, 1,
-			Intent(this, WallpaperService::class.java).apply { action = ACTION_UPDATE_NOW },
+			Intent(this, WallpaperService::class.java)
+				.apply { action = ACTION_UPDATE_NOW },
 			PendingIntent.FLAG_IMMUTABLE
 		)
+
 		val previousIntent = PendingIntent.getService(
 			this, 2,
-			Intent(this, WallpaperService::class.java).apply { action = ACTION_PREVIOUS },
+			Intent(this, WallpaperService::class.java)
+				.apply { action = ACTION_PREVIOUS },
 			PendingIntent.FLAG_IMMUTABLE
 		)
+
 		val stopIntent = PendingIntent.getService(
 			this, 3,
-			Intent(this, WallpaperService::class.java).apply { action = ACTION_STOP },
+			Intent(this, WallpaperService::class.java)
+				.apply { action = ACTION_STOP },
 			PendingIntent.FLAG_IMMUTABLE
 		)
 
@@ -251,22 +290,30 @@ class WallpaperService : Service() {
 		}
 
 		fun stop(context: Context) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java).apply { action = ACTION_STOP })
+			context.startForegroundService(Intent(context, WallpaperService::class.java)
+				.apply { action = ACTION_STOP }
+			)
 		}
 
 		fun updateNow(context: Context) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java).apply { action = ACTION_UPDATE_NOW })
+			context.startForegroundService(Intent(context, WallpaperService::class.java)
+				.apply { action = ACTION_UPDATE_NOW }
+			)
 		}
 
 		fun previous(context: Context) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java).apply { action = ACTION_PREVIOUS })
+			context.startForegroundService(Intent(context, WallpaperService::class.java)
+				.apply { action = ACTION_PREVIOUS }
+			)
 		}
 
 		fun applyPath(context: Context, path: String) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java).apply {
-				action = ACTION_APPLY_PATH
-				putExtra(EXTRA_PATH, path)
-			})
+			context.startForegroundService(Intent(context, WallpaperService::class.java)
+				.apply {
+					action = ACTION_APPLY_PATH
+					putExtra(EXTRA_PATH, path)
+				}
+			)
 		}
 	}
 }

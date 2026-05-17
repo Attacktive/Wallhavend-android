@@ -14,10 +14,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class WallhavenRepository @Inject constructor(
-	private val api: WallhavenApiService,
-	private val fileManager: WallpaperFileManager
-) {
+class WallhavenRepository @Inject constructor(private val api: WallhavenApiService, private val fileManager: WallpaperFileManager) {
 	private var cache = ArrayDeque<WallpaperDto>()
 	private var cacheKey: SearchKey? = null
 
@@ -43,13 +40,19 @@ class WallhavenRepository @Inject constructor(
 			cache.clear()
 			cacheKey = key
 		}
+
 		if (cache.isEmpty()) {
 			val fetchResult = refetch(key)
 			if (fetchResult.isFailure) return Result.failure(fetchResult.exceptionOrNull()!!)
 		}
-		if (cache.isEmpty()) return Result.failure(NoResultsException())
+
+		if (cache.isEmpty()) {
+			return Result.failure(NoResultsException())
+		}
+
 		val dto = cache.removeFirst()
 		val wallpaper = dto.toDomain()
+
 		return fileManager.download(wallpaper).map { file -> Pair(wallpaper, file) }
 	}
 
@@ -63,6 +66,7 @@ class WallhavenRepository @Inject constructor(
 			seed = UUID.randomUUID().toString(),
 			apiKey = key.apiKey
 		)
+
 		cache = ArrayDeque(response.data)
 	}
 }

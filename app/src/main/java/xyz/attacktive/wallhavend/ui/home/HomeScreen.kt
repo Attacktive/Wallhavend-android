@@ -56,10 +56,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-	onNavigateToSettings: () -> Unit,
-	viewModel: HomeViewModel = hiltViewModel()
-) {
+fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
 
 	Scaffold(
@@ -88,15 +85,19 @@ fun HomeScreen(
 				onUpdateNow = viewModel::updateNow,
 				onPrevious = viewModel::previous
 			)
+
 			state.error?.let { error ->
 				Spacer(modifier = Modifier.height(8.dp))
 				ErrorBanner(error = error)
 			}
+
 			if (!state.isOnline) {
 				Spacer(modifier = Modifier.height(8.dp))
 				OfflineBanner()
 			}
+
 			Spacer(modifier = Modifier.height(16.dp))
+
 			if (state.poolPaths.isNotEmpty()) {
 				Text("RECENT WALLPAPERS", style = MaterialTheme.typography.labelSmall)
 				Spacer(modifier = Modifier.height(8.dp))
@@ -123,6 +124,7 @@ private fun StatusCard(state: ServiceState) {
 					style = MaterialTheme.typography.labelMedium,
 					color = if (state.isRunning) Color(0xFF90EE90) else MaterialTheme.colorScheme.onSurfaceVariant
 				)
+
 				state.lastUpdatedMs?.let {
 					Text(
 						text = "Last: ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))}",
@@ -135,39 +137,30 @@ private fun StatusCard(state: ServiceState) {
 }
 
 @Composable
-private fun QuickActions(
-	state: ServiceState,
-	onStartStop: () -> Unit,
-	onUpdateNow: () -> Unit,
-	onPrevious: () -> Unit
-) {
+private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateNow: () -> Unit, onPrevious: () -> Unit) {
 	Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 		Button(onClick = onStartStop) {
 			Icon(
 				imageVector = if (state.isRunning) Icons.Default.Stop else Icons.Default.PlayArrow,
 				contentDescription = null
 			)
+
 			Spacer(Modifier.width(4.dp))
 			Text(if (state.isRunning) "Stop" else "Start")
 		}
+
 		OutlinedButton(onClick = onUpdateNow) {
 			Icon(Icons.Default.Refresh, contentDescription = "Update now")
 		}
-		OutlinedButton(
-			onClick = onPrevious,
-			enabled = state.previousWallpaperPath != null
-		) {
+
+		OutlinedButton(onClick = onPrevious, enabled = state.previousWallpaperPath != null) {
 			Icon(Icons.Default.SkipPrevious, contentDescription = "Previous")
 		}
 	}
 }
 
 @Composable
-private fun WallpaperGrid(
-	paths: List<String>,
-	currentPath: String?,
-	onTap: (String) -> Unit
-) {
+private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (String) -> Unit) {
 	LazyVerticalGrid(
 		columns = GridCells.Fixed(3),
 		contentPadding = PaddingValues(vertical = 4.dp),
@@ -207,10 +200,8 @@ private fun ErrorBanner(error: AppError) {
 		is AppError.UnsupportedFormat -> "Unsupported image format — skipping"
 		is AppError.WallpaperApplyFailed -> "Failed to apply wallpaper: ${error.cause}"
 	}
-	Card(
-		modifier = Modifier.fillMaxWidth(),
-		shape = RoundedCornerShape(8.dp)
-	) {
+
+	Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
 		Text(
 			text = "⚠ $message",
 			modifier = Modifier.padding(12.dp),

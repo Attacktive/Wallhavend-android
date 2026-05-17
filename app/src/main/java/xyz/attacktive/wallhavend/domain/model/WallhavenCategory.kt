@@ -7,5 +7,6 @@ enum class WallhavenCategory(val bitIndex: Int) {
 fun Set<WallhavenCategory>.toBitString(): String {
 	val bits = CharArray(3) { '0' }
 	forEach { bits[it.bitIndex] = '1' }
+
 	return String(bits)
 }

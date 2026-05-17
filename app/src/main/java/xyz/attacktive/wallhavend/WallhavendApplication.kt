@@ -20,6 +20,7 @@ class WallhavendApplication : Application() {
 		).apply {
 			description = "Shows wallpaper auto-update status"
 		}
+
 		getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 	}
 

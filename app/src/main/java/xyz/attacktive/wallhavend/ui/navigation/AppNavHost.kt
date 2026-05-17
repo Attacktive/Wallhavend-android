@@ -14,6 +14,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
 		composable("home") {
 			HomeScreen(onNavigateToSettings = { navController.navigate("settings") })
 		}
+
 		composable("settings") {
 			SettingsScreen(onNavigateBack = { navController.popBackStack() })
 		}
