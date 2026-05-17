@@ -53,6 +53,7 @@ class WallpaperService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForeground(NOTIFICATION_ID, buildNotification())
         when (intent?.action) {
             ACTION_STOP -> stopSelf()
             ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate() }
@@ -68,7 +69,6 @@ class WallpaperService : Service() {
 
     private fun startTimerLoop() {
         if (timerJob?.isActive == true) return
-        startForeground(NOTIFICATION_ID, buildNotification())
         stateRepository.update { it.copy(isRunning = true) }
         timerJob = serviceScope.launch {
             performUpdate()
@@ -251,19 +251,19 @@ class WallpaperService : Service() {
         }
 
         fun stop(context: Context) {
-            context.startService(Intent(context, WallpaperService::class.java).apply { action = ACTION_STOP })
+            context.startForegroundService(Intent(context, WallpaperService::class.java).apply { action = ACTION_STOP })
         }
 
         fun updateNow(context: Context) {
-            context.startService(Intent(context, WallpaperService::class.java).apply { action = ACTION_UPDATE_NOW })
+            context.startForegroundService(Intent(context, WallpaperService::class.java).apply { action = ACTION_UPDATE_NOW })
         }
 
         fun previous(context: Context) {
-            context.startService(Intent(context, WallpaperService::class.java).apply { action = ACTION_PREVIOUS })
+            context.startForegroundService(Intent(context, WallpaperService::class.java).apply { action = ACTION_PREVIOUS })
         }
 
         fun applyPath(context: Context, path: String) {
-            context.startService(Intent(context, WallpaperService::class.java).apply {
+            context.startForegroundService(Intent(context, WallpaperService::class.java).apply {
                 action = ACTION_APPLY_PATH
                 putExtra(EXTRA_PATH, path)
             })

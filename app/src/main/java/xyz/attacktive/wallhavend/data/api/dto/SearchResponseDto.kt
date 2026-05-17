@@ -13,6 +13,6 @@ data class SearchResponseDto(
 data class MetaDto(
 	@SerialName("current_page") val currentPage: Int,
 	@SerialName("last_page") val lastPage: Int,
-	@SerialName("per_page") val perPage: String,
+	@SerialName("per_page") val perPage: Int,
 	val total: Int
 )

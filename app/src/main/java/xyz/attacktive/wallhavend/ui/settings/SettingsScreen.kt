@@ -29,13 +29,16 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -56,7 +59,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf("Content", "Schedule", "Advanced")
 
     Scaffold(
@@ -104,12 +107,18 @@ fun SettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+    var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
+    LaunchedEffect(settings.searchQuery) {
+        if (searchQuery != settings.searchQuery) searchQuery = settings.searchQuery
+    }
     SectionLabel("SEARCH QUERY (OPTIONAL)")
     OutlinedTextField(
-        value = settings.searchQuery,
-        onValueChange = { onSave(settings.copy(searchQuery = it)) },
+        value = searchQuery,
+        onValueChange = { searchQuery = it },
         placeholder = { Text("e.g. landscape mountains") },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { if (!it.isFocused) onSave(settings.copy(searchQuery = searchQuery)) }
     )
     Spacer(Modifier.height(16.dp))
     SectionLabel("CATEGORIES")
@@ -287,6 +296,10 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 @Composable
 private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+    var apiKey by rememberSaveable { mutableStateOf(settings.apiKey) }
+    LaunchedEffect(settings.apiKey) {
+        if (apiKey != settings.apiKey) apiKey = settings.apiKey
+    }
     SectionLabel("WALLPAPER POOL SIZE")
     Text(
         "Wallpapers kept on device and shown in gallery",
@@ -310,12 +323,14 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
     Spacer(Modifier.height(16.dp))
     SectionLabel("API KEY (OPTIONAL, REQUIRED FOR NSFW)")
     OutlinedTextField(
-        value = settings.apiKey,
-        onValueChange = { onSave(settings.copy(apiKey = it)) },
+        value = apiKey,
+        onValueChange = { apiKey = it },
         placeholder = { Text("Your Wallhaven API key") },
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { if (!it.isFocused) onSave(settings.copy(apiKey = apiKey)) }
     )
 }
 
