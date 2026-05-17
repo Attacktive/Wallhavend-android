@@ -18,9 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SettingsRepository @Inject constructor(
-	private val dataStore: DataStore<Preferences>
-) {
+class SettingsRepository @Inject constructor(private val dataStore: DataStore<Preferences>) {
 	private object Keys {
 		val SEARCH_QUERY = stringPreferencesKey("search_query")
 		val CATEGORIES = stringSetPreferencesKey("categories")
@@ -52,11 +50,11 @@ class SettingsRepository @Inject constructor(
 			updateIntervalMinutes = prefs[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
 			wallpaperTarget = prefs[Keys.WALLPAPER_TARGET]
 				?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
-				?: WallpaperTarget.BOTH,
+				?: WallpaperTarget.HOME,
 			unmeteredOnly = prefs[Keys.UNMETERED_ONLY] ?: true,
 			poolSize = prefs[Keys.POOL_SIZE] ?: 10,
 			apiKey = prefs[Keys.API_KEY] ?: "",
-			autoStartOnBoot = prefs[Keys.AUTO_START_ON_BOOT] ?: false
+			autoStartOnBoot = prefs[Keys.AUTO_START_ON_BOOT] ?: true
 		)
 	}
 
