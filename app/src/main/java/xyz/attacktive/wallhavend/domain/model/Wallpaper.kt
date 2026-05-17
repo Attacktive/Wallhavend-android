@@ -10,6 +10,6 @@ data class Wallpaper(
     val fileExtension: String get() = when (mimeType) {
         "image/jpeg" -> "jpg"
         "image/png" -> "png"
-        else -> error("Unsupported MIME type: $mimeType")
+        else -> throw UnsupportedFormatException(mimeType)
     }
 }
