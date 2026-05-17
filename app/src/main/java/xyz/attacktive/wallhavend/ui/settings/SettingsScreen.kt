@@ -108,9 +108,15 @@ fun SettingsScreen(
 @Composable
 private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
+	var aspectRatio by rememberSaveable { mutableStateOf(settings.aspectRatio) }
+	var searchQueryHasFocused by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) searchQuery = settings.searchQuery
+	}
+
+	LaunchedEffect(settings.aspectRatio) {
+		if (aspectRatio != settings.aspectRatio) aspectRatio = settings.aspectRatio
 	}
 
 	SectionLabel("SEARCH QUERY (OPTIONAL)")
@@ -120,7 +126,12 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		placeholder = { Text("e.g. landscape mountains") },
 		modifier = Modifier
 			.fillMaxWidth()
-			.onFocusChanged { if (!it.isFocused) onSave(settings.copy(searchQuery = searchQuery)) }
+			.onFocusChanged { focusState ->
+				when {
+					focusState.isFocused -> searchQueryHasFocused = true
+					searchQueryHasFocused -> onSave(settings.copy(searchQuery = searchQuery))
+				}
+			}
 	)
 
 	Spacer(Modifier.height(16.dp))
@@ -179,8 +190,9 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	Spacer(Modifier.height(16.dp))
 	SectionLabel("ASPECT RATIO")
 	AspectRatioField(
-		value = settings.aspectRatio,
-		onValueChange = { onSave(settings.copy(aspectRatio = it)) }
+		value = aspectRatio,
+		onValueChange = { aspectRatio = it },
+		onSave = { onSave(settings.copy(aspectRatio = aspectRatio)) }
 	)
 
 	Text(
@@ -193,8 +205,9 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AspectRatioField(value: String, onValueChange: (String) -> Unit) {
+private fun AspectRatioField(value: String, onValueChange: (String) -> Unit, onSave: () -> Unit) {
 	var expanded by remember { mutableStateOf(false) }
+	var hasFocused by remember { mutableStateOf(false) }
 	val filtered = ASPECT_RATIO_SUGGESTIONS.filter {
 		it.startsWith(value, ignoreCase = true) && it != value
 	}
@@ -213,6 +226,12 @@ private fun AspectRatioField(value: String, onValueChange: (String) -> Unit) {
 			modifier = Modifier
 				.fillMaxWidth()
 				.menuAnchor()
+				.onFocusChanged { focusState ->
+					when {
+						focusState.isFocused -> hasFocused = true
+						hasFocused -> onSave()
+					}
+				}
 		)
 
 		ExposedDropdownMenu(expanded = expanded && filtered.isNotEmpty(), onDismissRequest = { expanded = false }) {
@@ -221,6 +240,7 @@ private fun AspectRatioField(value: String, onValueChange: (String) -> Unit) {
 					text = { Text(suggestion) },
 					onClick = {
 						onValueChange(suggestion)
+						onSave()
 						expanded = false
 					}
 				)
@@ -309,6 +329,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 @Composable
 private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var apiKey by rememberSaveable { mutableStateOf(settings.apiKey) }
+	var apiKeyHasFocused by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.apiKey) {
 		if (apiKey != settings.apiKey) apiKey = settings.apiKey
@@ -346,7 +367,12 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
 		modifier = Modifier
 			.fillMaxWidth()
-			.onFocusChanged { if (!it.isFocused) onSave(settings.copy(apiKey = apiKey)) }
+			.onFocusChanged { focusState ->
+				when {
+					focusState.isFocused -> apiKeyHasFocused = true
+					apiKeyHasFocused -> onSave(settings.copy(apiKey = apiKey))
+				}
+			}
 	)
 }
 

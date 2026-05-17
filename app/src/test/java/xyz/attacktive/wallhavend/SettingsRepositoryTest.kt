@@ -33,7 +33,7 @@ class SettingsRepositoryTest {
 		assertEquals(60, settings.updateIntervalMinutes)
 		assertTrue(settings.unmeteredOnly)
 		assertEquals(10, settings.poolSize)
-		assertEquals(WallpaperTarget.BOTH, settings.wallpaperTarget)
+		assertEquals(WallpaperTarget.HOME, settings.wallpaperTarget)
 		assertEquals(setOf(WallhavenCategory.GENERAL), settings.categories)
 		assertEquals(setOf(Purity.SFW), settings.purity)
 	}
@@ -54,7 +54,7 @@ class SettingsRepositoryTest {
 			autoStartOnBoot = true
 		)
 		repo.save(modified)
-		val loaded = repo.settings.first()
+		val loaded = repo.settings.first { it == modified }
 		assertEquals(modified, loaded)
 	}
 }

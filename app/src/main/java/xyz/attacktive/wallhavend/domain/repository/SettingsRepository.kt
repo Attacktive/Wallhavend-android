@@ -12,13 +12,19 @@ import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.Purity
 import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SettingsRepository @Inject constructor(private val dataStore: DataStore<Preferences>) {
+	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private object Keys {
 		val SEARCH_QUERY = stringPreferencesKey("search_query")
 		val CATEGORIES = stringSetPreferencesKey("categories")
@@ -35,41 +41,54 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
 	}
 
-	val settings: Flow<AppSettings> = dataStore.data.map { prefs ->
-		AppSettings(
-			searchQuery = prefs[Keys.SEARCH_QUERY] ?: "",
-			categories = (prefs[Keys.CATEGORIES] ?: setOf("GENERAL"))
-				.mapNotNull { runCatching { WallhavenCategory.valueOf(it) }.getOrNull() }
-				.toSet()
-				.ifEmpty { setOf(WallhavenCategory.GENERAL) },
-			purity = (prefs[Keys.PURITY] ?: setOf("SFW"))
-				.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
-				.toSet()
-				.ifEmpty { setOf(Purity.SFW) },
-			aspectRatio = prefs[Keys.ASPECT_RATIO] ?: "",
-			updateIntervalMinutes = prefs[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
-			wallpaperTarget = prefs[Keys.WALLPAPER_TARGET]
-				?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
-				?: WallpaperTarget.HOME,
-			unmeteredOnly = prefs[Keys.UNMETERED_ONLY] ?: true,
-			poolSize = prefs[Keys.POOL_SIZE] ?: 10,
-			apiKey = prefs[Keys.API_KEY] ?: "",
-			autoStartOnBoot = prefs[Keys.AUTO_START_ON_BOOT] ?: true
-		)
-	}
+	val settings: Flow<AppSettings> = dataStore.data
+		.map { prefs -> AppSettings(
+				searchQuery = prefs[Keys.SEARCH_QUERY] ?: "",
+				categories = (prefs[Keys.CATEGORIES] ?: setOf("GENERAL"))
+					.mapNotNull { runCatching { WallhavenCategory.valueOf(it) }.getOrNull() }
+					.toSet()
+					.ifEmpty { setOf(WallhavenCategory.GENERAL) },
+				purity = (prefs[Keys.PURITY] ?: setOf("SFW"))
+					.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
+					.toSet()
+					.ifEmpty { setOf(Purity.SFW) },
+				aspectRatio = prefs[Keys.ASPECT_RATIO] ?: "",
+				updateIntervalMinutes = prefs[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
+				wallpaperTarget = prefs[Keys.WALLPAPER_TARGET]
+					?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
+					?: WallpaperTarget.HOME,
+				unmeteredOnly = prefs[Keys.UNMETERED_ONLY] ?: true,
+				poolSize = prefs[Keys.POOL_SIZE] ?: 10,
+				apiKey = prefs[Keys.API_KEY] ?: "",
+				autoStartOnBoot = prefs[Keys.AUTO_START_ON_BOOT] ?: true
+			)
+			.also { Log.d(TAG, "read: $it") }
+		}
 
-	suspend fun save(settings: AppSettings) {
-		dataStore.edit { prefs ->
-			prefs[Keys.SEARCH_QUERY] = settings.searchQuery
-			prefs[Keys.CATEGORIES] = settings.categories.map { it.name }.toSet()
-			prefs[Keys.PURITY] = settings.purity.map { it.name }.toSet()
-			prefs[Keys.ASPECT_RATIO] = settings.aspectRatio
-			prefs[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
-			prefs[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
-			prefs[Keys.UNMETERED_ONLY] = settings.unmeteredOnly
-			prefs[Keys.POOL_SIZE] = settings.poolSize
-			prefs[Keys.API_KEY] = settings.apiKey
-			prefs[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
+	fun save(settings: AppSettings) {
+		Log.d(TAG, "save: $settings")
+
+		scope.launch {
+			Log.d(TAG, "save() coroutine started on ${Thread.currentThread().name}")
+
+			runCatching {
+				dataStore.edit { prefs ->
+					prefs[Keys.SEARCH_QUERY] = settings.searchQuery
+					prefs[Keys.CATEGORIES] = settings.categories.map { it.name }.toSet()
+					prefs[Keys.PURITY] = settings.purity.map { it.name }.toSet()
+					prefs[Keys.ASPECT_RATIO] = settings.aspectRatio
+					prefs[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
+					prefs[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
+					prefs[Keys.UNMETERED_ONLY] = settings.unmeteredOnly
+					prefs[Keys.POOL_SIZE] = settings.poolSize
+					prefs[Keys.API_KEY] = settings.apiKey
+					prefs[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
+				}
+			}.onSuccess {
+				Log.d(TAG, "save() completed successfully")
+			}.onFailure { e ->
+				Log.e(TAG, "save() FAILED: ${e.message}", e)
+			}
 		}
 	}
 
@@ -86,4 +105,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 	val persistedLastUpdatedMs: Flow<Long?> = dataStore.data.map { it[Keys.LAST_UPDATED_MS] }
 	val persistedCurrentPath: Flow<String?> = dataStore.data.map { it[Keys.CURRENT_WALLPAPER_PATH] }
 	val persistedPreviousPath: Flow<String?> = dataStore.data.map { it[Keys.PREVIOUS_WALLPAPER_PATH] }
+
+	companion object {
+		private const val TAG = "SettingsRepo"
+	}
 }

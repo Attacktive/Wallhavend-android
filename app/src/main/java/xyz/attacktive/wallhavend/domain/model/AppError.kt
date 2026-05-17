@@ -5,4 +5,5 @@ sealed class AppError {
 	data class ApiError(val code: Int) : AppError()
 	data object UnsupportedFormat : AppError()
 	data class WallpaperApplyFailed(val cause: String) : AppError()
+	data class NetworkError(val cause: String) : AppError()
 }

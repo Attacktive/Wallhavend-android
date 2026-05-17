@@ -199,6 +199,7 @@ private fun ErrorBanner(error: AppError) {
 		is AppError.ApiError -> "API error ${error.code}"
 		is AppError.UnsupportedFormat -> "Unsupported image format — skipping"
 		is AppError.WallpaperApplyFailed -> "Failed to apply wallpaper: ${error.cause}"
+		is AppError.NetworkError -> "Network error: ${error.cause}"
 	}
 
 	Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {

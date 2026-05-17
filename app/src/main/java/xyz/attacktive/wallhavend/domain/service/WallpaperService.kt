@@ -75,11 +75,11 @@ class WallpaperService : Service() {
 		stateRepository.update { it.copy(isRunning = true) }
 
 		timerJob = serviceScope.launch {
-			performUpdate()
+			runCatching { performUpdate() }
 			while (true) {
 				val intervalMs = settingsRepository.settings.first().updateIntervalMinutes * 60_000L
 				delay(intervalMs)
-				performUpdate()
+				runCatching { performUpdate() }
 			}
 		}
 	}
@@ -87,7 +87,9 @@ class WallpaperService : Service() {
 	private suspend fun performUpdate() {
 		val settings = settingsRepository.settings.first()
 
-		if (!isOnline()) {
+		val online = isOnline()
+		stateRepository.update { it.copy(isOnline = online) }
+		if (!online) {
 			return
 		}
 
@@ -134,12 +136,10 @@ class WallpaperService : Service() {
 					is NoResultsException -> AppError.NoResults
 					is UnsupportedFormatException -> AppError.UnsupportedFormat
 					is HttpException -> AppError.ApiError(throwable.code())
-					else -> null
+					else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
 				}
 
-				if (error != null) {
-					postError(error)
-				}
+				postError(error)
 			}
 		)
 	}
