@@ -1,0 +1,18 @@
+package xyz.attacktive.wallhavend.data.api
+
+import xyz.attacktive.wallhavend.data.api.dto.SearchResponseDto
+import retrofit2.http.GET
+import retrofit2.http.Query
+
+interface WallhavenApiService {
+	@GET("search")
+	suspend fun search(
+		@Query("q") query: String?,
+		@Query("categories") categories: String,
+		@Query("purity") purity: String,
+		@Query("ratios") ratios: String?,
+		@Query("sorting") sorting: String,
+		@Query("seed") seed: String,
+		@Query("apikey") apiKey: String?
+	): SearchResponseDto
+}
