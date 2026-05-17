@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
-import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.service.WallpaperService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -17,7 +16,6 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val stateRepository: ServiceStateRepository,
-    private val settingsRepository: SettingsRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
