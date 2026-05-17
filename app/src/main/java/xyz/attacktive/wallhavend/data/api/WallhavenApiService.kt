@@ -12,7 +12,7 @@ interface WallhavenApiService {
 		@Query("purity") purity: String,
 		@Query("ratios") ratios: String?,
 		@Query("sorting") sorting: String,
-		@Query("seed") seed: String,
+		@Query("seed") seed: String?,
 		@Query("apikey") apiKey: String?
 	): SearchResponseDto
 }
