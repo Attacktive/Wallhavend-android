@@ -1,0 +1,34 @@
+name: 'Dependabot Auto-Merge'
+on:
+  pull_request:
+    types: ['opened', 'reopened', 'synchronize', 'ready_for_review']
+permissions:
+  contents: 'write'
+  pull-requests: 'write'
+jobs:
+  auto-merge:
+    runs-on: 'ubuntu-latest'
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: 'Fetch Dependabot metadata'
+        id: 'metadata'
+        uses: 'dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Approve PR'
+        run: |
+          gh pr review "$PR_URL" --approve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+      - name: 'Enable Auto-Merge (Rebase)'
+        run: 'gh pr merge "$PR_URL" --auto --rebase'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+      - name: 'Delete branch when merged'
+        if: 'github.event.pull_request.merged == true'
+        run: 'gh api -X DELETE "$URL_TO_BRANCH"'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL_TO_BRANCH: "repos/${{ github.repository }}/git/refs/heads/${{ github.event.pull_request.head.ref }}"

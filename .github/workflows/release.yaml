@@ -1,0 +1,46 @@
+name: 'Release'
+on:
+  push:
+    tags: ['**']
+
+jobs:
+  release:
+    name: 'Release'
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'write'
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v6'
+
+      - name: 'Set up JDK'
+        uses: 'actions/setup-java@v5'
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: 'Decode keystore'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+
+      - name: 'Build release APK and AAB'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: './gradlew assembleRelease bundleRelease'
+
+      - name: 'Upload APK to GitHub Releases'
+        uses: 'softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b'
+        with:
+          files: 'app/build/outputs/apk/release/app-release.apk'
+          generate_release_notes: true
+
+      - name: 'Upload AAB to Google Play'
+        uses: 'r0adkll/upload-google-play@v1'
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: 'xyz.attacktive.wallhavend'
+          releaseFiles: 'app/build/outputs/bundle/release/app-release.aab'
+          track: 'production'
