@@ -1,3 +1,6 @@
+import com.android.build.api.dsl.ApplicationExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
 	id("com.android.application")
 	id("org.jetbrains.kotlin.android")
@@ -7,14 +10,14 @@ plugins {
 	id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-android {
+configure<ApplicationExtension> {
 	namespace = "xyz.attacktive.wallhavend"
-	compileSdk = 34
+	compileSdk = 37
 
 	defaultConfig {
 		applicationId = "xyz.attacktive.wallhavend"
 		minSdk = 26
-		targetSdk = 34
+		targetSdk = 37
 		versionCode = 1
 		versionName = "1.0.0"
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -32,15 +35,20 @@ android {
 		targetCompatibility = JavaVersion.VERSION_17
 	}
 
-	kotlinOptions { jvmTarget = "17" }
 	buildFeatures {
 		compose = true
 		buildConfig = true
 	}
 }
 
+kotlin {
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_17
+	}
+}
+
 dependencies {
-	val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
+	val composeBom = platform("androidx.compose:compose-bom:2025.05.01")
 	implementation(composeBom)
 	implementation("androidx.compose.ui:ui")
 	implementation("androidx.compose.ui:ui-tooling-preview")
@@ -48,29 +56,29 @@ dependencies {
 	implementation("androidx.compose.material:material-icons-extended")
 	debugImplementation("androidx.compose.ui:ui-tooling")
 
-	implementation("androidx.navigation:navigation-compose:2.7.7")
-	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
-	implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+	implementation("androidx.navigation:navigation-compose:2.9.8")
+	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+	implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
 
-	implementation("com.google.dagger:hilt-android:2.51.1")
-	ksp("com.google.dagger:hilt-compiler:2.51.1")
-	implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+	implementation("com.google.dagger:hilt-android:2.59.2")
+	ksp("com.google.dagger:hilt-compiler:2.59.2")
+	implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
 
-	implementation("com.squareup.retrofit2:retrofit:2.11.0")
+	implementation("com.squareup.retrofit2:retrofit:3.0.0")
 	implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-	implementation("com.squareup.okhttp3:okhttp:4.12.0")
-	implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+	implementation("com.squareup.okhttp3:okhttp:5.3.2")
+	implementation("com.squareup.okhttp3:logging-interceptor:5.3.2")
+	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
-	implementation("androidx.datastore:datastore-preferences:1.1.1")
+	implementation("androidx.datastore:datastore-preferences:1.2.1")
 	implementation("io.coil-kt:coil-compose:2.7.0")
-	implementation("androidx.core:core-ktx:1.13.1")
-	implementation("androidx.activity:activity-compose:1.9.1")
+	implementation("androidx.core:core-ktx:1.18.0")
+	implementation("androidx.activity:activity-compose:1.13.0")
 
 	testImplementation("junit:junit:4.13.2")
-	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
-	testImplementation("io.mockk:mockk:1.13.12")
-	testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-	testImplementation("androidx.datastore:datastore-preferences-core:1.1.1")
-	androidTestImplementation("androidx.test.ext:junit:1.2.1")
+	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
+	testImplementation("io.mockk:mockk:1.14.9")
+	testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
+	testImplementation("androidx.datastore:datastore-preferences-core:1.2.1")
+	androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }
