@@ -9,3 +9,5 @@
 .cxx
 local.properties
 .superpowers/
+
+release.keystore

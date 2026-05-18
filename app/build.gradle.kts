@@ -23,9 +23,20 @@ configure<ApplicationExtension> {
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 	}
 
+	signingConfigs {
+		create("release") {
+			storeFile = file("../release.keystore")
+			storePassword = System.getenv("KEYSTORE_PASSWORD")
+			keyAlias = "Wallhavend"
+			keyPassword = System.getenv("KEY_PASSWORD")
+		}
+	}
+
 	buildTypes {
 		release {
-			isMinifyEnabled = false
+			signingConfig = signingConfigs.getByName("release")
+			isMinifyEnabled = true
+			isShrinkResources = true
 			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 		}
 	}
