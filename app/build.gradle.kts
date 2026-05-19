@@ -3,12 +3,12 @@ import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-	id("com.android.application")
-	id("org.jetbrains.kotlin.android")
-	id("org.jetbrains.kotlin.plugin.compose")
-	id("com.google.dagger.hilt.android")
-	id("com.google.devtools.ksp")
-	id("org.jetbrains.kotlin.plugin.serialization")
+	alias(libs.plugins.android.application)
+	alias(libs.plugins.kotlin.android)
+	alias(libs.plugins.kotlin.compose)
+	alias(libs.plugins.hilt.android)
+	alias(libs.plugins.ksp)
+	alias(libs.plugins.kotlin.serialization)
 }
 
 val localProperties = Properties().apply {
@@ -68,37 +68,37 @@ kotlin {
 }
 
 dependencies {
-	val composeBom = platform("androidx.compose:compose-bom:2025.05.01")
+	val composeBom = platform(libs.compose.bom)
 	implementation(composeBom)
-	implementation("androidx.compose.ui:ui")
-	implementation("androidx.compose.ui:ui-tooling-preview")
-	implementation("androidx.compose.material3:material3")
-	implementation("androidx.compose.material:material-icons-extended")
-	debugImplementation("androidx.compose.ui:ui-tooling")
+	implementation(libs.compose.ui)
+	implementation(libs.compose.ui.tooling.preview)
+	implementation(libs.compose.material3)
+	implementation(libs.compose.material.icons.extended)
+	debugImplementation(libs.compose.ui.tooling)
 
-	implementation("androidx.navigation:navigation-compose:2.9.8")
-	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
-	implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
+	implementation(libs.androidx.navigation.compose)
+	implementation(libs.androidx.lifecycle.viewmodel.compose)
+	implementation(libs.androidx.lifecycle.runtime.compose)
 
-	implementation("com.google.dagger:hilt-android:2.59.2")
-	ksp("com.google.dagger:hilt-compiler:2.59.2")
-	implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+	implementation(libs.hilt.android)
+	ksp(libs.hilt.compiler)
+	implementation(libs.androidx.hilt.navigation.compose)
 
-	implementation("com.squareup.retrofit2:retrofit:3.0.0")
-	implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-	implementation("com.squareup.okhttp3:okhttp:5.3.2")
-	implementation("com.squareup.okhttp3:logging-interceptor:5.3.2")
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+	implementation(libs.retrofit)
+	implementation(libs.retrofit.kotlinx.serialization.converter)
+	implementation(libs.okhttp)
+	implementation(libs.okhttp.logging.interceptor)
+	implementation(libs.kotlinx.serialization.json)
 
-	implementation("androidx.datastore:datastore-preferences:1.2.1")
-	implementation("io.coil-kt:coil-compose:2.7.0")
-	implementation("androidx.core:core-ktx:1.18.0")
-	implementation("androidx.activity:activity-compose:1.13.0")
+	implementation(libs.androidx.datastore.preferences)
+	implementation(libs.coil.compose)
+	implementation(libs.androidx.core.ktx)
+	implementation(libs.androidx.activity.compose)
 
-	testImplementation("junit:junit:4.13.2")
-	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
-	testImplementation("io.mockk:mockk:1.14.9")
-	testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
-	testImplementation("androidx.datastore:datastore-preferences-core:1.2.1")
-	androidTestImplementation("androidx.test.ext:junit:1.3.0")
+	testImplementation(libs.junit)
+	testImplementation(libs.kotlinx.coroutines.test)
+	testImplementation(libs.mockk)
+	testImplementation(libs.okhttp.mockwebserver)
+	testImplementation(libs.androidx.datastore.preferences.core)
+	androidTestImplementation(libs.androidx.junit)
 }
