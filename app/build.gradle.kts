@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.ApplicationExtension
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -8,6 +9,14 @@ plugins {
 	id("com.google.dagger.hilt.android")
 	id("com.google.devtools.ksp")
 	id("org.jetbrains.kotlin.plugin.serialization")
+}
+
+val localProperties = Properties().apply {
+	val file = rootProject.file("local.properties")
+	if (file.exists()) {
+		file.inputStream()
+			.use { load(it) }
+	}
 }
 
 configure<ApplicationExtension> {
@@ -26,9 +35,9 @@ configure<ApplicationExtension> {
 	signingConfigs {
 		create("release") {
 			storeFile = file("../release.keystore")
-			storePassword = System.getenv("KEYSTORE_PASSWORD")
+			storePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProperties.getProperty("KEYSTORE_PASSWORD")
 			keyAlias = "Wallhavend"
-			keyPassword = System.getenv("KEY_PASSWORD")
+			keyPassword = System.getenv("KEY_PASSWORD") ?: localProperties.getProperty("KEY_PASSWORD")
 		}
 	}
 
