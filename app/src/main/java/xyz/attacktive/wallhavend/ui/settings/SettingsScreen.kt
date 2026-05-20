@@ -1,6 +1,7 @@
 package xyz.attacktive.wallhavend.ui.settings
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,9 +43,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -103,6 +107,22 @@ fun SettingsScreen(
 					1 -> ScheduleTab(settings = settings, onSave = viewModel::save)
 					2 -> AdvancedTab(settings = settings, onSave = viewModel::save)
 				}
+
+				Spacer(Modifier.height(24.dp))
+
+				val uriHandler = LocalUriHandler.current
+
+				Text(
+					text = "Powered by wallhaven.cc",
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					textDecoration = TextDecoration.Underline,
+					textAlign = TextAlign.Center,
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable { uriHandler.openUri("https://wallhaven.cc") }
+						.padding(vertical = 8.dp)
+				)
 			}
 		}
 	}
