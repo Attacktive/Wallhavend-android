@@ -25,6 +25,7 @@ class WallhavenRepositoryTest {
 	private lateinit var repo: WallhavenRepository
 
 	private fun makeDto(id: String) = WallpaperDto(id, "https://wallhaven.cc/$id", "https://cdn/w/$id.jpg", "1920x1080", "image/jpeg")
+
 	private fun makePage(count: Int) = SearchResponseDto(
 		data = (1..count).map { makeDto("w$it") },
 		meta = MetaDto(1, 1, 24, count)

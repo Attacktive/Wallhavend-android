@@ -15,7 +15,6 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 
 class SettingsRepositoryTest {
-
 	@get:Rule
 	val tmpFolder = TemporaryFolder()
 
@@ -23,6 +22,7 @@ class SettingsRepositoryTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			produceFile = { tmpFolder.newFile("test_prefs.preferences_pb") }
 		)
+
 		return SettingsRepository(dataStore, FakeAppLogger())
 	}
 
