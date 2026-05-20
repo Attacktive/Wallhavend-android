@@ -13,7 +13,6 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import xyz.attacktive.wallhavend.domain.model.AppSettings
@@ -41,7 +40,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
 	}
 
-	val settings: Flow<AppSettings> = dataStore.data
+	val settings = dataStore.data
 		.map { prefs -> AppSettings(
 				searchQuery = prefs[Keys.SEARCH_QUERY] ?: "",
 				categories = (prefs[Keys.CATEGORIES] ?: setOf("GENERAL"))
@@ -95,16 +94,19 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 	suspend fun saveServiceState(lastUpdatedMs: Long, currentPath: String?, previousPath: String?) {
 		dataStore.edit { prefs ->
 			prefs[Keys.LAST_UPDATED_MS] = lastUpdatedMs
-			if (currentPath != null) prefs[Keys.CURRENT_WALLPAPER_PATH] = currentPath
-			else prefs.remove(Keys.CURRENT_WALLPAPER_PATH)
-			if (previousPath != null) prefs[Keys.PREVIOUS_WALLPAPER_PATH] = previousPath
-			else prefs.remove(Keys.PREVIOUS_WALLPAPER_PATH)
+			if (currentPath != null) {
+				prefs[Keys.CURRENT_WALLPAPER_PATH] = currentPath
+			} else {
+				prefs.remove(Keys.CURRENT_WALLPAPER_PATH)
+			}
+
+			if (previousPath != null) {
+				prefs[Keys.PREVIOUS_WALLPAPER_PATH] = previousPath
+			} else {
+				prefs.remove(Keys.PREVIOUS_WALLPAPER_PATH)
+			}
 		}
 	}
-
-	val persistedLastUpdatedMs: Flow<Long?> = dataStore.data.map { it[Keys.LAST_UPDATED_MS] }
-	val persistedCurrentPath: Flow<String?> = dataStore.data.map { it[Keys.CURRENT_WALLPAPER_PATH] }
-	val persistedPreviousPath: Flow<String?> = dataStore.data.map { it[Keys.PREVIOUS_WALLPAPER_PATH] }
 
 	companion object {
 		private const val TAG = "SettingsRepo"

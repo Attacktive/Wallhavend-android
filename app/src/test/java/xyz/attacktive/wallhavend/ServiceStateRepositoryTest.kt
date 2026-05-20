@@ -1,16 +1,14 @@
 package xyz.attacktive.wallhavend
 
-import xyz.attacktive.wallhavend.domain.model.AppError
-import xyz.attacktive.wallhavend.domain.model.ServiceState
-import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import xyz.attacktive.wallhavend.domain.model.AppError
+import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 
 class ServiceStateRepositoryTest {
-
 	@Test
 	fun `initial state has sensible defaults`() {
 		val repo = ServiceStateRepository()

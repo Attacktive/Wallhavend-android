@@ -1,13 +1,10 @@
 package xyz.attacktive.wallhavend.ui.home
 
+import java.io.File
+import javax.inject.Inject
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import xyz.attacktive.wallhavend.domain.model.ServiceState
-import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
-import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
-import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
-import xyz.attacktive.wallhavend.domain.service.WallpaperService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -15,16 +12,17 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.File
-import javax.inject.Inject
+import xyz.attacktive.wallhavend.domain.model.ServiceState
+import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
+import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
+import xyz.attacktive.wallhavend.domain.service.WallpaperService
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
 	private val stateRepository: ServiceStateRepository,
 	private val settingsRepository: SettingsRepository,
-	private val fileManager: WallpaperFileManager,
 	@ApplicationContext private val context: Context
-) : ViewModel() {
+): ViewModel() {
 	val serviceState: StateFlow<ServiceState> = stateRepository.state
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
 

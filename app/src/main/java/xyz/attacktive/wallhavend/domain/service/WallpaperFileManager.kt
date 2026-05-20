@@ -1,12 +1,12 @@
 package xyz.attacktive.wallhavend.domain.service
 
-import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
-import xyz.attacktive.wallhavend.domain.model.Wallpaper
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.File
+import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
+import xyz.attacktive.wallhavend.domain.model.Wallpaper
 
 class WallpaperFileManager(private val wallpaperDir: File, private val okHttpClient: OkHttpClient) {
 	private val dir: File get() = wallpaperDir.also { it.mkdirs() }
@@ -50,6 +50,4 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 		return all.take(maxSize)
 	}
 
-	fun listAll(): List<File> =
-		dir.listFiles()?.sortedByDescending { it.lastModified() } ?: emptyList()
 }

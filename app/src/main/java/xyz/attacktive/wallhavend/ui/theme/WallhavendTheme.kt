@@ -6,8 +6,5 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun WallhavendTheme(content: @Composable () -> Unit) {
-	MaterialTheme(
-		colorScheme = darkColorScheme(),
-		content = content
-	)
+	MaterialTheme(colorScheme = darkColorScheme(), content = content)
 }

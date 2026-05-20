@@ -6,7 +6,7 @@ import android.app.NotificationManager
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class WallhavendApplication : Application() {
+class WallhavendApplication: Application() {
 	override fun onCreate() {
 		super.onCreate()
 		createNotificationChannel()

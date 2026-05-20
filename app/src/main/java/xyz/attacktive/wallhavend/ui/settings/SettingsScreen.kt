@@ -1,5 +1,7 @@
 package xyz.attacktive.wallhavend.ui.settings
 
+import android.widget.Toast
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -7,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -37,7 +38,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import android.widget.Toast
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -48,8 +48,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.ASPECT_RATIO_SUGGESTIONS
+import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.Purity
 import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
@@ -117,11 +117,15 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var aspectRatioHasFocused by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.searchQuery) {
-		if (searchQuery != settings.searchQuery) searchQuery = settings.searchQuery
+		if (searchQuery != settings.searchQuery) {
+			searchQuery = settings.searchQuery
+		}
 	}
 
 	LaunchedEffect(settings.aspectRatio) {
-		if (aspectRatio != settings.aspectRatio) aspectRatio = settings.aspectRatio
+		if (aspectRatio != settings.aspectRatio) {
+			aspectRatio = settings.aspectRatio
+		}
 	}
 
 	SectionLabel("SEARCH QUERY (OPTIONAL)")
@@ -143,6 +147,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel("CATEGORIES")
+
 	Row {
 		WallhavenCategory.entries.forEach { category ->
 			val isSelected = category in settings.categories
@@ -167,9 +172,11 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel("CONTENT RATING")
+
 	Row {
 		Purity.entries.forEach { purity ->
 			val isSelected = purity in settings.purity
+
 			FilterChip(
 				selected = isSelected,
 				onClick = {
@@ -180,6 +187,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 					} else {
 						settings.purity
 					}
+
 					onSave(settings.copy(purity = newSet))
 				},
 				label = {

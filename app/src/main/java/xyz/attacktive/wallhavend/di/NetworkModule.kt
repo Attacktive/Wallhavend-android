@@ -1,7 +1,7 @@
 package xyz.attacktive.wallhavend.di
 
-import xyz.attacktive.wallhavend.BuildConfig
-import xyz.attacktive.wallhavend.data.api.WallhavenApiService
+import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -11,16 +11,16 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import java.util.concurrent.TimeUnit
 import retrofit2.Retrofit
-import javax.inject.Singleton
+import xyz.attacktive.wallhavend.BuildConfig
+import xyz.attacktive.wallhavend.data.api.WallhavenApiService
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 	@Provides
 	@Singleton
-	fun provideJson(): Json = Json { ignoreUnknownKeys = true }
+	fun provideJson() = Json { ignoreUnknownKeys = true }
 
 	@Provides
 	@Singleton
@@ -30,9 +30,12 @@ object NetworkModule {
 		.writeTimeout(30, TimeUnit.SECONDS)
 		.apply {
 			if (BuildConfig.DEBUG) {
-				addInterceptor(HttpLoggingInterceptor().apply {
-					level = HttpLoggingInterceptor.Level.BASIC
-				})
+				val basicLoggingInterceptor = HttpLoggingInterceptor()
+					.apply {
+						level = HttpLoggingInterceptor.Level.BASIC
+					}
+
+				addInterceptor(basicLoggingInterceptor)
 			}
 		}
 		.build()

@@ -1,9 +1,11 @@
 package xyz.attacktive.wallhavend.data.api.dto
 
-import xyz.attacktive.wallhavend.domain.model.Wallpaper
+import android.annotation.SuppressLint
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import xyz.attacktive.wallhavend.domain.model.Wallpaper
 
+@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class WallpaperDto(
 	val id: String,

@@ -1,5 +1,9 @@
 package xyz.attacktive.wallhavend.domain.repository
 
+import java.io.File
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 import xyz.attacktive.wallhavend.data.api.WallhavenApiService
 import xyz.attacktive.wallhavend.data.api.dto.WallpaperDto
 import xyz.attacktive.wallhavend.data.api.dto.toDomain
@@ -8,10 +12,6 @@ import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.toBitString
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
-import java.io.File
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class WallhavenRepository @Inject constructor(private val api: WallhavenApiService, private val fileManager: WallpaperFileManager) {
@@ -43,7 +43,9 @@ class WallhavenRepository @Inject constructor(private val api: WallhavenApiServi
 
 		if (cache.isEmpty()) {
 			val fetchResult = refetch(key)
-			if (fetchResult.isFailure) return Result.failure(fetchResult.exceptionOrNull()!!)
+			if (fetchResult.isFailure) {
+				return Result.failure(fetchResult.exceptionOrNull()!!)
+			}
 		}
 
 		if (cache.isEmpty()) {

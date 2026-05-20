@@ -32,13 +32,7 @@
 	<!-- Horizon / Mountain inside screen (Scaled to avoid corner clipping) -->
 	<path android:pathData="M31,68 L48,55 L58,62 L77,68 Z">
 		<aapt:attr name="android:fillColor">
-			<gradient
-				android:startY="55"
-				android:startX="54"
-				android:endY="68"
-				android:endX="54"
-				android:type="linear"
-			>
+			<gradient android:startY="55" android:startX="54" android:endY="68" android:endX="54" android:type="linear">
 				<item android:color="#81C784" android:offset="0.0" />
 				<item android:color="#2E7D32" android:offset="1.0" />
 			</gradient>

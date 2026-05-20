@@ -1,7 +1,6 @@
 package xyz.attacktive.wallhavend
 
-import xyz.attacktive.wallhavend.domain.model.Wallpaper
-import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
+import java.io.File
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -14,10 +13,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
+import xyz.attacktive.wallhavend.domain.model.Wallpaper
+import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 class WallpaperFileManagerTest {
-
 	@get:Rule
 	val tmpFolder = TemporaryFolder()
 
@@ -39,8 +38,10 @@ class WallpaperFileManagerTest {
 	fun `download saves file with correct name`() = runTest {
 		val body = Buffer().write(ByteArray(100) { it.toByte() })
 		server.enqueue(MockResponse().setBody(body).addHeader("Content-Type", "image/jpeg"))
+
 		val wallpaper = Wallpaper("abc123", "https://example.com", server.url("/abc.jpg").toString(), "1920x1080", "image/jpeg")
 		val result = manager.download(wallpaper)
+
 		assertTrue(result.isSuccess)
 		assertEquals("abc123.jpg", result.getOrNull()?.name)
 		assertTrue(result.getOrNull()?.exists() == true)
@@ -50,11 +51,13 @@ class WallpaperFileManagerTest {
 	fun `trimToSize keeps newest N files`() {
 		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
 		val files = (1..5).map { i ->
-			File(wallpapersDir, "w$i.jpg").also {
-				it.writeText("data")
-				it.setLastModified(System.currentTimeMillis() + i * 1000L)
-			}
+			File(wallpapersDir, "w$i.jpg")
+				.also {
+					it.writeText("data")
+					it.setLastModified(System.currentTimeMillis() + i * 1000L)
+				}
 		}
+
 		val kept = manager.trimToSize(3)
 		assertEquals(3, kept.size)
 		assertEquals(files[4].name, kept[0].name)
@@ -70,6 +73,7 @@ class WallpaperFileManagerTest {
 		val files = (0..2).map { File(wallpapersDir, "w$it.jpg").also { f -> f.writeText("data") } }
 		val kept = manager.trimToSize(0)
 		assertEquals(0, kept.size)
+
 		files.forEach { assertTrue("${it.name} should be deleted", !it.exists()) }
 	}
 }

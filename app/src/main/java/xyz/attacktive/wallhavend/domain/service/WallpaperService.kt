@@ -1,5 +1,10 @@
 package xyz.attacktive.wallhavend.domain.service
 
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import javax.inject.Inject
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -12,6 +17,16 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import xyz.attacktive.wallhavend.MainActivity
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_CHANNEL_ID
@@ -23,24 +38,9 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.repository.WallhavenRepository
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class WallpaperService : Service() {
+class WallpaperService: Service() {
 	@Inject lateinit var settingsRepository: SettingsRepository
 	@Inject lateinit var wallhavenRepository: WallhavenRepository
 	@Inject lateinit var fileManager: WallpaperFileManager
@@ -58,7 +58,9 @@ class WallpaperService : Service() {
 			ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate() }
 			ACTION_APPLY_PATH -> {
 				val path = intent.getStringExtra(EXTRA_PATH)
-				if (path != null) serviceScope.launch { applySpecificPath(path) }
+				if (path != null) {
+					serviceScope.launch { applySpecificPath(path) }
+				}
 			}
 			else -> startTimerLoop()
 		}
@@ -98,7 +100,7 @@ class WallpaperService : Service() {
 
 		val result = wallhavenRepository.next(settings)
 		result.fold(
-			onSuccess = { (wallpaper, file) ->
+			onSuccess = { (_, file) ->
 				val applyResult = applyWallpaper(file, settings.wallpaperTarget)
 				applyResult.fold(
 					onSuccess = {
@@ -154,7 +156,12 @@ class WallpaperService : Service() {
 		applyWallpaper(file, settings.wallpaperTarget)
 			.onSuccess {
 				val state = stateRepository.state.value
-				val newPrev = if (state.currentWallpaperPath != path) state.currentWallpaperPath else state.previousWallpaperPath
+				val newPrev = if (state.currentWallpaperPath != path) {
+					state.currentWallpaperPath
+				} else {
+					state.previousWallpaperPath
+				}
+
 				stateRepository.update {
 					it.copy(currentWallpaperPath = path, previousWallpaperPath = newPrev)
 				}

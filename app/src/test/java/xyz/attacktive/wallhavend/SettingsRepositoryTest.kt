@@ -30,6 +30,7 @@ class SettingsRepositoryTest {
 	fun `defaults are correct`() = runTest {
 		val repo = createRepo()
 		val settings = repo.settings.first()
+
 		assertEquals(60, settings.updateIntervalMinutes)
 		assertTrue(settings.unmeteredOnly)
 		assertEquals(10, settings.poolSize)
@@ -53,8 +54,11 @@ class SettingsRepositoryTest {
 			apiKey = "secret",
 			autoStartOnBoot = true
 		)
+
 		repo.save(modified)
+
 		val loaded = repo.settings.first { it == modified }
+
 		assertEquals(modified, loaded)
 	}
 
@@ -63,6 +67,7 @@ class SettingsRepositoryTest {
 		val repo = createRepo()
 		val settings = AppSettings(aspectRatio = "10x16")
 		repo.save(settings)
+
 		val loaded = repo.settings.first { it.aspectRatio == "10x16" }
 		assertEquals("10x16", loaded.aspectRatio)
 	}

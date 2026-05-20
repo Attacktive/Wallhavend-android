@@ -1,8 +1,8 @@
 package xyz.attacktive.wallhavend.data.api
 
-import xyz.attacktive.wallhavend.data.api.dto.SearchResponseDto
 import retrofit2.http.GET
 import retrofit2.http.Query
+import xyz.attacktive.wallhavend.data.api.dto.SearchResponseDto
 
 interface WallhavenApiService {
 	@GET("search")
