@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -126,6 +127,8 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		value = searchQuery,
 		onValueChange = { searchQuery = it },
 		placeholder = { Text("e.g. landscape mountains") },
+		singleLine = true,
+		keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
 		modifier = Modifier
 			.fillMaxWidth()
 			.onFocusChanged { focusState ->
