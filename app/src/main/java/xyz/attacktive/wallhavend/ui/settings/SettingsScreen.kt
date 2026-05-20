@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -113,6 +114,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
 	var aspectRatio by rememberSaveable { mutableStateOf(settings.aspectRatio) }
 	var searchQueryHasFocused by remember { mutableStateOf(false) }
+	var aspectRatioHasFocused by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) searchQuery = settings.searchQuery
@@ -194,10 +196,37 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel("ASPECT RATIO")
-	AspectRatioField(
+
+	val selectedRatios = aspectRatio.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+
+	Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+		ASPECT_RATIO_SUGGESTIONS.forEach { ratio ->
+			FilterChip(
+				selected = ratio in selectedRatios,
+				onClick = {
+					val newSet = if (ratio in selectedRatios) selectedRatios - ratio else selectedRatios + ratio
+					aspectRatio = newSet.joinToString(",")
+					onSave(settings.copy(aspectRatio = aspectRatio))
+				},
+				label = { Text(ratio) },
+				modifier = Modifier.padding(end = 8.dp)
+			)
+		}
+	}
+
+	OutlinedTextField(
 		value = aspectRatio,
 		onValueChange = { aspectRatio = it },
-		onSave = { onSave(settings.copy(aspectRatio = aspectRatio)) }
+		placeholder = { Text("Custom, e.g. 9x16 or 9x16,16x9") },
+		singleLine = true,
+		modifier = Modifier
+			.fillMaxWidth()
+			.onFocusChanged { focusState ->
+				when {
+					focusState.isFocused -> aspectRatioHasFocused = true
+					aspectRatioHasFocused -> onSave(settings.copy(aspectRatio = aspectRatio))
+				}
+			}
 	)
 
 	Text(
@@ -206,52 +235,6 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(top = 4.dp)
 	)
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AspectRatioField(value: String, onValueChange: (String) -> Unit, onSave: () -> Unit) {
-	var expanded by remember { mutableStateOf(false) }
-	var hasFocused by remember { mutableStateOf(false) }
-	val filtered = ASPECT_RATIO_SUGGESTIONS.filter {
-		it.startsWith(value, ignoreCase = true) && it != value
-	}
-
-	ExposedDropdownMenuBox(
-		expanded = expanded && filtered.isNotEmpty(),
-		onExpandedChange = { expanded = it }
-	) {
-		OutlinedTextField(
-			value = value,
-			onValueChange = {
-				onValueChange(it)
-				expanded = true
-			},
-			placeholder = { Text("e.g. 9x16") },
-			modifier = Modifier
-				.fillMaxWidth()
-				.menuAnchor()
-				.onFocusChanged { focusState ->
-					when {
-						focusState.isFocused -> hasFocused = true
-						hasFocused -> onSave()
-					}
-				}
-		)
-
-		ExposedDropdownMenu(expanded = expanded && filtered.isNotEmpty(), onDismissRequest = { expanded = false }) {
-			filtered.forEach { suggestion ->
-				DropdownMenuItem(
-					text = { Text(suggestion) },
-					onClick = {
-						onValueChange(suggestion)
-						onSave()
-						expanded = false
-					}
-				)
-			}
-		}
-	}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
