@@ -36,7 +36,7 @@ configure<ApplicationExtension> {
 		create("release") {
 			storeFile = file("../release.keystore")
 			storePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProperties.getProperty("KEYSTORE_PASSWORD")
-			keyAlias = "Wallhavend"
+			keyAlias = "wallhavend"
 			keyPassword = System.getenv("KEY_PASSWORD") ?: localProperties.getProperty("KEY_PASSWORD")
 		}
 	}
