@@ -1,5 +1,7 @@
 package xyz.attacktive.wallhavend.domain.repository
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -8,22 +10,20 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import xyz.attacktive.wallhavend.domain.model.AppSettings
-import xyz.attacktive.wallhavend.domain.model.Purity
-import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
-import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Singleton
+import xyz.attacktive.wallhavend.domain.model.AppSettings
+import xyz.attacktive.wallhavend.domain.model.Purity
+import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
+import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import xyz.attacktive.wallhavend.util.AppLogger
 
 @Singleton
-class SettingsRepository @Inject constructor(private val dataStore: DataStore<Preferences>) {
+class SettingsRepository @Inject constructor(private val dataStore: DataStore<Preferences>, private val logger: AppLogger) {
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private object Keys {
 		val SEARCH_QUERY = stringPreferencesKey("search_query")
@@ -62,14 +62,14 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				apiKey = prefs[Keys.API_KEY] ?: "",
 				autoStartOnBoot = prefs[Keys.AUTO_START_ON_BOOT] ?: true
 			)
-			.also { Log.d(TAG, "read: ${it.redactedForLog()}") }
+			.also { logger.d(TAG, "read: ${it.redactedForLog()}") }
 		}
 
 	fun save(settings: AppSettings) {
-		Log.d(TAG, "save: ${settings.redactedForLog()}")
+		logger.d(TAG, "save: ${settings.redactedForLog()}")
 
 		scope.launch {
-			Log.d(TAG, "save() coroutine started on ${Thread.currentThread().name}")
+			logger.d(TAG, "save() coroutine started on ${Thread.currentThread().name}")
 
 			runCatching {
 				dataStore.edit { prefs ->
@@ -85,9 +85,9 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 					prefs[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
 				}
 			}.onSuccess {
-				Log.d(TAG, "save() completed successfully")
+				logger.d(TAG, "save() completed successfully")
 			}.onFailure { e ->
-				Log.e(TAG, "save() FAILED: ${e.message}", e)
+				logger.e(TAG, "save() FAILED: ${e.message}", e)
 			}
 		}
 	}

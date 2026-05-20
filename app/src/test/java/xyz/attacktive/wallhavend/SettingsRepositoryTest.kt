@@ -23,7 +23,7 @@ class SettingsRepositoryTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			produceFile = { tmpFolder.newFile("test_prefs.preferences_pb") }
 		)
-		return SettingsRepository(dataStore)
+		return SettingsRepository(dataStore, FakeAppLogger())
 	}
 
 	@Test
