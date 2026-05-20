@@ -62,11 +62,11 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				apiKey = prefs[Keys.API_KEY] ?: "",
 				autoStartOnBoot = prefs[Keys.AUTO_START_ON_BOOT] ?: true
 			)
-			.also { Log.d(TAG, "read: $it") }
+			.also { Log.d(TAG, "read: ${it.redactedForLog()}") }
 		}
 
 	fun save(settings: AppSettings) {
-		Log.d(TAG, "save: $settings")
+		Log.d(TAG, "save: ${settings.redactedForLog()}")
 
 		scope.launch {
 			Log.d(TAG, "save() coroutine started on ${Thread.currentThread().name}")
@@ -110,3 +110,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		private const val TAG = "SettingsRepo"
 	}
 }
+
+/** Renders settings for logging without exposing the API key. */
+private fun AppSettings.redactedForLog(): AppSettings =
+	if (apiKey.isEmpty()) this else copy(apiKey = "***")
