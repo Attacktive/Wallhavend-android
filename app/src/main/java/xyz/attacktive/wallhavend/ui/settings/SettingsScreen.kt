@@ -36,9 +36,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import android.widget.Toast
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -252,6 +254,7 @@ private fun AspectRatioField(value: String, onValueChange: (String) -> Unit, onS
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+	val context = LocalContext.current
 	var intervalExpanded by remember { mutableStateOf(false) }
 
 	SectionLabel("UPDATE INTERVAL")
@@ -274,7 +277,11 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 				DropdownMenuItem(
 					text = { Text(formatInterval(minutes)) },
 					onClick = {
-						onSave(settings.copy(updateIntervalMinutes = minutes))
+						if (minutes != settings.updateIntervalMinutes) {
+							onSave(settings.copy(updateIntervalMinutes = minutes))
+							Toast.makeText(context, "Takes effect on next update", Toast.LENGTH_SHORT).show()
+						}
+
 						intervalExpanded = false
 					}
 				)
