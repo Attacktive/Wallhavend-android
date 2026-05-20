@@ -28,7 +28,6 @@ jobs:
       - name: 'Build release APK and AAB'
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: './gradlew assembleRelease bundleRelease'
 
       - name: 'Upload APK to GitHub Releases'

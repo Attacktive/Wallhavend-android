@@ -19,6 +19,8 @@ val localProperties = Properties().apply {
 	}
 }
 
+val keystorePassword: String? = System.getenv("KEYSTORE_PASSWORD") ?: localProperties.getProperty("KEYSTORE_PASSWORD")
+
 configure<ApplicationExtension> {
 	namespace = "xyz.attacktive.wallhavend"
 	compileSdk = 37
@@ -35,9 +37,9 @@ configure<ApplicationExtension> {
 	signingConfigs {
 		create("release") {
 			storeFile = file("../release.keystore")
-			storePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProperties.getProperty("KEYSTORE_PASSWORD")
+			storePassword = keystorePassword
 			keyAlias = "wallhavend"
-			keyPassword = System.getenv("KEY_PASSWORD") ?: localProperties.getProperty("KEY_PASSWORD")
+			keyPassword = keystorePassword
 		}
 	}
 
