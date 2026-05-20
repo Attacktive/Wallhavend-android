@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
@@ -82,8 +81,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 			QuickActions(
 				state = state,
 				onStartStop = { if (state.isRunning) viewModel.stopService() else viewModel.startService() },
-				onUpdateNow = viewModel::updateNow,
-				onPrevious = viewModel::previous
+				onUpdateNow = viewModel::updateNow
 			)
 
 			state.error?.let { error ->
@@ -137,7 +135,7 @@ private fun StatusCard(state: ServiceState) {
 }
 
 @Composable
-private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateNow: () -> Unit, onPrevious: () -> Unit) {
+private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateNow: () -> Unit) {
 	Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 		Button(onClick = onStartStop) {
 			Icon(
@@ -151,10 +149,6 @@ private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateN
 
 		OutlinedButton(onClick = onUpdateNow) {
 			Icon(Icons.Default.Refresh, contentDescription = "Update now")
-		}
-
-		OutlinedButton(onClick = onPrevious, enabled = state.previousWallpaperPath != null) {
-			Icon(Icons.Default.SkipPrevious, contentDescription = "Previous")
 		}
 	}
 }

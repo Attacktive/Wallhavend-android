@@ -24,7 +24,6 @@ class HomeViewModel @Inject constructor(
 	fun startService() = WallpaperService.start(context)
 	fun stopService() = WallpaperService.stop(context)
 	fun updateNow() = WallpaperService.updateNow(context)
-	fun previous() = WallpaperService.previous(context)
 
 	fun applyFromPool(path: String) {
 		WallpaperService.applyPath(context, path)

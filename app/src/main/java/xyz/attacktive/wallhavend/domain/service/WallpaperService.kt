@@ -56,7 +56,6 @@ class WallpaperService : Service() {
 		when (intent?.action) {
 			ACTION_STOP -> stopSelf()
 			ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate() }
-			ACTION_PREVIOUS -> serviceScope.launch { applyPrevious() }
 			ACTION_APPLY_PATH -> {
 				val path = intent.getStringExtra(EXTRA_PATH)
 				if (path != null) serviceScope.launch { applySpecificPath(path) }
@@ -164,27 +163,6 @@ class WallpaperService : Service() {
 			}
 	}
 
-	private suspend fun applyPrevious() {
-		val state = stateRepository.state.value
-		val prevPath = state.previousWallpaperPath ?: return
-
-		val file = File(prevPath)
-		if (!file.exists()) {
-			return
-		}
-
-		val settings = settingsRepository.settings.first()
-
-		applyWallpaper(file, settings.wallpaperTarget).onSuccess {
-			stateRepository.update {
-				it.copy(
-					currentWallpaperPath = prevPath,
-					previousWallpaperPath = it.currentWallpaperPath
-				)
-			}
-		}
-	}
-
 	private fun applyWallpaper(file: File, target: WallpaperTarget): Result<Unit> = runCatching {
 		val bitmap = BitmapFactory.decodeFile(file.absolutePath)
 			?: error("Failed to decode bitmap from ${file.name}")
@@ -241,15 +219,8 @@ class WallpaperService : Service() {
 			PendingIntent.FLAG_IMMUTABLE
 		)
 
-		val previousIntent = PendingIntent.getService(
-			this, 2,
-			Intent(this, WallpaperService::class.java)
-				.apply { action = ACTION_PREVIOUS },
-			PendingIntent.FLAG_IMMUTABLE
-		)
-
 		val stopIntent = PendingIntent.getService(
-			this, 3,
+			this, 2,
 			Intent(this, WallpaperService::class.java)
 				.apply { action = ACTION_STOP },
 			PendingIntent.FLAG_IMMUTABLE
@@ -262,7 +233,6 @@ class WallpaperService : Service() {
 			.setContentIntent(openIntent)
 			.setOngoing(true)
 			.addAction(0, "Update", updateNowIntent)
-			.addAction(0, "Previous", previousIntent)
 			.addAction(0, "Stop", stopIntent)
 			.build()
 	}
@@ -281,7 +251,6 @@ class WallpaperService : Service() {
 	companion object {
 		const val ACTION_STOP = "xyz.attacktive.wallhavend.STOP"
 		const val ACTION_UPDATE_NOW = "xyz.attacktive.wallhavend.UPDATE_NOW"
-		const val ACTION_PREVIOUS = "xyz.attacktive.wallhavend.PREVIOUS"
 		const val ACTION_APPLY_PATH = "xyz.attacktive.wallhavend.APPLY_PATH"
 		const val EXTRA_PATH = "path"
 
@@ -298,12 +267,6 @@ class WallpaperService : Service() {
 		fun updateNow(context: Context) {
 			context.startForegroundService(Intent(context, WallpaperService::class.java)
 				.apply { action = ACTION_UPDATE_NOW }
-			)
-		}
-
-		fun previous(context: Context) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java)
-				.apply { action = ACTION_PREVIOUS }
 			)
 		}
 
