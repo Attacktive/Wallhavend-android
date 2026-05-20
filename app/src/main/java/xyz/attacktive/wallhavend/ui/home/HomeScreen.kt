@@ -21,10 +21,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -102,7 +104,8 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 				WallpaperGrid(
 					paths = state.poolPaths,
 					currentPath = state.currentWallpaperPath,
-					onTap = viewModel::applyFromPool
+					onTap = viewModel::applyFromPool,
+					onDelete = viewModel::deleteFromPool
 				)
 			}
 		}
@@ -154,7 +157,7 @@ private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateN
 }
 
 @Composable
-private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (String) -> Unit) {
+private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (String) -> Unit, onDelete: (String) -> Unit) {
 	LazyVerticalGrid(
 		columns = GridCells.Fixed(3),
 		contentPadding = PaddingValues(vertical = 4.dp),
@@ -181,6 +184,20 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 					contentScale = ContentScale.Crop,
 					modifier = Modifier.fillMaxSize()
 				)
+
+				IconButton(
+					onClick = { onDelete(path) },
+					modifier = Modifier
+						.align(Alignment.TopEnd)
+						.size(28.dp)
+				) {
+					Icon(
+						Icons.Default.Close,
+						contentDescription = "Delete",
+						modifier = Modifier.size(16.dp),
+						tint = Color.White
+					)
+				}
 			}
 		}
 	}
