@@ -2,6 +2,7 @@ package xyz.attacktive.wallhavend
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -18,8 +19,9 @@ class SettingsRepositoryTest {
 	@get:Rule
 	val tmpFolder = TemporaryFolder()
 
-	private fun createRepo(): SettingsRepository {
+	private fun TestScope.createRepo(): SettingsRepository {
 		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
 			produceFile = { tmpFolder.newFile("test_prefs.preferences_pb") }
 		)
 
