@@ -1,11 +1,6 @@
 package xyz.attacktive.wallhavend
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import xyz.attacktive.wallhavend.domain.model.AppSettings
-import xyz.attacktive.wallhavend.domain.model.Purity
-import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
-import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
-import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -13,6 +8,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import xyz.attacktive.wallhavend.domain.model.AppSettings
+import xyz.attacktive.wallhavend.domain.model.Purity
+import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
+import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 
 class SettingsRepositoryTest {
 
@@ -56,5 +56,14 @@ class SettingsRepositoryTest {
 		repo.save(modified)
 		val loaded = repo.settings.first { it == modified }
 		assertEquals(modified, loaded)
+	}
+
+	@Test
+	fun `save and reload 10x16 aspect ratio`() = runTest {
+		val repo = createRepo()
+		val settings = AppSettings(aspectRatio = "10x16")
+		repo.save(settings)
+		val loaded = repo.settings.first { it.aspectRatio == "10x16" }
+		assertEquals("10x16", loaded.aspectRatio)
 	}
 }
