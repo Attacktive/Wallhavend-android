@@ -1,7 +1,6 @@
 package xyz.attacktive.wallhavend.domain.repository
 
 import java.io.File
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import xyz.attacktive.wallhavend.data.api.WallhavenApiService
@@ -65,7 +64,10 @@ class WallhavenRepository @Inject constructor(private val api: WallhavenApiServi
 			purity = key.purity,
 			ratios = key.ratios,
 			sorting = "random",
-			seed = UUID.randomUUID().toString(),
+			seed = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
+				.shuffled()
+				.take(6)
+				.joinToString(""),
 			apiKey = key.apiKey
 		)
 
