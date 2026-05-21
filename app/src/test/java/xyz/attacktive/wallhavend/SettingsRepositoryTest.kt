@@ -1,6 +1,8 @@
 package xyz.attacktive.wallhavend
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -34,11 +36,27 @@ class SettingsRepositoryTest {
 		val settings = repo.settings.first()
 
 		assertEquals(60, settings.updateIntervalMinutes)
-		assertTrue(settings.unmeteredOnly)
+		assertTrue(settings.wifiOnly)
 		assertEquals(10, settings.poolSize)
 		assertEquals(WallpaperTarget.HOME, settings.wallpaperTarget)
 		assertEquals(setOf(WallhavenCategory.GENERAL), settings.categories)
 		assertEquals(setOf(Purity.SFW), settings.purity)
+	}
+
+	@Test
+	fun `wifiOnly is not read from legacy unmetered_only key`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("legacy_prefs.preferences_pb") }
+		)
+
+		dataStore.edit { prefs ->
+			prefs[booleanPreferencesKey("unmetered_only")] = false
+		}
+
+		val repo = SettingsRepository(dataStore, FakeAppLogger())
+
+		assertTrue(repo.settings.first().wifiOnly)
 	}
 
 	@Test
@@ -51,7 +69,7 @@ class SettingsRepositoryTest {
 			aspectRatio = "16x9",
 			updateIntervalMinutes = 30,
 			wallpaperTarget = WallpaperTarget.HOME,
-			unmeteredOnly = false,
+			wifiOnly = false,
 			poolSize = 25,
 			apiKey = "secret",
 			autoStartOnBoot = true

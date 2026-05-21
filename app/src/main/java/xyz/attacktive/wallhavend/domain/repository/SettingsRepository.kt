@@ -31,7 +31,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val ASPECT_RATIO = stringPreferencesKey("aspect_ratio")
 		val UPDATE_INTERVAL_MINUTES = intPreferencesKey("update_interval_minutes")
 		val WALLPAPER_TARGET = stringPreferencesKey("wallpaper_target")
-		val UNMETERED_ONLY = booleanPreferencesKey("unmetered_only")
+		val WIFI_ONLY = booleanPreferencesKey("wifi_only")
 		val POOL_SIZE = intPreferencesKey("pool_size")
 		val API_KEY = stringPreferencesKey("api_key")
 		val AUTO_START_ON_BOOT = booleanPreferencesKey("auto_start_on_boot")
@@ -56,7 +56,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				wallpaperTarget = prefs[Keys.WALLPAPER_TARGET]
 					?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
 					?: WallpaperTarget.HOME,
-				unmeteredOnly = prefs[Keys.UNMETERED_ONLY] ?: true,
+				wifiOnly = prefs[Keys.WIFI_ONLY] ?: true,
 				poolSize = prefs[Keys.POOL_SIZE] ?: 10,
 				apiKey = prefs[Keys.API_KEY] ?: "",
 				autoStartOnBoot = prefs[Keys.AUTO_START_ON_BOOT] ?: true
@@ -78,7 +78,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 					prefs[Keys.ASPECT_RATIO] = settings.aspectRatio
 					prefs[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
 					prefs[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
-					prefs[Keys.UNMETERED_ONLY] = settings.unmeteredOnly
+					prefs[Keys.WIFI_ONLY] = settings.wifiOnly
 					prefs[Keys.POOL_SIZE] = settings.poolSize
 					prefs[Keys.API_KEY] = settings.apiKey
 					prefs[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot

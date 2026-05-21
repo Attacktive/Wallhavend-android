@@ -332,10 +332,10 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	ToggleSetting(
-		label = "Unmetered Wi-Fi only",
+		label = "Wi-Fi only",
 		subtitle = "Skip updates on mobile data",
-		checked = settings.unmeteredOnly,
-		onToggle = { onSave(settings.copy(unmeteredOnly = it)) }
+		checked = settings.wifiOnly,
+		onToggle = { onSave(settings.copy(wifiOnly = it)) }
 	)
 
 	Spacer(Modifier.height(8.dp))

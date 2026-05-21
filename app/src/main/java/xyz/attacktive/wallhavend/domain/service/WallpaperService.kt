@@ -94,7 +94,7 @@ class WallpaperService: Service() {
 			return
 		}
 
-		if (settings.unmeteredOnly && isMetered()) {
+		if (settings.wifiOnly && !isOnWifi()) {
 			return
 		}
 
@@ -200,10 +200,12 @@ class WallpaperService: Service() {
 			?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
 	}
 
-	private fun isMetered(): Boolean {
+	private fun isOnWifi(): Boolean {
 		val cm = getSystemService(ConnectivityManager::class.java)
 
-		return cm.isActiveNetworkMetered
+		return cm.activeNetwork
+			?.let { cm.getNetworkCapabilities(it) }
+			?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
 	}
 
 	private fun buildNotification(): Notification {

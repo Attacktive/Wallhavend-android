@@ -7,7 +7,7 @@ data class AppSettings(
 	val aspectRatio: String = "",
 	val updateIntervalMinutes: Int = 60,
 	val wallpaperTarget: WallpaperTarget = WallpaperTarget.HOME,
-	val unmeteredOnly: Boolean = true,
+	val wifiOnly: Boolean = true,
 	val poolSize: Int = 10,
 	val apiKey: String = "",
 	val autoStartOnBoot: Boolean = true
