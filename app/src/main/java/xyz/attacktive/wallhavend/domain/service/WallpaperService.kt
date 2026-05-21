@@ -90,11 +90,8 @@ class WallpaperService: Service() {
 
 		val online = isOnline()
 		stateRepository.update { it.copy(isOnline = online) }
-		if (!online) {
-			return
-		}
 
-		val canDownload = forceDownload || !settings.wifiOnly || isOnWifi()
+		val canDownload = online && (forceDownload || !settings.wifiOnly || isOnWifi())
 
 		if (canDownload) {
 			val result = wallhavenRepository.next(settings)
