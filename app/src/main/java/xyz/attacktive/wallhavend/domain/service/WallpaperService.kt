@@ -55,7 +55,7 @@ class WallpaperService: Service() {
 		startForeground(NOTIFICATION_ID, buildNotification())
 		when (intent?.action) {
 			ACTION_STOP -> stopSelf()
-			ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate() }
+			ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate(forceDownload = true) }
 			ACTION_APPLY_PATH -> {
 				val path = intent.getStringExtra(EXTRA_PATH)
 				if (path != null) {
@@ -85,7 +85,7 @@ class WallpaperService: Service() {
 		}
 	}
 
-	private suspend fun performUpdate() {
+	private suspend fun performUpdate(forceDownload: Boolean = false) {
 		val settings = settingsRepository.settings.first()
 
 		val online = isOnline()
@@ -94,55 +94,79 @@ class WallpaperService: Service() {
 			return
 		}
 
-		if (settings.wifiOnly && !isOnWifi()) {
-			return
-		}
+		val canDownload = forceDownload || !settings.wifiOnly || isOnWifi()
 
-		val result = wallhavenRepository.next(settings)
-		result.fold(
-			onSuccess = { (_, file) ->
-				val applyResult = applyWallpaper(file, settings.wallpaperTarget)
-				applyResult.fold(
-					onSuccess = {
-						val remaining = if (settings.poolSize == 0) {
-							fileManager.trimToSize(0)
-							emptyList()
-						} else {
-							fileManager.trimToSize(settings.poolSize)
+		if (canDownload) {
+			val result = wallhavenRepository.next(settings)
+			result.fold(
+				onSuccess = { (_, file) ->
+					val applyResult = applyWallpaper(file, settings.wallpaperTarget)
+					applyResult.fold(
+						onSuccess = {
+							val remaining = if (settings.poolSize == 0) {
+								fileManager.trimToSize(0)
+								emptyList()
+							} else {
+								fileManager.trimToSize(settings.poolSize)
+							}
+
+							val paths = remaining.map { it.absolutePath }
+							val now = System.currentTimeMillis()
+
+							stateRepository.update { state ->
+								state.copy(
+									lastUpdatedMs = now,
+									currentWallpaperPath = paths.firstOrNull(),
+									previousWallpaperPath = paths.getOrNull(1),
+									poolPaths = paths,
+									error = null
+								)
+							}
+
+							settingsRepository.saveServiceState(now, paths.firstOrNull(), paths.getOrNull(1))
+							updateNotification()
+						},
+						onFailure = { throwable ->
+							postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
 						}
-
-						val paths = remaining.map { it.absolutePath }
-						val now = System.currentTimeMillis()
-
-						stateRepository.update { state ->
-							state.copy(
-								lastUpdatedMs = now,
-								currentWallpaperPath = paths.firstOrNull(),
-								previousWallpaperPath = paths.getOrNull(1),
-								poolPaths = paths,
-								error = null
-							)
-						}
-
-						settingsRepository.saveServiceState(now, paths.firstOrNull(), paths.getOrNull(1))
-						updateNotification()
-					},
-					onFailure = { throwable ->
-						postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
+					)
+				},
+				onFailure = { throwable ->
+					val error = when (throwable) {
+						is NoResultsException -> AppError.NoResults
+						is UnsupportedFormatException -> AppError.UnsupportedFormat
+						is HttpException -> AppError.ApiError(throwable.code())
+						else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
 					}
-				)
-			},
-			onFailure = { throwable ->
-				val error = when (throwable) {
-					is NoResultsException -> AppError.NoResults
-					is UnsupportedFormatException -> AppError.UnsupportedFormat
-					is HttpException -> AppError.ApiError(throwable.code())
-					else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
-				}
 
-				postError(error)
+					postError(error)
+				}
+			)
+		} else {
+			val current = stateRepository.state.value.currentWallpaperPath
+			val next = fileManager.listAll()
+				.map { it.absolutePath }
+				.firstOrNull { it != current }
+				?: return
+
+			val file = File(next)
+			if (!file.exists()) {
+				return
 			}
-		)
+
+			applyWallpaper(file, settings.wallpaperTarget)
+				.onSuccess {
+					val state = stateRepository.state.value
+					stateRepository.update {
+						it.copy(
+							currentWallpaperPath = next,
+							previousWallpaperPath = state.currentWallpaperPath
+						)
+					}
+
+					updateNotification()
+				}
+		}
 	}
 
 	private suspend fun applySpecificPath(path: String) {
@@ -241,7 +265,7 @@ class WallpaperService: Service() {
 			.setContentText(lastUpdated)
 			.setContentIntent(openIntent)
 			.setOngoing(true)
-			.addAction(0, "Update", updateNowIntent)
+			.addAction(0, "Download now", updateNowIntent)
 			.addAction(0, "Stop", stopIntent)
 			.build()
 	}

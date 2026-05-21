@@ -27,7 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
@@ -150,7 +150,9 @@ private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateN
 		}
 
 		OutlinedButton(onClick = onUpdateNow) {
-			Icon(Icons.Default.Refresh, contentDescription = "Update now")
+			Icon(Icons.Default.CloudDownload, contentDescription = null)
+			Spacer(Modifier.width(4.dp))
+			Text("Download now")
 		}
 	}
 }

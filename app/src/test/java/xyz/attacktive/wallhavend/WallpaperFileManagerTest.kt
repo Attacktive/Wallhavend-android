@@ -48,6 +48,29 @@ class WallpaperFileManagerTest {
 	}
 
 	@Test
+	fun `listAll returns files sorted by last modified descending`() {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val files = (1..3).map { i ->
+			File(wallpapersDir, "w$i.jpg").also {
+				it.writeText("data")
+				it.setLastModified(System.currentTimeMillis() + i * 1000L)
+			}
+		}
+
+		val result = manager.listAll()
+
+		assertEquals(3, result.size)
+		assertEquals(files[2].name, result[0].name)
+		assertEquals(files[1].name, result[1].name)
+		assertEquals(files[0].name, result[2].name)
+	}
+
+	@Test
+	fun `listAll returns empty list when no files exist`() {
+		assertEquals(emptyList<File>(), manager.listAll())
+	}
+
+	@Test
 	fun `trimToSize keeps newest N files`() {
 		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
 		val files = (1..5).map { i ->
