@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import xyz.attacktive.wallhavend.BuildConfig
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 
@@ -62,7 +63,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 	Scaffold(
 		topBar = {
 			TopAppBar(
-				title = { Text("Wallhavend") },
+				title = { Text("Wallhavend ${BuildConfig.VERSION_NAME}") },
 				actions = {
 					IconButton(onClick = onNavigateToSettings) {
 						Icon(Icons.Default.Settings, contentDescription = "Settings")
