@@ -10,7 +10,7 @@ interface WallhavenApiService {
 		@Query("q") query: String?,
 		@Query("categories") categories: String,
 		@Query("purity") purity: String,
-		@Query("ratios") ratios: String?,
+		@Query(value = "ratios", encoded = true) ratios: String?,
 		@Query("sorting") sorting: String,
 		@Query("seed") seed: String?,
 		@Query("apikey") apiKey: String?
