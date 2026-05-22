@@ -313,11 +313,13 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	)
 
 	WallpaperTarget.entries.forEach { target ->
-		Row(verticalAlignment = Alignment.CenterVertically) {
-			RadioButton(
-				selected = settings.wallpaperTarget == target,
-				onClick = { onSave(settings.copy(wallpaperTarget = target)) }
-			)
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			modifier = Modifier
+				.fillMaxWidth()
+				.clickable { onSave(settings.copy(wallpaperTarget = target)) }
+		) {
+			RadioButton(selected = settings.wallpaperTarget == target, onClick = null)
 
 			Text(
 				text = when (target) {
@@ -365,10 +367,15 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	)
 
 	POOL_SIZE_OPTIONS.forEach { size ->
-		Row(verticalAlignment = Alignment.CenterVertically) {
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			modifier = Modifier
+				.fillMaxWidth()
+				.clickable { onSave(settings.copy(poolSize = size)) }
+		) {
 			RadioButton(
 				selected = settings.poolSize == size,
-				onClick = { onSave(settings.copy(poolSize = size)) }
+				onClick = null
 			)
 
 			Text(
