@@ -210,6 +210,7 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 private fun ErrorBanner(error: AppError) {
 	val message = when (error) {
 		is AppError.NoResults -> "No results — try relaxing your filters"
+		is AppError.NoResultsWithRatioHint -> "No results — try clearing the aspect ratio, or remove the API key if you don't need NSFW wallpapers"
 		is AppError.ApiError -> "API error ${error.code}"
 		is AppError.UnsupportedFormat -> "Unsupported image format — skipping"
 		is AppError.WallpaperApplyFailed -> "Failed to apply wallpaper: ${error.cause}"

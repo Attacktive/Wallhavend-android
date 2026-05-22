@@ -130,7 +130,12 @@ class WallpaperService: Service() {
 				},
 				onFailure = { throwable ->
 					val error = when (throwable) {
-						is NoResultsException -> AppError.NoResults
+						// Wallhaven server bug: certain ratios yield zero results when an API key is present
+						is NoResultsException -> if (settings.apiKey.isNotBlank() && settings.aspectRatio.isNotBlank()) {
+							AppError.NoResultsWithRatioHint
+						} else {
+							AppError.NoResults
+						}
 						is UnsupportedFormatException -> AppError.UnsupportedFormat
 						is HttpException -> AppError.ApiError(throwable.code())
 						else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
