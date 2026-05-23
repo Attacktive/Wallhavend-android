@@ -40,19 +40,19 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 		}
 	}
 
-	fun listAll(): List<File> =
-		dir.listFiles()
-			?.sortedByDescending { it.lastModified() }
-			?: emptyList()
+	fun listAll(): List<File> = sortedFiles()
 
 	fun trimToSize(maxSize: Int): List<File> {
-		val all = dir.listFiles()
-			?.sortedByDescending { it.lastModified() }
-			?: emptyList()
+		val all = sortedFiles()
 
 		all.drop(maxSize).forEach { it.delete() }
 
 		return all.take(maxSize)
 	}
+
+	private fun sortedFiles(): List<File> =
+		dir.listFiles()
+			?.sortedByDescending { it.lastModified() }
+			?: emptyList()
 
 }
