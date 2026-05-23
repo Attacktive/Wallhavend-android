@@ -1,10 +1,8 @@
-import com.android.build.api.dsl.ApplicationExtension
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
 	alias(libs.plugins.android.application)
-	alias(libs.plugins.kotlin.android)
 	alias(libs.plugins.kotlin.compose)
 	alias(libs.plugins.hilt.android)
 	alias(libs.plugins.ksp)
@@ -21,7 +19,7 @@ val localProperties = Properties().apply {
 
 val keystorePassword: String? = System.getenv("KEYSTORE_PASSWORD") ?: localProperties.getProperty("KEYSTORE_PASSWORD")
 
-configure<ApplicationExtension> {
+android {
 	namespace = "xyz.attacktive.wallhavend"
 	compileSdk = 37
 
@@ -60,6 +58,12 @@ configure<ApplicationExtension> {
 	buildFeatures {
 		compose = true
 		buildConfig = true
+	}
+
+	testOptions {
+		unitTests {
+			isReturnDefaultValues = true
+		}
 	}
 }
 
