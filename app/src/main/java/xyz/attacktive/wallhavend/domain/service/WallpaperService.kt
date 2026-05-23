@@ -221,8 +221,11 @@ class WallpaperService: Service() {
 	private fun isOnline(): Boolean {
 		val cm = getSystemService(ConnectivityManager::class.java)
 
-		return cm.activeNetwork?.let { cm.getNetworkCapabilities(it) }
-			?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+		val isConnected = cm.activeNetwork
+			?.let { cm.getNetworkCapabilities(it) }
+			?.let { it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && it.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) }
+
+		return isConnected == true
 	}
 
 	private fun isOnWifi(): Boolean {
