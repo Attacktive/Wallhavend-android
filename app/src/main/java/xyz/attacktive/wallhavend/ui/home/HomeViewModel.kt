@@ -21,7 +21,7 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperService
 class HomeViewModel @Inject constructor(
 	private val stateRepository: ServiceStateRepository,
 	private val settingsRepository: SettingsRepository,
-	@ApplicationContext private val context: Context
+	@param:ApplicationContext private val context: Context
 ): ViewModel() {
 	val serviceState: StateFlow<ServiceState> = stateRepository.state
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())

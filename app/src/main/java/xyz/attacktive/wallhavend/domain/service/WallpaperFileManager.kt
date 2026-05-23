@@ -22,7 +22,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 				.use { response ->
 					check(response.isSuccessful) { "HTTP ${response.code}" }
 
-					val contentType = response.body?.contentType()?.toString() ?: ""
+					val contentType = response.body.contentType().toString()
 					if (!contentType.contains("image/jpeg") && !contentType.contains("image/png")) {
 						throw UnsupportedFormatException(contentType)
 					}
