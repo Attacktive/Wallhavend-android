@@ -57,7 +57,7 @@ class WallhavenRepository @Inject constructor(private val api: WallhavenApiServi
 		return fileManager.download(wallpaper).map { file -> Pair(wallpaper, file) }
 	}
 
-	private suspend fun refetch(key: SearchKey): Result<Unit> = runCatching {
+	private suspend fun refetch(key: SearchKey) = runCatching {
 		val response = api.search(
 			query = key.query,
 			categories = key.categories,

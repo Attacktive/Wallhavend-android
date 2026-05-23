@@ -49,7 +49,7 @@ class WallpaperService: Service() {
 	private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private var timerJob: Job? = null
 
-	override fun onBind(intent: Intent?): IBinder? = null
+	override fun onBind(intent: Intent?) = null
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		startForeground(NOTIFICATION_ID, buildNotification())
@@ -196,7 +196,7 @@ class WallpaperService: Service() {
 			}
 	}
 
-	private fun applyWallpaper(file: File, target: WallpaperTarget): Result<Unit> = runCatching {
+	private fun applyWallpaper(file: File, target: WallpaperTarget) = runCatching {
 		val bitmap = BitmapFactory.decodeFile(file.absolutePath)
 			?: error("Failed to decode bitmap from ${file.name}")
 

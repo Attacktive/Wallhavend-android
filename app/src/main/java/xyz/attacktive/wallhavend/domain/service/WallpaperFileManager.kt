@@ -11,7 +11,7 @@ import xyz.attacktive.wallhavend.domain.model.Wallpaper
 class WallpaperFileManager(private val wallpaperDir: File, private val okHttpClient: OkHttpClient) {
 	private val dir: File get() = wallpaperDir.also { it.mkdirs() }
 
-	suspend fun download(wallpaper: Wallpaper): Result<File> = withContext(Dispatchers.IO) {
+	suspend fun download(wallpaper: Wallpaper) = withContext(Dispatchers.IO) {
 		runCatching {
 			val request = Request.Builder()
 				.url(wallpaper.directUrl)
@@ -40,7 +40,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 		}
 	}
 
-	fun listAll(): List<File> = sortedFiles()
+	fun listAll() = sortedFiles()
 
 	fun trimToSize(maxSize: Int): List<File> {
 		val all = sortedFiles()
@@ -50,7 +50,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 		return all.take(maxSize)
 	}
 
-	private fun sortedFiles(): List<File> =
+	private fun sortedFiles() =
 		dir.listFiles()
 			?.sortedByDescending { it.lastModified() }
 			?: emptyList()

@@ -429,7 +429,7 @@ private fun SectionLabel(text: String) {
 	)
 }
 
-private fun formatInterval(minutes: Int): String = when {
+private fun formatInterval(minutes: Int) = when {
 	minutes < 60 -> "$minutes min"
 	minutes == 60 -> "1 hr"
 	minutes % 60 == 0 -> "${minutes / 60} hr"
