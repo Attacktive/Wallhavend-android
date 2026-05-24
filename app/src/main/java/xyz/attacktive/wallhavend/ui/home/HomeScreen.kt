@@ -3,7 +3,6 @@ package xyz.attacktive.wallhavend.ui.home
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,8 +25,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
@@ -47,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -128,7 +128,7 @@ private fun StatusCard(state: ServiceState) {
 
 				state.lastUpdatedMs?.let {
 					Text(
-						text = "Last: ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))}",
+						text = "Last: ${SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale).format(Date(it))}",
 						style = MaterialTheme.typography.bodySmall
 					)
 				}
