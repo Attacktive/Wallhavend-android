@@ -123,7 +123,7 @@ private fun StatusCard(state: ServiceState) {
 				Text(
 					text = if (state.isRunning) "● AUTO-UPDATE ON" else "○ AUTO-UPDATE OFF",
 					style = MaterialTheme.typography.labelMedium,
-					color = if (state.isRunning) Color(0xFF90EE90) else MaterialTheme.colorScheme.onSurfaceVariant
+					color = if (state.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
 				)
 
 				state.lastUpdatedMs?.let {
