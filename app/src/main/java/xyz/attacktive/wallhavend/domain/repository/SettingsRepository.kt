@@ -10,11 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.Purity
 import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
@@ -23,7 +19,6 @@ import xyz.attacktive.wallhavend.util.AppLogger
 
 @Singleton
 class SettingsRepository @Inject constructor(private val dataStore: DataStore<Preferences>, private val logger: AppLogger) {
-	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private object Keys {
 		val SEARCH_QUERY = stringPreferencesKey("search_query")
 		val CATEGORIES = stringSetPreferencesKey("categories")
@@ -64,31 +59,23 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 			.also { logger.d(TAG, "read: ${it.redactedForLog()}") }
 		}
 
-	fun save(settings: AppSettings) {
+	suspend fun save(settings: AppSettings) {
 		logger.d(TAG, "save: ${settings.redactedForLog()}")
 
-		scope.launch {
-			logger.d(TAG, "save() coroutine started on ${Thread.currentThread().name}")
-
-			runCatching {
-				dataStore.edit { prefs ->
-					prefs[Keys.SEARCH_QUERY] = settings.searchQuery
-					prefs[Keys.CATEGORIES] = settings.categories.map { it.name }.toSet()
-					prefs[Keys.PURITY] = settings.purity.map { it.name }.toSet()
-					prefs[Keys.ASPECT_RATIO] = settings.aspectRatio
-					prefs[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
-					prefs[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
-					prefs[Keys.WIFI_ONLY] = settings.wifiOnly
-					prefs[Keys.POOL_SIZE] = settings.poolSize
-					prefs[Keys.API_KEY] = settings.apiKey
-					prefs[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
-				}
-			}.onSuccess {
-				logger.d(TAG, "save() completed successfully")
-			}.onFailure { e ->
-				logger.e(TAG, "save() FAILED: ${e.message}", e)
-			}
+		dataStore.edit { prefs ->
+			prefs[Keys.SEARCH_QUERY] = settings.searchQuery
+			prefs[Keys.CATEGORIES] = settings.categories.map { it.name }.toSet()
+			prefs[Keys.PURITY] = settings.purity.map { it.name }.toSet()
+			prefs[Keys.ASPECT_RATIO] = settings.aspectRatio
+			prefs[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
+			prefs[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
+			prefs[Keys.WIFI_ONLY] = settings.wifiOnly
+			prefs[Keys.POOL_SIZE] = settings.poolSize
+			prefs[Keys.API_KEY] = settings.apiKey
+			prefs[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
 		}
+
+		logger.d(TAG, "save() completed")
 	}
 
 	suspend fun saveServiceState(lastUpdatedMs: Long, currentPath: String?, previousPath: String?) {

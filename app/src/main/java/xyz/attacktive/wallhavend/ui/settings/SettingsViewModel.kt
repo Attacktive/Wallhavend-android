@@ -4,9 +4,12 @@ import javax.inject.Inject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 
@@ -15,5 +18,17 @@ class SettingsViewModel @Inject constructor(private val settingsRepository: Sett
 	val settings: StateFlow<AppSettings> = settingsRepository.settings
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
 
-	fun save(settings: AppSettings) = settingsRepository.save(settings)
+	private val _saveError = MutableStateFlow<String?>(null)
+	val saveError = _saveError.asStateFlow()
+
+	fun save(settings: AppSettings) {
+		viewModelScope.launch {
+			runCatching { settingsRepository.save(settings) }
+				.onFailure { e -> _saveError.value = e.message ?: "Failed to save settings" }
+		}
+	}
+
+	fun clearSaveError() {
+		_saveError.value = null
+	}
 }

@@ -17,19 +17,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -68,10 +71,24 @@ fun SettingsScreen(
 	viewModel: SettingsViewModel = hiltViewModel()
 ) {
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
+	val saveError by viewModel.saveError.collectAsStateWithLifecycle()
 	var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 	val tabs = listOf("Content", "Schedule", "Advanced")
+	val snackbarHostState = remember { SnackbarHostState() }
+
+	LaunchedEffect(saveError) {
+		if (saveError != null) {
+			snackbarHostState.showSnackbar("Failed to save settings: $saveError")
+			viewModel.clearSaveError()
+		}
+	}
 
 	Scaffold(
+		snackbarHost = {
+			SnackbarHost(snackbarHostState) { data ->
+				Snackbar(snackbarData = data, containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)
+			}
+		},
 		topBar = {
 			TopAppBar(
 				title = { Text("Settings") },
@@ -88,7 +105,7 @@ fun SettingsScreen(
 				.fillMaxSize()
 				.padding(padding)
 		) {
-			TabRow(selectedTabIndex = selectedTab) {
+			PrimaryTabRow(selectedTabIndex = selectedTab) {
 				tabs.forEachIndexed { index, title ->
 					Tab(
 						selected = selectedTab == index,
@@ -284,7 +301,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = intervalExpanded) },
 			modifier = Modifier
 				.fillMaxWidth()
-				.menuAnchor(MenuAnchorType.PrimaryNotEditable)
+				.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
 		)
 
 		ExposedDropdownMenu(expanded = intervalExpanded, onDismissRequest = { intervalExpanded = false }) {
