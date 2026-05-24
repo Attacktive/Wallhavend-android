@@ -63,6 +63,11 @@ android {
 	testOptions {
 		unitTests {
 			isReturnDefaultValues = true
+			all {
+				it.testLogging {
+					events("passed", "skipped", "failed")
+				}
+			}
 		}
 	}
 }
