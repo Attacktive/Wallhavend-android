@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import xyz.attacktive.wallhavend.domain.model.ServiceState
@@ -25,7 +24,7 @@ class HomeViewModel @Inject constructor(
 	private val fileManager: WallpaperFileManager,
 	@param:ApplicationContext private val context: Context
 ): ViewModel() {
-	val serviceState: StateFlow<ServiceState> = stateRepository.state
+	val serviceState = stateRepository.state
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
 
 	init {
