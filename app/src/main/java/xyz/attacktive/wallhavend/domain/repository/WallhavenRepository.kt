@@ -54,7 +54,8 @@ class WallhavenRepository @Inject constructor(private val api: WallhavenApiServi
 		val dto = cache.removeFirst()
 		val wallpaper = dto.toDomain()
 
-		return fileManager.download(wallpaper).map { file -> Pair(wallpaper, file) }
+		return fileManager.download(wallpaper)
+			.map { file -> Pair(wallpaper, file) }
 	}
 
 	private suspend fun refetch(key: SearchKey) = runCatching {

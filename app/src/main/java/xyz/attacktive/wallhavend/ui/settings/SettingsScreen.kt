@@ -243,7 +243,10 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	Spacer(Modifier.height(16.dp))
 	SectionLabel("ASPECT RATIO")
 
-	val selectedRatios = aspectRatio.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+	val selectedRatios = aspectRatio.split(",")
+		.map { it.trim() }
+		.filter { it.isNotEmpty() }
+		.toSet()
 
 	Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
 		ASPECT_RATIO_SUGGESTIONS.forEach { ratio ->

@@ -45,7 +45,8 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 	fun trimToSize(maxSize: Int): List<File> {
 		val all = sortedFiles()
 
-		all.drop(maxSize).forEach { it.delete() }
+		all.drop(maxSize)
+			.forEach { it.delete() }
 
 		return all.take(maxSize)
 	}

@@ -65,8 +65,14 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 
 		dataStore.edit { prefs ->
 			prefs[Keys.SEARCH_QUERY] = settings.searchQuery
-			prefs[Keys.CATEGORIES] = settings.categories.map { it.name }.toSet()
-			prefs[Keys.PURITY] = settings.purity.map { it.name }.toSet()
+			prefs[Keys.CATEGORIES] = settings.categories
+				.map { it.name }
+				.toSet()
+
+			prefs[Keys.PURITY] = settings.purity
+				.map { it.name }
+				.toSet()
+
 			prefs[Keys.ASPECT_RATIO] = settings.aspectRatio
 			prefs[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
 			prefs[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
