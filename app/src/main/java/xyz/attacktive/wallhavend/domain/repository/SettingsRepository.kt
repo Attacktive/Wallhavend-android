@@ -111,4 +111,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 
 /** Renders settings for logging without exposing the API key. */
 private fun AppSettings.redactedForLog(): AppSettings =
-	if (apiKey.isEmpty()) this else copy(apiKey = "***")
+	if (apiKey.isEmpty()) {
+		this
+	} else {
+		copy(apiKey = "***")
+	}

@@ -32,7 +32,8 @@ class HomeViewModel @Inject constructor(
 		viewModelScope.launch(Dispatchers.IO) {
 			if (stateRepository.state.value.poolPaths.isEmpty()) {
 				val (lastUpdatedMs, currentPath, previousPath) = settingsRepository.loadServiceState()
-				val paths = fileManager.listAll().map { it.absolutePath }
+				val paths = fileManager.listAll()
+					.map { it.absolutePath }
 
 				stateRepository.update {
 					it.copy(
@@ -60,8 +61,18 @@ class HomeViewModel @Inject constructor(
 
 			val state = stateRepository.state.value
 			val newPaths = state.poolPaths - path
-			val newCurrent = if (state.currentWallpaperPath == path) newPaths.firstOrNull() else state.currentWallpaperPath
-			val newPrev = if (state.previousWallpaperPath == path) newPaths.getOrNull(1) else state.previousWallpaperPath
+
+			val newCurrent = if (state.currentWallpaperPath == path) {
+				newPaths.firstOrNull()
+			} else {
+				state.currentWallpaperPath
+			}
+
+			val newPrev = if (state.previousWallpaperPath == path) {
+				newPaths.getOrNull(1)
+			} else {
+				state.previousWallpaperPath
+			}
 
 			stateRepository.update {
 				it.copy(

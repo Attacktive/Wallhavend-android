@@ -18,6 +18,10 @@ class LogcatLogger : AppLogger {
 	}
 
 	override fun e(tag: String, message: String, throwable: Throwable?) {
-		if (throwable != null) Log.e(tag, message, throwable) else Log.e(tag, message)
+		if (throwable != null) {
+			Log.e(tag, message, throwable)
+		} else {
+			Log.e(tag, message)
+		}
 	}
 }

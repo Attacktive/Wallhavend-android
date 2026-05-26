@@ -82,7 +82,13 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 			Spacer(modifier = Modifier.height(12.dp))
 			QuickActions(
 				state = state,
-				onStartStop = { if (state.isRunning) viewModel.stopService() else viewModel.startService() },
+				onStartStop = {
+					if (state.isRunning) {
+						viewModel.stopService()
+					} else {
+						viewModel.startService()
+					}
+				},
 				onUpdateNow = viewModel::updateNow
 			)
 
@@ -123,7 +129,11 @@ private fun StatusCard(state: ServiceState) {
 				Text(
 					text = if (state.isRunning) "● AUTO-UPDATE ON" else "○ AUTO-UPDATE OFF",
 					style = MaterialTheme.typography.labelMedium,
-					color = if (state.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+					color = if (state.isRunning) {
+						MaterialTheme.colorScheme.primary
+					} else {
+						MaterialTheme.colorScheme.onSurfaceVariant
+					}
 				)
 
 				state.lastUpdatedMs?.let {
@@ -142,7 +152,11 @@ private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateN
 	Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 		Button(onClick = onStartStop) {
 			Icon(
-				imageVector = if (state.isRunning) Icons.Default.Stop else Icons.Default.PlayArrow,
+				imageVector = if (state.isRunning) {
+					Icons.Default.Stop
+				} else {
+					Icons.Default.PlayArrow
+				},
 				contentDescription = null
 			)
 
@@ -174,10 +188,14 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 					.aspectRatio(9f / 16f)
 					.clip(RoundedCornerShape(4.dp))
 					.then(
-						if (isCurrent) Modifier.border(
-							BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-							RoundedCornerShape(4.dp)
-						) else Modifier
+						if (isCurrent) {
+							Modifier.border(
+								BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+								RoundedCornerShape(4.dp)
+							)
+						} else {
+							Modifier
+						}
 					)
 					.clickable { onTap(path) }
 			) {

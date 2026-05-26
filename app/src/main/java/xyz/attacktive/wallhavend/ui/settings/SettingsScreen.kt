@@ -250,7 +250,12 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			FilterChip(
 				selected = ratio in selectedRatios,
 				onClick = {
-					val newSet = if (ratio in selectedRatios) selectedRatios - ratio else selectedRatios + ratio
+					val newSet = if (ratio in selectedRatios) {
+						selectedRatios - ratio
+					} else {
+						selectedRatios + ratio
+					}
+
 					aspectRatio = newSet.joinToString(",")
 					onSave(settings.copy(aspectRatio = aspectRatio))
 				},
@@ -397,7 +402,11 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			)
 
 			Text(
-				text = if (size == 0) "0 — current only, no gallery" else "$size",
+				text = if (size == 0) {
+					"0 — current only, no gallery"
+				} else {
+					"$size"
+				},
 				modifier = Modifier.padding(start = 4.dp)
 			)
 		}
