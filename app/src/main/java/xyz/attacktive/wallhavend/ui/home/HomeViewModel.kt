@@ -15,16 +15,36 @@ import kotlinx.coroutines.launch
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
+import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 import xyz.attacktive.wallhavend.domain.service.WallpaperService
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
 	private val stateRepository: ServiceStateRepository,
 	private val settingsRepository: SettingsRepository,
+	private val fileManager: WallpaperFileManager,
 	@param:ApplicationContext private val context: Context
 ): ViewModel() {
 	val serviceState: StateFlow<ServiceState> = stateRepository.state
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
+
+	init {
+		viewModelScope.launch(Dispatchers.IO) {
+			if (stateRepository.state.value.poolPaths.isEmpty()) {
+				val (lastUpdatedMs, currentPath, previousPath) = settingsRepository.loadServiceState()
+				val paths = fileManager.listAll().map { it.absolutePath }
+
+				stateRepository.update {
+					it.copy(
+						poolPaths = paths,
+						lastUpdatedMs = lastUpdatedMs,
+						currentWallpaperPath = currentPath,
+						previousWallpaperPath = previousPath
+					)
+				}
+			}
+		}
+	}
 
 	fun startService() = WallpaperService.start(context)
 	fun stopService() = WallpaperService.stop(context)
