@@ -40,10 +40,14 @@ import xyz.attacktive.wallhavend.domain.repository.WallhavenRepository
 
 @AndroidEntryPoint
 class WallpaperService: Service() {
-	@Inject lateinit var settingsRepository: SettingsRepository
-	@Inject lateinit var wallhavenRepository: WallhavenRepository
-	@Inject lateinit var fileManager: WallpaperFileManager
-	@Inject lateinit var stateRepository: ServiceStateRepository
+	@Inject
+	lateinit var settingsRepository: SettingsRepository
+	@Inject
+	lateinit var wallhavenRepository: WallhavenRepository
+	@Inject
+	lateinit var fileManager: WallpaperFileManager
+	@Inject
+	lateinit var stateRepository: ServiceStateRepository
 
 	private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private var timerJob: Job? = null
@@ -61,6 +65,7 @@ class WallpaperService: Service() {
 					serviceScope.launch { applySpecificPath(path) }
 				}
 			}
+
 			else -> startTimerLoop()
 		}
 
@@ -135,6 +140,7 @@ class WallpaperService: Service() {
 						} else {
 							AppError.NoResults
 						}
+
 						is UnsupportedFormatException -> AppError.UnsupportedFormat
 						is HttpException -> AppError.ApiError(throwable.code())
 						else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
@@ -145,9 +151,18 @@ class WallpaperService: Service() {
 			)
 		} else {
 			val current = stateRepository.state.value.currentWallpaperPath
-			val next = fileManager.listAll()
+			val pool = fileManager.listAll()
+				.reversed()
 				.map { it.absolutePath }
-				.firstOrNull { it != current }
+
+			val currentIndex = if (current != null) {
+				pool.indexOf(current)
+			} else {
+				-1
+			}
+
+			val next = pool.getOrNull(currentIndex + 1)
+				?: pool.firstOrNull()
 				?: return
 
 			val file = File(next)
@@ -296,23 +311,26 @@ class WallpaperService: Service() {
 		}
 
 		fun stop(context: Context) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java)
-				.apply { action = ACTION_STOP }
+			context.startForegroundService(
+				Intent(context, WallpaperService::class.java)
+					.apply { action = ACTION_STOP }
 			)
 		}
 
 		fun updateNow(context: Context) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java)
-				.apply { action = ACTION_UPDATE_NOW }
+			context.startForegroundService(
+				Intent(context, WallpaperService::class.java)
+					.apply { action = ACTION_UPDATE_NOW }
 			)
 		}
 
 		fun applyPath(context: Context, path: String) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java)
-				.apply {
-					action = ACTION_APPLY_PATH
-					putExtra(EXTRA_PATH, path)
-				}
+			context.startForegroundService(
+				Intent(context, WallpaperService::class.java)
+					.apply {
+						action = ACTION_APPLY_PATH
+						putExtra(EXTRA_PATH, path)
+					}
 			)
 		}
 	}
