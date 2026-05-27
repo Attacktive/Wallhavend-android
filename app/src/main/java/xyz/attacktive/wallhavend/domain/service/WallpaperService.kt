@@ -31,6 +31,7 @@ import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_CHANNEL_ID
 import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_ID
 import xyz.attacktive.wallhavend.domain.model.AppError
+import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
@@ -98,91 +99,102 @@ class WallpaperService: Service() {
 		val canDownload = online && (forceDownload || !settings.wifiOnly || isOnWifi())
 
 		if (canDownload) {
-			val result = wallhavenRepository.next(settings)
-			result.fold(
-				onSuccess = { (_, file) ->
-					val applyResult = applyWallpaper(file, settings.wallpaperTarget)
-					applyResult.fold(
-						onSuccess = {
-							val remaining = if (settings.poolSize == 0) {
-								fileManager.trimToSize(0)
-								emptyList()
-							} else {
-								fileManager.trimToSize(settings.poolSize)
-							}
+			handleOnlineUpdate(settings)
+		} else {
+			cycleFromPool(settings)
+		}
+	}
 
-							val paths = remaining.map { it.absolutePath }
-							val now = System.currentTimeMillis()
+	private suspend fun handleOnlineUpdate(settings: AppSettings) {
+		wallhavenRepository.next(settings)
+			.fold(
+				onSuccess = { (_, file) -> onWallpaperFetched(file, settings) },
+				onFailure = { throwable -> onFetchError(throwable, settings) }
+			)
+	}
 
-							stateRepository.update { state ->
-								state.copy(
-									lastUpdatedMs = now,
-									currentWallpaperPath = paths.firstOrNull(),
-									previousWallpaperPath = paths.getOrNull(1),
-									poolPaths = paths,
-									error = null
-								)
-							}
-
-							settingsRepository.saveServiceState(now, paths.firstOrNull(), paths.getOrNull(1))
-							updateNotification()
-						},
-						onFailure = { throwable ->
-							postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
-						}
-					)
-				},
-				onFailure = { throwable ->
-					val error = when (throwable) {
-						// Wallhaven server bug: certain ratios yield zero results when an API key is present
-						is NoResultsException -> if (settings.apiKey.isNotBlank() && settings.aspectRatio.isNotBlank()) {
-							AppError.NoResultsWithRatioHint
-						} else {
-							AppError.NoResults
-						}
-
-						is UnsupportedFormatException -> AppError.UnsupportedFormat
-						is HttpException -> AppError.ApiError(throwable.code())
-						else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
+	private suspend fun onWallpaperFetched(file: File, settings: AppSettings) {
+		applyWallpaper(file, settings.wallpaperTarget)
+			.fold(
+				onSuccess = {
+					val remaining = if (settings.poolSize == 0) {
+						fileManager.trimToSize(0)
+						emptyList()
+					} else {
+						fileManager.trimToSize(settings.poolSize)
 					}
 
-					postError(error)
-				}
-			)
-		} else {
-			val current = stateRepository.state.value.currentWallpaperPath
-			val pool = fileManager.listAll()
-				.reversed()
-				.map { it.absolutePath }
+					val paths = remaining.map { it.absolutePath }
+					val now = System.currentTimeMillis()
 
-			val currentIndex = if (current != null) {
-				pool.indexOf(current)
-			} else {
-				-1
-			}
-
-			val next = pool.getOrNull(currentIndex + 1)
-				?: pool.firstOrNull()
-				?: return
-
-			val file = File(next)
-			if (!file.exists()) {
-				return
-			}
-
-			applyWallpaper(file, settings.wallpaperTarget)
-				.onSuccess {
-					val state = stateRepository.state.value
-					stateRepository.update {
-						it.copy(
-							currentWallpaperPath = next,
-							previousWallpaperPath = state.currentWallpaperPath
+					stateRepository.update { state ->
+						state.copy(
+							lastUpdatedMs = now,
+							currentWallpaperPath = paths.firstOrNull(),
+							previousWallpaperPath = paths.getOrNull(1),
+							poolPaths = paths,
+							error = null
 						)
 					}
 
+					settingsRepository.saveServiceState(now, paths.firstOrNull(), paths.getOrNull(1))
 					updateNotification()
+				},
+				onFailure = { throwable ->
+					postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
 				}
+			)
+	}
+
+	private fun onFetchError(throwable: Throwable, settings: AppSettings) {
+		val error = when (throwable) {
+			// Wallhaven server bug: certain ratios yield zero results when an API key is present
+			is NoResultsException -> if (settings.apiKey.isNotBlank() && settings.aspectRatio.isNotBlank()) {
+				AppError.NoResultsWithRatioHint
+			} else {
+				AppError.NoResults
+			}
+			is UnsupportedFormatException -> AppError.UnsupportedFormat
+			is HttpException -> AppError.ApiError(throwable.code())
+			else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
 		}
+
+		postError(error)
+	}
+
+	private fun cycleFromPool(settings: AppSettings) {
+		val current = stateRepository.state.value.currentWallpaperPath
+		val pool = fileManager.listAll()
+			.reversed()
+			.map { it.absolutePath }
+
+		val currentIndex = if (current != null) {
+			pool.indexOf(current)
+		} else {
+			-1
+		}
+
+		val next = pool.getOrNull(currentIndex + 1)
+			?: pool.firstOrNull()
+			?: return
+
+		val file = File(next)
+		if (!file.exists()) {
+			return
+		}
+
+		applyWallpaper(file, settings.wallpaperTarget)
+			.onSuccess {
+				val state = stateRepository.state.value
+				stateRepository.update {
+					it.copy(
+						currentWallpaperPath = next,
+						previousWallpaperPath = state.currentWallpaperPath
+					)
+				}
+
+				updateNotification()
+			}
 	}
 
 	private suspend fun applySpecificPath(path: String) {
