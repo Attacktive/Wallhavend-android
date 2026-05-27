@@ -14,3 +14,8 @@ updates:
       - 'CI/CD'
     commit-message:
       prefix: 'ci'
+  - package-ecosystem: 'gradle'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+      time: '00:00'
