@@ -20,7 +20,7 @@ class BootReceiver: BroadcastReceiver() {
 			return
 		}
 
-		val pending = goAsync()
+		val pendingResult = goAsync()
 
 		CoroutineScope(Dispatchers.IO).launch {
 			try {
@@ -29,7 +29,7 @@ class BootReceiver: BroadcastReceiver() {
 					WallpaperService.start(context)
 				}
 			} finally {
-				pending.finish()
+				pendingResult.finish()
 			}
 		}
 	}

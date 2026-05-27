@@ -11,8 +11,8 @@ import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 class ServiceStateRepositoryTest {
 	@Test
 	fun `initial state has sensible defaults`() {
-		val repo = ServiceStateRepository()
-		val state = repo.state.value
+		val repository = ServiceStateRepository()
+		val state = repository.state.value
 		assertFalse(state.isRunning)
 		assertNull(state.error)
 		assertNull(state.lastUpdatedMs)
@@ -21,18 +21,18 @@ class ServiceStateRepositoryTest {
 
 	@Test
 	fun `update transforms state correctly`() {
-		val repo = ServiceStateRepository()
-		repo.update { it.copy(isRunning = true, lastUpdatedMs = 12345L) }
-		assertTrue(repo.state.value.isRunning)
-		assertEquals(12345L, repo.state.value.lastUpdatedMs)
+		val repository = ServiceStateRepository()
+		repository.update { it.copy(isRunning = true, lastUpdatedMs = 12345L) }
+		assertTrue(repository.state.value.isRunning)
+		assertEquals(12345L, repository.state.value.lastUpdatedMs)
 	}
 
 	@Test
 	fun `update preserves unmodified fields`() {
-		val repo = ServiceStateRepository()
-		repo.update { it.copy(isRunning = true) }
-		repo.update { it.copy(error = AppError.NoResults) }
-		assertTrue(repo.state.value.isRunning)
-		assertEquals(AppError.NoResults, repo.state.value.error)
+		val repository = ServiceStateRepository()
+		repository.update { it.copy(isRunning = true) }
+		repository.update { it.copy(error = AppError.NoResults) }
+		assertTrue(repository.state.value.isRunning)
+		assertEquals(AppError.NoResults, repository.state.value.error)
 	}
 }

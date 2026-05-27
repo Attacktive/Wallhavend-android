@@ -11,11 +11,11 @@ class FakeAppLogger : AppLogger {
 
 	val entries = mutableListOf<Entry>()
 
-	override fun d(tag: String, message: String) {
+	override fun debug(tag: String, message: String) {
 		entries += Entry("D", tag, message)
 	}
 
-	override fun e(tag: String, message: String, throwable: Throwable?) {
+	override fun error(tag: String, message: String, throwable: Throwable?) {
 		entries += Entry("E", tag, message, throwable)
 	}
 }

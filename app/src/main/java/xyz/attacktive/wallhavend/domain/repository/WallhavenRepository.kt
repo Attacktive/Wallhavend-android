@@ -13,7 +13,7 @@ import xyz.attacktive.wallhavend.domain.model.toBitString
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 @Singleton
-class WallhavenRepository @Inject constructor(private val api: WallhavenApiService, private val fileManager: WallpaperFileManager) {
+class WallhavenRepository @Inject constructor(private val wallhavenApiService: WallhavenApiService, private val fileManager: WallpaperFileManager) {
 	private var cache = ArrayDeque<WallpaperDto>()
 	private var cacheKey: SearchKey? = null
 
@@ -59,7 +59,7 @@ class WallhavenRepository @Inject constructor(private val api: WallhavenApiServi
 	}
 
 	private suspend fun refetch(key: SearchKey) = runCatching {
-		val response = api.search(
+		val response = wallhavenApiService.search(
 			query = key.query,
 			categories = key.categories,
 			purity = key.purity,

@@ -21,7 +21,7 @@ class SettingsRepositoryTest {
 	@get:Rule
 	val tmpFolder = TemporaryFolder()
 
-	private fun TestScope.createRepo(): SettingsRepository {
+	private fun TestScope.createRepository(): SettingsRepository {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
 			produceFile = { tmpFolder.newFile("test_prefs.preferences_pb") }
@@ -32,8 +32,8 @@ class SettingsRepositoryTest {
 
 	@Test
 	fun `defaults are correct`() = runTest {
-		val repo = createRepo()
-		val settings = repo.settings.first()
+		val repository = createRepository()
+		val settings = repository.settings.first()
 
 		assertEquals(60, settings.updateIntervalMinutes)
 		assertTrue(settings.wifiOnly)
@@ -54,14 +54,14 @@ class SettingsRepositoryTest {
 			prefs[booleanPreferencesKey("unmetered_only")] = false
 		}
 
-		val repo = SettingsRepository(dataStore, FakeAppLogger())
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
 
-		assertTrue(repo.settings.first().wifiOnly)
+		assertTrue(repository.settings.first().wifiOnly)
 	}
 
 	@Test
 	fun `save and reload settings round-trips correctly`() = runTest {
-		val repo = createRepo()
+		val repository = createRepository()
 		val modified = AppSettings(
 			searchQuery = "mountains",
 			categories = setOf(WallhavenCategory.GENERAL, WallhavenCategory.ANIME),
@@ -75,20 +75,20 @@ class SettingsRepositoryTest {
 			autoStartOnBoot = true
 		)
 
-		repo.save(modified)
+		repository.save(modified)
 
-		val loaded = repo.settings.first { it == modified }
+		val loaded = repository.settings.first { it == modified }
 
 		assertEquals(modified, loaded)
 	}
 
 	@Test
 	fun `save and reload 10x16 aspect ratio`() = runTest {
-		val repo = createRepo()
+		val repository = createRepository()
 		val settings = AppSettings(aspectRatio = "10x16")
-		repo.save(settings)
+		repository.save(settings)
 
-		val loaded = repo.settings.first { it.aspectRatio == "10x16" }
+		val loaded = repository.settings.first { it.aspectRatio == "10x16" }
 		assertEquals("10x16", loaded.aspectRatio)
 	}
 }

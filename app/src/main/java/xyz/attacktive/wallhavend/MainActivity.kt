@@ -3,9 +3,9 @@ package xyz.attacktive.wallhavend
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import xyz.attacktive.wallhavend.ui.navigation.AppNavHost
-import xyz.attacktive.wallhavend.ui.theme.WallhavendTheme
 import dagger.hilt.android.AndroidEntryPoint
+import xyz.attacktive.wallhavend.ui.navigation.AppNavigationHost
+import xyz.attacktive.wallhavend.ui.theme.WallhavendTheme
 
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
@@ -14,7 +14,7 @@ class MainActivity: ComponentActivity() {
 
 		setContent {
 			WallhavendTheme {
-				AppNavHost()
+				AppNavigationHost()
 			}
 		}
 	}

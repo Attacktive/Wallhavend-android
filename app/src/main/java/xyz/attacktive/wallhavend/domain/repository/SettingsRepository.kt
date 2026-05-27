@@ -37,52 +37,52 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 	}
 
 	val settings = dataStore.data
-		.map { prefs -> AppSettings(
-				searchQuery = prefs[Keys.SEARCH_QUERY] ?: "",
-				categories = (prefs[Keys.CATEGORIES] ?: setOf("GENERAL"))
+		.map { preferences -> AppSettings(
+				searchQuery = preferences[Keys.SEARCH_QUERY] ?: "",
+				categories = (preferences[Keys.CATEGORIES] ?: setOf("GENERAL"))
 					.mapNotNull { runCatching { WallhavenCategory.valueOf(it) }.getOrNull() }
 					.toSet()
 					.ifEmpty { setOf(WallhavenCategory.GENERAL) },
-				purity = (prefs[Keys.PURITY] ?: setOf("SFW"))
+				purity = (preferences[Keys.PURITY] ?: setOf("SFW"))
 					.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
 					.toSet()
 					.ifEmpty { setOf(Purity.SFW) },
-				aspectRatio = prefs[Keys.ASPECT_RATIO] ?: "",
-				updateIntervalMinutes = prefs[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
-				wallpaperTarget = prefs[Keys.WALLPAPER_TARGET]
+				aspectRatio = preferences[Keys.ASPECT_RATIO] ?: "",
+				updateIntervalMinutes = preferences[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
+				wallpaperTarget = preferences[Keys.WALLPAPER_TARGET]
 					?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
 					?: WallpaperTarget.HOME,
-				wifiOnly = prefs[Keys.WIFI_ONLY] ?: true,
-				poolSize = prefs[Keys.POOL_SIZE] ?: 10,
-				apiKey = prefs[Keys.API_KEY] ?: "",
-				autoStartOnBoot = prefs[Keys.AUTO_START_ON_BOOT] ?: true
+				wifiOnly = preferences[Keys.WIFI_ONLY] ?: true,
+				poolSize = preferences[Keys.POOL_SIZE] ?: 10,
+				apiKey = preferences[Keys.API_KEY] ?: "",
+				autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true
 			)
-			.also { logger.d(TAG, "read: ${it.redactedForLog()}") }
+			.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 		}
 
 	suspend fun save(settings: AppSettings) {
-		logger.d(TAG, "save: ${settings.redactedForLog()}")
+		logger.debug(TAG, "save: ${settings.redactedForLog()}")
 
-		dataStore.edit { prefs ->
-			prefs[Keys.SEARCH_QUERY] = settings.searchQuery
-			prefs[Keys.CATEGORIES] = settings.categories
+		dataStore.edit { preferences ->
+			preferences[Keys.SEARCH_QUERY] = settings.searchQuery
+			preferences[Keys.CATEGORIES] = settings.categories
 				.map { it.name }
 				.toSet()
 
-			prefs[Keys.PURITY] = settings.purity
+			preferences[Keys.PURITY] = settings.purity
 				.map { it.name }
 				.toSet()
 
-			prefs[Keys.ASPECT_RATIO] = settings.aspectRatio
-			prefs[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
-			prefs[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
-			prefs[Keys.WIFI_ONLY] = settings.wifiOnly
-			prefs[Keys.POOL_SIZE] = settings.poolSize
-			prefs[Keys.API_KEY] = settings.apiKey
-			prefs[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
+			preferences[Keys.ASPECT_RATIO] = settings.aspectRatio
+			preferences[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
+			preferences[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
+			preferences[Keys.WIFI_ONLY] = settings.wifiOnly
+			preferences[Keys.POOL_SIZE] = settings.poolSize
+			preferences[Keys.API_KEY] = settings.apiKey
+			preferences[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
 		}
 
-		logger.d(TAG, "save() completed")
+		logger.debug(TAG, "save() completed")
 	}
 
 	suspend fun loadServiceState() = dataStore.data.first()
@@ -94,24 +94,24 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		}
 
 	suspend fun saveServiceState(lastUpdatedMs: Long, currentPath: String?, previousPath: String?) {
-		dataStore.edit { prefs ->
-			prefs[Keys.LAST_UPDATED_MS] = lastUpdatedMs
+		dataStore.edit { preferences ->
+			preferences[Keys.LAST_UPDATED_MS] = lastUpdatedMs
 			if (currentPath != null) {
-				prefs[Keys.CURRENT_WALLPAPER_PATH] = currentPath
+				preferences[Keys.CURRENT_WALLPAPER_PATH] = currentPath
 			} else {
-				prefs.remove(Keys.CURRENT_WALLPAPER_PATH)
+				preferences.remove(Keys.CURRENT_WALLPAPER_PATH)
 			}
 
 			if (previousPath != null) {
-				prefs[Keys.PREVIOUS_WALLPAPER_PATH] = previousPath
+				preferences[Keys.PREVIOUS_WALLPAPER_PATH] = previousPath
 			} else {
-				prefs.remove(Keys.PREVIOUS_WALLPAPER_PATH)
+				preferences.remove(Keys.PREVIOUS_WALLPAPER_PATH)
 			}
 		}
 	}
 
 	companion object {
-		private const val TAG = "SettingsRepo"
+		private const val TAG = "SettingsRepository"
 	}
 }
 
