@@ -9,14 +9,14 @@ import xyz.attacktive.wallhavend.ui.home.HomeScreen
 import xyz.attacktive.wallhavend.ui.settings.SettingsScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController = rememberNavController()) {
-	NavHost(navController = navController, startDestination = "home") {
+fun AppNavigationHost(navigationController: NavHostController = rememberNavController()) {
+	NavHost(navController = navigationController, startDestination = "home") {
 		composable("home") {
-			HomeScreen(onNavigateToSettings = { navController.navigate("settings") })
+			HomeScreen(onNavigateToSettings = { navigationController.navigate("settings") })
 		}
 
 		composable("settings") {
-			SettingsScreen(onNavigateBack = { navController.popBackStack() })
+			SettingsScreen(onNavigateBack = { navigationController.popBackStack() })
 		}
 	}
 }

@@ -208,14 +208,14 @@ class WallpaperService: Service() {
 		applyWallpaper(file, settings.wallpaperTarget)
 			.onSuccess {
 				val state = stateRepository.state.value
-				val newPrev = if (state.currentWallpaperPath != path) {
+				val newPreviousPath = if (state.currentWallpaperPath != path) {
 					state.currentWallpaperPath
 				} else {
 					state.previousWallpaperPath
 				}
 
 				stateRepository.update {
-					it.copy(currentWallpaperPath = path, previousWallpaperPath = newPrev)
+					it.copy(currentWallpaperPath = path, previousWallpaperPath = newPreviousPath)
 				}
 
 				updateNotification()
@@ -246,20 +246,20 @@ class WallpaperService: Service() {
 	}
 
 	private fun isOnline(): Boolean {
-		val cm = getSystemService(ConnectivityManager::class.java)
+		val connectivityManager = getSystemService(ConnectivityManager::class.java)
 
-		val isConnected = cm.activeNetwork
-			?.let { cm.getNetworkCapabilities(it) }
+		val isConnected = connectivityManager.activeNetwork
+			?.let { connectivityManager.getNetworkCapabilities(it) }
 			?.let { it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && it.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) }
 
 		return isConnected == true
 	}
 
 	private fun isOnWifi(): Boolean {
-		val cm = getSystemService(ConnectivityManager::class.java)
+		val connectivityManager = getSystemService(ConnectivityManager::class.java)
 
-		return cm.activeNetwork
-			?.let { cm.getNetworkCapabilities(it) }
+		return connectivityManager.activeNetwork
+			?.let { connectivityManager.getNetworkCapabilities(it) }
 			?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
 	}
 
@@ -271,13 +271,16 @@ class WallpaperService: Service() {
 		} ?: "Never updated"
 
 		val openIntent = PendingIntent.getActivity(
-			this, 0,
-			Intent(this, MainActivity::class.java),
+			this,
+			0,
+			Intent(this, MainActivity::class.java)
+				.setPackage(packageName),
 			PendingIntent.FLAG_IMMUTABLE
 		)
 
 		val updateNowIntent = PendingIntent.getService(
-			this, 1,
+			this,
+			1,
 			Intent(this, WallpaperService::class.java)
 				.apply { action = ACTION_UPDATE_NOW },
 			PendingIntent.FLAG_IMMUTABLE

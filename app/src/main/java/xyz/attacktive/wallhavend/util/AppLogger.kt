@@ -8,16 +8,16 @@ import android.util.Log
  * leaving every *other* unmocked Android call to fail loudly.
  */
 interface AppLogger {
-	fun d(tag: String, message: String)
-	fun e(tag: String, message: String, throwable: Throwable? = null)
+	fun debug(tag: String, message: String)
+	fun error(tag: String, message: String, throwable: Throwable? = null)
 }
 
 class LogcatLogger : AppLogger {
-	override fun d(tag: String, message: String) {
+	override fun debug(tag: String, message: String) {
 		Log.d(tag, message)
 	}
 
-	override fun e(tag: String, message: String, throwable: Throwable?) {
+	override fun error(tag: String, message: String, throwable: Throwable?) {
 		if (throwable != null) {
 			Log.e(tag, message, throwable)
 		} else {

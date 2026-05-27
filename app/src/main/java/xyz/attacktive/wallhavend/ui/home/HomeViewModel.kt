@@ -124,15 +124,15 @@ class HomeViewModel @Inject constructor(
 						?.use { outputStream -> file.inputStream().use { inputStream -> inputStream.copyTo(outputStream) } }
 						?: error("Failed to open output stream")
 				} else {
-					val destDir = File(
+					val destinationDirectory = File(
 						Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
 						"Wallhavend"
 					)
 
-					destDir.mkdirs()
-					val dest = File(destDir, file.name)
-					file.copyTo(dest, overwrite = true)
-					MediaScannerConnection.scanFile(context, arrayOf(dest.absolutePath), arrayOf(mimeType), null)
+					destinationDirectory.mkdirs()
+					val destinationFile = File(destinationDirectory, file.name)
+					file.copyTo(destinationFile, overwrite = true)
+					MediaScannerConnection.scanFile(context, arrayOf(destinationFile.absolutePath), arrayOf(mimeType), null)
 				}
 			}
 			.onSuccess { _saveMessage.emit("Saved to Pictures/Wallhavend") }
