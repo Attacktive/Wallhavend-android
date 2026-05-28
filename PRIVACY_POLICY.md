@@ -1,4 +1,4 @@
- # Privacy Policy
+# Privacy Policy
 
 **Wallhavend** is an Android app that automatically sets wallpapers from [Wallhaven](https://wallhaven.cc). This policy explains what data the app uses and how.
 
