@@ -141,6 +141,18 @@ fun SettingsScreen(
 						.clickable { uriHandler.openUri("https://wallhaven.cc") }
 						.padding(vertical = 8.dp)
 				)
+
+				Text(
+					text = "Report a bug",
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					textDecoration = TextDecoration.Underline,
+					textAlign = TextAlign.Center,
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable { uriHandler.openUri("https://github.com/Attacktive/Wallhavend-android/issues") }
+						.padding(vertical = 8.dp)
+				)
 			}
 		}
 	}
