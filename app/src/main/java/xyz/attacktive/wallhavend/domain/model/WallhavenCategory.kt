@@ -1,7 +1,7 @@
 package xyz.attacktive.wallhavend.domain.model
 
-enum class WallhavenCategory(val bitIndex: Int) {
-	GENERAL(0), ANIME(1), PEOPLE(2)
+enum class WallhavenCategory(val bitIndex: Int, val displayName: String) {
+	GENERAL(0, "General"), ANIME(1, "Anime"), PEOPLE(2, "People")
 }
 
 fun Set<WallhavenCategory>.toBitString(): String {

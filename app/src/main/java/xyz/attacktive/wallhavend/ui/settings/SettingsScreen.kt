@@ -214,7 +214,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 					onSave(settings.copy(categories = newSet))
 				},
-				label = { Text(category.name.lowercase().replaceFirstChar { it.uppercase() }) },
+				label = { Text(category.displayName) },
 				modifier = Modifier.padding(end = 8.dp)
 			)
 		}
@@ -240,13 +240,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 					onSave(settings.copy(purity = newSet))
 				},
-				label = {
-					Text(when (purity) {
-						Purity.SFW -> "SFW"
-						Purity.SKETCHY -> "Sketchy"
-						Purity.NSFW -> "NSFW"
-					})
-				},
+				label = { Text(purity.displayName) },
 				modifier = Modifier.padding(end = 8.dp)
 			)
 		}

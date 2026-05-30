@@ -1,7 +1,7 @@
 package xyz.attacktive.wallhavend.domain.model
 
-enum class Purity(val bitIndex: Int) {
-	SFW(0), SKETCHY(1), NSFW(2)
+enum class Purity(val bitIndex: Int, val displayName: String) {
+	SFW(0, "SFW"), SKETCHY(1, "Sketchy"), NSFW(2, "NSFW")
 }
 
 fun Set<Purity>.toBitString(): String {
