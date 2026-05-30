@@ -38,6 +38,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.repository.WallhavenRepository
+import xyz.attacktive.wallhavend.util.AppLogger
 
 @AndroidEntryPoint
 class WallpaperService: Service() {
@@ -49,9 +50,12 @@ class WallpaperService: Service() {
 	lateinit var fileManager: WallpaperFileManager
 	@Inject
 	lateinit var stateRepository: ServiceStateRepository
+	@Inject
+	lateinit var logger: AppLogger
 
 	private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private var timerJob: Job? = null
+	private var prefetchJob: Job? = null
 
 	override fun onBind(intent: Intent?) = null
 
@@ -106,6 +110,8 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun handleOnlineUpdate(settings: AppSettings) {
+		prefetchJob?.cancel()
+
 		wallhavenRepository.next(settings)
 			.fold(
 				onSuccess = { (_, file) -> onWallpaperFetched(file, settings) },
@@ -139,11 +145,46 @@ class WallpaperService: Service() {
 
 					settingsRepository.saveServiceState(now, paths.firstOrNull(), paths.getOrNull(1))
 					updateNotification()
+					launchPrefetch(settings)
 				},
 				onFailure = { throwable ->
 					postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
 				}
 			)
+	}
+
+	private fun launchPrefetch(settings: AppSettings) {
+		prefetchJob = serviceScope.launch {
+			for (i in 0 until settings.poolSize) {
+				logger.debug(TAG, "Pre-fetching wallpaper ${i + 1} of ${settings.poolSize}")
+
+				val currentSettings = settingsRepository.settings.first()
+				if (currentSettings.poolSize == 0) {
+					break
+				}
+
+				val poolCount = fileManager.listAll().size
+				if (poolCount >= currentSettings.poolSize) {
+					break
+				}
+
+				if (!isOnline()) {
+					break
+				}
+
+				if (currentSettings.wifiOnly && !isOnWifi()) {
+					break
+				}
+
+				val result = wallhavenRepository.next(currentSettings)
+				if (result.isFailure) {
+					break
+				}
+
+				val paths = fileManager.listAll().map { it.absolutePath }
+				stateRepository.update { it.copy(poolPaths = paths) }
+			}
+		}
 	}
 
 	private fun onFetchError(throwable: Throwable, settings: AppSettings) {
@@ -316,6 +357,8 @@ class WallpaperService: Service() {
 	}
 
 	companion object {
+		private const val TAG = "WallpaperService"
+
 		const val ACTION_STOP = "xyz.attacktive.wallhavend.STOP"
 		const val ACTION_UPDATE_NOW = "xyz.attacktive.wallhavend.UPDATE_NOW"
 		const val ACTION_APPLY_PATH = "xyz.attacktive.wallhavend.APPLY_PATH"
