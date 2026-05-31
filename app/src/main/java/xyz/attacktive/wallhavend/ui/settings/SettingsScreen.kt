@@ -25,13 +25,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -72,6 +72,7 @@ fun SettingsScreen(
 	onNavigateBack: () -> Unit,
 	viewModel: SettingsViewModel = hiltViewModel()
 ) {
+	val context = LocalContext.current
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
 	val saveError by viewModel.saveError.collectAsStateWithLifecycle()
 	var selectedTab by rememberSaveable { mutableIntStateOf(0) }
@@ -84,7 +85,7 @@ fun SettingsScreen(
 
 	LaunchedEffect(saveError) {
 		if (saveError != null) {
-			snackbarHostState.showSnackbar("Failed to save settings: $saveError")
+			snackbarHostState.showSnackbar(context.getString(R.string.settings_error_save_failed, saveError))
 			viewModel.clearSaveError()
 		}
 	}
@@ -315,7 +316,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		onExpandedChange = { intervalExpanded = it }
 	) {
 		OutlinedTextField(
-			value = formatInterval(settings.updateIntervalMinutes),
+			value = formatInterval(context, settings.updateIntervalMinutes),
 			onValueChange = {},
 			readOnly = true,
 			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = intervalExpanded) },
@@ -327,11 +328,11 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		ExposedDropdownMenu(expanded = intervalExpanded, onDismissRequest = { intervalExpanded = false }) {
 			UPDATE_INTERVAL_OPTIONS.forEach { minutes ->
 				DropdownMenuItem(
-					text = { Text(formatInterval(minutes)) },
+					text = { Text(formatInterval(context, minutes)) },
 					onClick = {
 						if (minutes != settings.updateIntervalMinutes) {
 							onSave(settings.copy(updateIntervalMinutes = minutes))
-							Toast.makeText(context, "Takes effect on next update", Toast.LENGTH_SHORT).show()
+							Toast.makeText(context, R.string.settings_toast_update_delay, Toast.LENGTH_SHORT).show()
 						}
 
 						intervalExpanded = false
@@ -471,9 +472,9 @@ private fun SectionLabel(text: String) {
 	)
 }
 
-private fun formatInterval(minutes: Int) = when {
-	minutes < 60 -> "$minutes min"
-	minutes == 60 -> "1 hr"
-	minutes % 60 == 0 -> "${minutes / 60} hr"
-	else -> "$minutes min"
+private fun formatInterval(context: android.content.Context, minutes: Int) = when {
+	minutes < 60 -> context.getString(R.string.settings_unit_min, minutes)
+	minutes == 60 -> context.getString(R.string.settings_unit_hr_single)
+	minutes % 60 == 0 -> context.getString(R.string.settings_unit_hr_plural, minutes / 60)
+	else -> context.getString(R.string.settings_unit_min, minutes)
 }

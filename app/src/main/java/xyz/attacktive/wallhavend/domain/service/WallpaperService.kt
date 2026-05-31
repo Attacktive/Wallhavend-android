@@ -308,8 +308,8 @@ class WallpaperService: Service() {
 		val state = stateRepository.state.value
 
 		val lastUpdated = state.lastUpdatedMs?.let {
-			"Last: ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))}"
-		} ?: "Never updated"
+			getString(R.string.home_status_last_updated, SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it)))
+		} ?: getString(R.string.service_status_never)
 
 		val openIntent = PendingIntent.getActivity(
 			this,
@@ -336,12 +336,12 @@ class WallpaperService: Service() {
 
 		return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
 			.setSmallIcon(R.drawable.ic_wallpaper)
-			.setContentTitle("Wallhavend")
+			.setContentTitle(getString(R.string.app_name))
 			.setContentText(lastUpdated)
 			.setContentIntent(openIntent)
 			.setOngoing(true)
-			.addAction(0, "Download now", updateNowIntent)
-			.addAction(0, "Stop", stopIntent)
+			.addAction(0, getString(R.string.home_action_download_now), updateNowIntent)
+			.addAction(0, getString(R.string.home_action_stop), stopIntent)
 			.build()
 	}
 

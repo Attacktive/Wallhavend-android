@@ -14,11 +14,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
@@ -135,8 +135,8 @@ class HomeViewModel @Inject constructor(
 					MediaScannerConnection.scanFile(context, arrayOf(destinationFile.absolutePath), arrayOf(mimeType), null)
 				}
 			}
-			.onSuccess { _saveMessage.emit("Saved to Pictures/Wallhavend") }
-			.onFailure { exception -> _saveMessage.emit("Failed to save: ${exception.message}") }
+			.onSuccess { _saveMessage.emit(context.getString(R.string.home_msg_saved_to_pictures)) }
+			.onFailure { exception -> _saveMessage.emit(context.getString(R.string.home_msg_save_failed, exception.message)) }
 		}
 	}
 }

@@ -288,7 +288,7 @@ private fun ErrorBanner(error: AppError) {
 
 	Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
 		Text(
-			text = "⚠ $text",
+			text = text,
 			modifier = Modifier.padding(12.dp),
 			style = MaterialTheme.typography.bodySmall,
 			color = MaterialTheme.colorScheme.error

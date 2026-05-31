@@ -13,13 +13,10 @@ class WallhavendApplication: Application() {
 	}
 
 	private fun createNotificationChannel() {
-		val channel = NotificationChannel(
-			NOTIFICATION_CHANNEL_ID,
-			"Wallpaper Service",
-			NotificationManager.IMPORTANCE_LOW
-		).apply {
-			description = "Shows wallpaper auto-update status"
-		}
+		val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, getString(R.string.notification_channel_name), NotificationManager.IMPORTANCE_LOW)
+			.apply {
+				description = getString(R.string.notification_channel_description)
+			}
 
 		getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 	}
