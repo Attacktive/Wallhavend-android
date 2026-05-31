@@ -1,12 +1,8 @@
 package xyz.attacktive.wallhavend.domain.model
 
-enum class Purity(val bitIndex: Int, val displayName: String) {
-	SFW(0, "SFW"), SKETCHY(1, "Sketchy"), NSFW(2, "NSFW")
-}
+import androidx.annotation.StringRes
+import xyz.attacktive.wallhavend.R
 
-fun Set<Purity>.toBitString(): String {
-	val bits = CharArray(3) { '0' }
-	forEach { bits[it.bitIndex] = '1' }
-
-	return String(bits)
+enum class Purity(override val bitIndex: Int, @StringRes val nameRes: Int): BitIndexable {
+	SFW(0, R.string.purity_sfw), SKETCHY(1, R.string.purity_sketchy), NSFW(2, R.string.purity_nsfw)
 }
