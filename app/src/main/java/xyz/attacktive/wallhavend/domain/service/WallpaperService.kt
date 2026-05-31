@@ -307,9 +307,11 @@ class WallpaperService: Service() {
 	private fun buildNotification(): Notification {
 		val state = stateRepository.state.value
 
-		val lastUpdated = state.lastUpdatedMs?.let {
-			getString(R.string.home_status_last_updated, SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it)))
-		} ?: getString(R.string.service_status_never)
+		val lastUpdated = state.lastUpdatedMs
+			?.let {
+				getString(R.string.home_status_last_updated, SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it)))
+			}
+			?: getString(R.string.service_status_never)
 
 		val openIntent = PendingIntent.getActivity(
 			this,
