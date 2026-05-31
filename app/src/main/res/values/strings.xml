@@ -44,7 +44,7 @@
 	<string name="purity_sketchy">Sketchy</string>
 	<string name="purity_nsfw">NSFW</string>
 	<string name="error_no_results">No results — try relaxing your filters</string>
-	<string name="error_no_results_hint">No results — try clearing the aspect ratio, or remove the API key if you don't need NSFW wallpapers</string>
+	<string name="error_no_results_hint">No results — try clearing the aspect ratio, or remove the API key if you don\'t need NSFW wallpapers</string>
 	<string name="error_api_error">API error %d</string>
 	<string name="error_unsupported_format">Unsupported image format — skipping</string>
 	<string name="error_apply_failed">Failed to apply wallpaper: %s</string>
