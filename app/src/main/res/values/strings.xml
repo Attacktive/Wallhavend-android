@@ -53,4 +53,14 @@
 	<string name="cd_save_to_pictures">Save to Pictures</string>
 	<string name="cd_delete">Delete</string>
 	<string name="cd_back">Back</string>
+	<string name="settings_unit_min">%d min</string>
+	<string name="settings_unit_hr_single">1 hr</string>
+	<string name="settings_unit_hr_plural">%d hr</string>
+	<string name="settings_toast_update_delay">Takes effect on next update</string>
+	<string name="settings_error_save_failed">Failed to save settings: %s</string>
+	<string name="home_msg_saved_to_pictures">Saved to Pictures/Wallhavend</string>
+	<string name="home_msg_save_failed">Failed to save: %s</string>
+	<string name="service_status_never">Never updated</string>
+	<string name="notification_channel_name">Wallpaper Service</string>
+	<string name="notification_channel_description">Shows wallpaper auto-update status</string>
 </resources>

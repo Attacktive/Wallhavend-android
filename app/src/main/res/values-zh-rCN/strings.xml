@@ -14,7 +14,7 @@
 	<string name="settings_tab_schedule">计划</string>
 	<string name="settings_tab_advanced">高级</string>
 	<string name="settings_label_search_query">搜索内容 (可选)</string>
-	<string name="settings_placeholder_search_query">例如：风景 山脉</string>
+	<string name="settings_placeholder_search_query">例如：landscape mountains</string>
 	<string name="settings_label_categories">分类</string>
 	<string name="settings_label_content_rating">内容分级</string>
 	<string name="settings_label_aspect_ratio">宽高比</string>
@@ -53,4 +53,14 @@
 	<string name="cd_save_to_pictures">保存至相册</string>
 	<string name="cd_delete">删除</string>
 	<string name="cd_back">返回</string>
+	<string name="settings_unit_min">%d 分钟</string>
+	<string name="settings_unit_hr_single">1 小时</string>
+	<string name="settings_unit_hr_plural">%d 小时</string>
+	<string name="settings_toast_update_delay">将在下次更新时生效</string>
+	<string name="settings_error_save_failed">保存设置失败: %s</string>
+	<string name="home_msg_saved_to_pictures">已保存至 Pictures/Wallhavend</string>
+	<string name="home_msg_save_failed">保存失败: %s</string>
+	<string name="service_status_never">从未更新</string>
+	<string name="notification_channel_name">壁纸服务</string>
+	<string name="notification_channel_description">显示壁纸自动更新状态</string>
 </resources>

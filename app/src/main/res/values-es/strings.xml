@@ -14,7 +14,7 @@
 	<string name="settings_tab_schedule">Programación</string>
 	<string name="settings_tab_advanced">Avanzado</string>
 	<string name="settings_label_search_query">CONSULTA DE BÚSQUEDA (OPCIONAL)</string>
-	<string name="settings_placeholder_search_query">ej. paisajes montañas</string>
+	<string name="settings_placeholder_search_query">ej. landscape mountains</string>
 	<string name="settings_label_categories">CATEGORÍAS</string>
 	<string name="settings_label_content_rating">CLASIFICACIÓN DE CONTENIDO</string>
 	<string name="settings_label_aspect_ratio">RELACIÓN DE ASPECTO</string>
@@ -53,4 +53,14 @@
 	<string name="cd_save_to_pictures">Guardar en Imágenes</string>
 	<string name="cd_delete">Eliminar</string>
 	<string name="cd_back">Atrás</string>
+	<string name="settings_unit_min">%d min</string>
+	<string name="settings_unit_hr_single">1 h</string>
+	<string name="settings_unit_hr_plural">%d h</string>
+	<string name="settings_toast_update_delay">Surte efecto en la próxima actualización</string>
+	<string name="settings_error_save_failed">Error al guardar los ajustes: %s</string>
+	<string name="home_msg_saved_to_pictures">Guardado en Pictures/Wallhavend</string>
+	<string name="home_msg_save_failed">Error al guardar: %s</string>
+	<string name="service_status_never">Nunca actualizado</string>
+	<string name="notification_channel_name">Servicio de fondos de pantalla</string>
+	<string name="notification_channel_description">Muestra el estado de la actualización automática de fondos de pantalla</string>
 </resources>

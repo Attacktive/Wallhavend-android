@@ -14,7 +14,7 @@
 	<string name="settings_tab_schedule">Agendamento</string>
 	<string name="settings_tab_advanced">Avançado</string>
 	<string name="settings_label_search_query">TERMO DE BUSCA (OPCIONAL)</string>
-	<string name="settings_placeholder_search_query">ex: paisagens montanhas</string>
+	<string name="settings_placeholder_search_query">ex: landscape mountains</string>
 	<string name="settings_label_categories">CATEGORIAS</string>
 	<string name="settings_label_content_rating">CLASSIFICAÇÃO DE CONTEÚDO</string>
 	<string name="settings_label_aspect_ratio">PROPORÇÃO DE TELA</string>
@@ -53,4 +53,14 @@
 	<string name="cd_save_to_pictures">Salvar em Imagens</string>
 	<string name="cd_delete">Excluir</string>
 	<string name="cd_back">Voltar</string>
+	<string name="settings_unit_min">%d min</string>
+	<string name="settings_unit_hr_single">1 h</string>
+	<string name="settings_unit_hr_plural">%d h</string>
+	<string name="settings_toast_update_delay">Entra em vigor na próxima atualização</string>
+	<string name="settings_error_save_failed">Falha ao salvar as configurações: %s</string>
+	<string name="home_msg_saved_to_pictures">Salvo em Pictures/Wallhavend</string>
+	<string name="home_msg_save_failed">Falha ao salvar: %s</string>
+	<string name="service_status_never">Nunca atualizado</string>
+	<string name="notification_channel_name">Serviço de papel de parede</string>
+	<string name="notification_channel_description">Exibe o status da atualização automática do papel de parede</string>
 </resources>

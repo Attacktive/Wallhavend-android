@@ -14,7 +14,7 @@
 	<string name="settings_tab_schedule">일정</string>
 	<string name="settings_tab_advanced">고급</string>
 	<string name="settings_label_search_query">검색어 (선택 사항)</string>
-	<string name="settings_placeholder_search_query">예: 풍경 산</string>
+	<string name="settings_placeholder_search_query">예: landscape mountains</string>
 	<string name="settings_label_categories">카테고리</string>
 	<string name="settings_label_content_rating">콘텐츠 등급</string>
 	<string name="settings_label_aspect_ratio">화면 비율</string>
@@ -53,4 +53,14 @@
 	<string name="cd_save_to_pictures">사진 폴더에 저장</string>
 	<string name="cd_delete">삭제</string>
 	<string name="cd_back">뒤로</string>
+	<string name="settings_unit_min">%d분</string>
+	<string name="settings_unit_hr_single">1시간</string>
+	<string name="settings_unit_hr_plural">%d시간</string>
+	<string name="settings_toast_update_delay">다음 업데이트부터 적용됩니다</string>
+	<string name="settings_error_save_failed">설정 저장 실패: %s</string>
+	<string name="home_msg_saved_to_pictures">Pictures/Wallhavend에 저장됨</string>
+	<string name="home_msg_save_failed">저장 실패: %s</string>
+	<string name="service_status_never">업데이트 안 됨</string>
+	<string name="notification_channel_name">배경화면 서비스</string>
+	<string name="notification_channel_description">배경화면 자동 업데이트 상태를 표시합니다</string>
 </resources>

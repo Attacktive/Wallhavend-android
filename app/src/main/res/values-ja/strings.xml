@@ -14,7 +14,7 @@
 	<string name="settings_tab_schedule">スケジュール</string>
 	<string name="settings_tab_advanced">詳細</string>
 	<string name="settings_label_search_query">検索クエリ (任意)</string>
-	<string name="settings_placeholder_search_query">例: 風景 山</string>
+	<string name="settings_placeholder_search_query">例: landscape mountains</string>
 	<string name="settings_label_categories">カテゴリ</string>
 	<string name="settings_label_content_rating">コンテンツ評価</string>
 	<string name="settings_label_aspect_ratio">アスペクト比</string>
@@ -53,4 +53,14 @@
 	<string name="cd_save_to_pictures">ピクチャに保存</string>
 	<string name="cd_delete">削除</string>
 	<string name="cd_back">戻る</string>
+	<string name="settings_unit_min">%d分</string>
+	<string name="settings_unit_hr_single">1時間</string>
+	<string name="settings_unit_hr_plural">%d時間</string>
+	<string name="settings_toast_update_delay">次回の更新から適用されます</string>
+	<string name="settings_error_save_failed">設定の保存に失敗しました: %s</string>
+	<string name="home_msg_saved_to_pictures">Pictures/Wallhavendに保存しました</string>
+	<string name="home_msg_save_failed">保存に失敗しました: %s</string>
+	<string name="service_status_never">未更新</string>
+	<string name="notification_channel_name">壁紙サービス</string>
+	<string name="notification_channel_description">壁紙の自動更新ステータスを表示します</string>
 </resources>

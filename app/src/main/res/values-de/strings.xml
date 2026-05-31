@@ -14,7 +14,7 @@
 	<string name="settings_tab_schedule">Zeitplan</string>
 	<string name="settings_tab_advanced">Erweitert</string>
 	<string name="settings_label_search_query">SUCHANFRAGE (OPTIONAL)</string>
-	<string name="settings_placeholder_search_query">z.B. Landschaften Berge</string>
+	<string name="settings_placeholder_search_query">z.B. landscape mountains</string>
 	<string name="settings_label_categories">KATEGORIEN</string>
 	<string name="settings_label_content_rating">CONTENT-RATING</string>
 	<string name="settings_label_aspect_ratio">SEITENVERHÄLTNIS</string>
@@ -53,4 +53,14 @@
 	<string name="cd_save_to_pictures">In Bildern speichern</string>
 	<string name="cd_delete">Löschen</string>
 	<string name="cd_back">Zurück</string>
+	<string name="settings_unit_min">%d min</string>
+	<string name="settings_unit_hr_single">1 Std.</string>
+	<string name="settings_unit_hr_plural">%d Std.</string>
+	<string name="settings_toast_update_delay">Wird beim nächsten Update wirksam</string>
+	<string name="settings_error_save_failed">Einstellungen konnten nicht gespeichert werden: %s</string>
+	<string name="home_msg_saved_to_pictures">Unter Pictures/Wallhavend gespeichert</string>
+	<string name="home_msg_save_failed">Speichern fehlgeschlagen: %s</string>
+	<string name="service_status_never">Nie aktualisiert</string>
+	<string name="notification_channel_name">Hintergrundbild-Service</string>
+	<string name="notification_channel_description">Zeigt den Status der automatischen Hintergrund-Aktualisierung an</string>
 </resources>
