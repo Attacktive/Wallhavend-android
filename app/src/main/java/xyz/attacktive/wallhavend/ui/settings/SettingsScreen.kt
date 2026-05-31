@@ -72,7 +72,6 @@ fun SettingsScreen(
 	onNavigateBack: () -> Unit,
 	viewModel: SettingsViewModel = hiltViewModel()
 ) {
-	val context = LocalContext.current
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
 	val saveError by viewModel.saveError.collectAsStateWithLifecycle()
 	var selectedTab by rememberSaveable { mutableIntStateOf(0) }
@@ -81,11 +80,13 @@ fun SettingsScreen(
 		stringResource(R.string.settings_tab_schedule),
 		stringResource(R.string.settings_tab_advanced)
 	)
+
 	val snackbarHostState = remember { SnackbarHostState() }
 
+	val saveErrorFormat = stringResource(R.string.settings_error_save_failed)
 	LaunchedEffect(saveError) {
 		if (saveError != null) {
-			snackbarHostState.showSnackbar(context.getString(R.string.settings_error_save_failed, saveError))
+			snackbarHostState.showSnackbar(saveErrorFormat.format(saveError))
 			viewModel.clearSaveError()
 		}
 	}
@@ -316,7 +317,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		onExpandedChange = { intervalExpanded = it }
 	) {
 		OutlinedTextField(
-			value = formatInterval(context, settings.updateIntervalMinutes),
+			value = formatInterval(settings.updateIntervalMinutes),
 			onValueChange = {},
 			readOnly = true,
 			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = intervalExpanded) },
@@ -328,7 +329,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		ExposedDropdownMenu(expanded = intervalExpanded, onDismissRequest = { intervalExpanded = false }) {
 			UPDATE_INTERVAL_OPTIONS.forEach { minutes ->
 				DropdownMenuItem(
-					text = { Text(formatInterval(context, minutes)) },
+					text = { Text(formatInterval(minutes)) },
 					onClick = {
 						if (minutes != settings.updateIntervalMinutes) {
 							onSave(settings.copy(updateIntervalMinutes = minutes))
@@ -472,9 +473,10 @@ private fun SectionLabel(text: String) {
 	)
 }
 
-private fun formatInterval(context: android.content.Context, minutes: Int) = when {
-	minutes < 60 -> context.getString(R.string.settings_unit_min, minutes)
-	minutes == 60 -> context.getString(R.string.settings_unit_hr_single)
-	minutes % 60 == 0 -> context.getString(R.string.settings_unit_hr_plural, minutes / 60)
-	else -> context.getString(R.string.settings_unit_min, minutes)
+@Composable
+private fun formatInterval(minutes: Int) = when {
+	minutes < 60 -> stringResource(R.string.settings_unit_min, minutes)
+	minutes == 60 -> stringResource(R.string.settings_unit_hr_single)
+	minutes % 60 == 0 -> stringResource(R.string.settings_unit_hr_plural, minutes / 60)
+	else -> stringResource(R.string.settings_unit_min, minutes)
 }
