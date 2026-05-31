@@ -1,69 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:aapt="http://schemas.android.com/aapt"
 	android:width="108dp"
 	android:height="108dp"
 	android:viewportWidth="108"
 	android:viewportHeight="108"
 >
-	<!-- Stylized Sun -->
-	<path android:pathData="M70,38m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0">
-		<aapt:attr name="android:fillColor">
-			<gradient
-				android:startX="62"
-				android:startY="30"
-				android:endX="78"
-				android:endY="46"
-				android:type="linear"
-			>
-				<item android:color="#FFD54F" android:offset="0.0" />
-				<item android:color="#F57C00" android:offset="1.0" />
-			</gradient>
-		</aapt:attr>
-	</path>
-
-	<!-- Back Mountain Layer -->
-	<path android:pathData="M24,78 L54,42 L84,78 Z">
-		<aapt:attr name="android:fillColor">
-			<gradient
-				android:startX="24"
-				android:startY="42"
-				android:endX="84"
-				android:endY="78"
-				android:type="linear"
-			>
-				<item android:color="#80CBC4" android:offset="0.0" />
-				<item android:color="#00695C" android:offset="1.0" />
-			</gradient>
-		</aapt:attr>
-	</path>
-
-	<!-- Front Mountain Layer (Slightly Offset) -->
-	<path android:pathData="M34,78 L64,52 L94,78 Z">
-		<aapt:attr name="android:fillColor">
-			<gradient
-				android:startX="34"
-				android:startY="52"
-				android:endX="94"
-				android:endY="78"
-				android:type="linear"
-			>
-				<item android:color="#4DB6AC" android:offset="0.0" />
-				<item android:color="#004D40" android:offset="1.0" />
-			</gradient>
-		</aapt:attr>
-	</path>
-
-	<!-- Stylized Frame (The "Aperture") -->
+	<!-- Hexagonal Border (kept large for visual weight) -->
 	<path
-		android:pathData="M22,34 h64 v44 h-64 Z M25,37 v38 h58 v-38 Z"
-		android:fillColor="#80FFFFFF"
+		android:pathData="M54,26 L78.25,40 L78.25,68 L54,82 L29.75,68 L29.75,40 Z"
+		android:strokeWidth="2"
+		android:strokeColor="#80FFFFFF"
 	/>
 
-	<!-- Subtle highlight on the frame -->
-	<path
-		android:pathData="M22,34 v1 h64 v-1 Z"
-		android:fillColor="#CCFFFFFF"
-	/>
+	<!-- Scaled Group for the "W" and its glow to add padding INSIDE the hexagon -->
+	<!-- Scaling the W down slightly (0.8 scale) while keeping it centered at 54,54 -->
+	<group
+		android:pivotX="54"
+		android:pivotY="54"
+		android:scaleX="0.8"
+		android:scaleY="0.8"
+	>
+		<!-- Subtle Green Glow behind the W -->
+		<path
+			android:pathData="M34,42 L44,66 L54,42 L64,66 L74,42"
+			android:strokeWidth="12"
+			android:strokeColor="#2075A444"
+			android:strokeLineCap="round"
+			android:strokeLineJoin="round"
+		/>
+
+		<!-- Stylized W (Wallhaven Logo) -->
+		<path
+			android:pathData="M34,42 L44,66 L54,42 L64,66 L74,42"
+			android:strokeWidth="6"
+			android:strokeColor="#FFFFFF"
+			android:strokeLineCap="round"
+			android:strokeLineJoin="round"
+		/>
+	</group>
 </vector>
