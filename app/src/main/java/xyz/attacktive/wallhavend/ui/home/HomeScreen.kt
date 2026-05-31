@@ -58,11 +58,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import xyz.attacktive.wallhavend.BuildConfig
+import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 
@@ -90,10 +92,10 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 	Scaffold(
 		topBar = {
 			TopAppBar(
-				title = { Text("Wallhavend ${BuildConfig.VERSION_NAME}") },
+				title = { Text(stringResource(R.string.home_title, BuildConfig.VERSION_NAME)) },
 				actions = {
 					IconButton(onClick = onNavigateToSettings) {
-						Icon(Icons.Default.Settings, contentDescription = "Settings")
+						Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.cd_settings))
 					}
 				}
 			)
@@ -132,7 +134,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 			Spacer(modifier = Modifier.height(16.dp))
 
 			if (state.poolPaths.isNotEmpty()) {
-				Text("RECENT WALLPAPERS", style = MaterialTheme.typography.labelSmall)
+				Text(stringResource(R.string.home_recent_wallpapers), style = MaterialTheme.typography.labelSmall)
 				Spacer(modifier = Modifier.height(8.dp))
 				WallpaperGrid(
 					paths = state.poolPaths,
@@ -162,7 +164,7 @@ private fun StatusCard(state: ServiceState) {
 		) {
 			Column(modifier = Modifier.weight(1f)) {
 				Text(
-					text = if (state.isRunning) "● AUTO-UPDATE ON" else "○ AUTO-UPDATE OFF",
+					text = stringResource(if (state.isRunning) R.string.home_status_auto_update_on else R.string.home_status_auto_update_off),
 					style = MaterialTheme.typography.labelMedium,
 					color = if (state.isRunning) {
 						MaterialTheme.colorScheme.primary
@@ -173,7 +175,7 @@ private fun StatusCard(state: ServiceState) {
 
 				state.lastUpdatedMs?.let {
 					Text(
-						text = "Last: ${SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale).format(Date(it))}",
+						text = stringResource(R.string.home_status_last_updated, SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale).format(Date(it))),
 						style = MaterialTheme.typography.bodySmall
 					)
 				}
@@ -196,13 +198,13 @@ private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateN
 			)
 
 			Spacer(Modifier.width(4.dp))
-			Text(if (state.isRunning) "Stop" else "Start")
+			Text(stringResource(if (state.isRunning) R.string.home_action_stop else R.string.home_action_start))
 		}
 
 		OutlinedButton(onClick = onUpdateNow) {
 			Icon(Icons.Default.CloudDownload, contentDescription = null)
 			Spacer(Modifier.width(4.dp))
-			Text("Download now")
+			Text(stringResource(R.string.home_action_download_now))
 		}
 	}
 }
@@ -249,7 +251,7 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 				) {
 					Icon(
 						Icons.Default.Save,
-						contentDescription = "Save to Pictures",
+						contentDescription = stringResource(R.string.cd_save_to_pictures),
 						modifier = Modifier.size(16.dp),
 						tint = Color.White
 					)
@@ -263,7 +265,7 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 				) {
 					Icon(
 						Icons.Default.Close,
-						contentDescription = "Delete",
+						contentDescription = stringResource(R.string.cd_delete),
 						modifier = Modifier.size(16.dp),
 						tint = Color.White
 					)
@@ -275,18 +277,18 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 
 @Composable
 private fun ErrorBanner(error: AppError) {
-	val message = when (error) {
-		is AppError.NoResults -> "No results — try relaxing your filters"
-		is AppError.NoResultsWithRatioHint -> "No results — try clearing the aspect ratio, or remove the API key if you don't need NSFW wallpapers"
-		is AppError.ApiError -> "API error ${error.code}"
-		is AppError.UnsupportedFormat -> "Unsupported image format — skipping"
-		is AppError.WallpaperApplyFailed -> "Failed to apply wallpaper: ${error.cause}"
-		is AppError.NetworkError -> "Network error: ${error.cause}"
+	val text = when (error) {
+		is AppError.NoResults -> stringResource(R.string.error_no_results)
+		is AppError.NoResultsWithRatioHint -> stringResource(R.string.error_no_results_hint)
+		is AppError.ApiError -> stringResource(R.string.error_api_error, error.code)
+		is AppError.UnsupportedFormat -> stringResource(R.string.error_unsupported_format)
+		is AppError.WallpaperApplyFailed -> stringResource(R.string.error_apply_failed, error.cause)
+		is AppError.NetworkError -> stringResource(R.string.error_network_error, error.cause)
 	}
 
 	Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
 		Text(
-			text = "⚠ $message",
+			text = "⚠ $text",
 			modifier = Modifier.padding(12.dp),
 			style = MaterialTheme.typography.bodySmall,
 			color = MaterialTheme.colorScheme.error
@@ -298,7 +300,7 @@ private fun ErrorBanner(error: AppError) {
 private fun OfflineBanner() {
 	Card(modifier = Modifier.fillMaxWidth()) {
 		Text(
-			text = "Offline — updates paused",
+			text = stringResource(R.string.home_offline_banner),
 			modifier = Modifier.padding(12.dp),
 			style = MaterialTheme.typography.bodySmall
 		)
