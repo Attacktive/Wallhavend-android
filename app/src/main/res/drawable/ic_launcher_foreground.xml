@@ -7,38 +7,63 @@
 	android:viewportWidth="108"
 	android:viewportHeight="108"
 >
-	<!-- Screen Area: Sky Blue (Scaled to avoid corner clipping) -->
-	<path android:pathData="M31,42h46v26h-46z">
+	<!-- Stylized Sun -->
+	<path android:pathData="M70,38m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0">
 		<aapt:attr name="android:fillColor">
 			<gradient
-				android:startY="42"
-				android:startX="54"
-				android:endY="68"
-				android:endX="54"
+				android:startX="62"
+				android:startY="30"
+				android:endX="78"
+				android:endY="46"
 				android:type="linear"
 			>
-				<item android:color="#4FC3F7" android:offset="0.0" />
-				<item android:color="#0288D1" android:offset="1.0" />
+				<item android:color="#FFD54F" android:offset="0.0" />
+				<item android:color="#F57C00" android:offset="1.0" />
 			</gradient>
 		</aapt:attr>
 	</path>
 
-	<!-- Monitor Frame / Border (Scaled to avoid corner clipping) -->
-	<path android:pathData="M29,40 h50 v30 h-50 Z M31,42 v26 h46 v-26 Z" android:fillColor="#FFFFFF" />
-
-	<!-- Monitor Stand (Scaled to avoid corner clipping) -->
-	<path android:pathData="M50,70 h8 v3 h-8 Z M46,73 h16 v2 h-16 Z" android:fillColor="#FFFFFF" />
-
-	<!-- Horizon / Mountain inside screen (Scaled to avoid corner clipping) -->
-	<path android:pathData="M31,68 L48,55 L58,62 L77,68 Z">
+	<!-- Back Mountain Layer -->
+	<path android:pathData="M24,78 L54,42 L84,78 Z">
 		<aapt:attr name="android:fillColor">
-			<gradient android:startY="55" android:startX="54" android:endY="68" android:endX="54" android:type="linear">
-				<item android:color="#81C784" android:offset="0.0" />
-				<item android:color="#2E7D32" android:offset="1.0" />
+			<gradient
+				android:startX="24"
+				android:startY="42"
+				android:endX="84"
+				android:endY="78"
+				android:type="linear"
+			>
+				<item android:color="#80CBC4" android:offset="0.0" />
+				<item android:color="#00695C" android:offset="1.0" />
 			</gradient>
 		</aapt:attr>
 	</path>
 
-	<!-- Sun inside screen (Scaled to avoid corner clipping) -->
-	<path android:pathData="M62,49 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-3 0" android:fillColor="#FFD54F" />
+	<!-- Front Mountain Layer (Slightly Offset) -->
+	<path android:pathData="M34,78 L64,52 L94,78 Z">
+		<aapt:attr name="android:fillColor">
+			<gradient
+				android:startX="34"
+				android:startY="52"
+				android:endX="94"
+				android:endY="78"
+				android:type="linear"
+			>
+				<item android:color="#4DB6AC" android:offset="0.0" />
+				<item android:color="#004D40" android:offset="1.0" />
+			</gradient>
+		</aapt:attr>
+	</path>
+
+	<!-- Stylized Frame (The "Aperture") -->
+	<path
+		android:pathData="M22,34 h64 v44 h-64 Z M25,37 v38 h58 v-38 Z"
+		android:fillColor="#80FFFFFF"
+	/>
+
+	<!-- Subtle highlight on the frame -->
+	<path
+		android:pathData="M22,34 v1 h64 v-1 Z"
+		android:fillColor="#CCFFFFFF"
+	/>
 </vector>
