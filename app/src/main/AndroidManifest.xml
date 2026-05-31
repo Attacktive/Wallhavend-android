@@ -9,7 +9,14 @@
 	<uses-permission android:name="android.permission.SET_WALLPAPER" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-	<application android:name=".WallhavendApplication" android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:theme="@style/Theme.Wallhavend">
+	<application
+		android:name=".WallhavendApplication"
+		android:allowBackup="true"
+		android:icon="@mipmap/ic_launcher"
+		android:label="@string/app_name"
+		android:localeConfig="@xml/locales_config"
+		android:theme="@style/Theme.Wallhavend"
+	>
 		<activity android:name=".MainActivity" android:exported="true">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
