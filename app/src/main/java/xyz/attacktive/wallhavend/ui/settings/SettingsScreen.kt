@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -56,6 +57,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.ASPECT_RATIO_SUGGESTIONS
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
@@ -73,7 +75,11 @@ fun SettingsScreen(
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
 	val saveError by viewModel.saveError.collectAsStateWithLifecycle()
 	var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-	val tabs = listOf("Content", "Schedule", "Advanced")
+	val tabs = listOf(
+		stringResource(R.string.settings_tab_content),
+		stringResource(R.string.settings_tab_schedule),
+		stringResource(R.string.settings_tab_advanced)
+	)
 	val snackbarHostState = remember { SnackbarHostState() }
 
 	LaunchedEffect(saveError) {
@@ -91,10 +97,10 @@ fun SettingsScreen(
 		},
 		topBar = {
 			TopAppBar(
-				title = { Text("Settings") },
+				title = { Text(stringResource(R.string.settings_title)) },
 				navigationIcon = {
 					IconButton(onClick = onNavigateBack) {
-						Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+						Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
 					}
 				}
 			)
@@ -131,7 +137,7 @@ fun SettingsScreen(
 				val uriHandler = LocalUriHandler.current
 
 				Text(
-					text = "Powered by wallhaven.cc",
+					text = stringResource(R.string.settings_powered_by),
 					style = MaterialTheme.typography.bodySmall,
 					color = MaterialTheme.colorScheme.onSurfaceVariant,
 					textDecoration = TextDecoration.Underline,
@@ -143,7 +149,7 @@ fun SettingsScreen(
 				)
 
 				Text(
-					text = "Report a bug",
+					text = stringResource(R.string.settings_report_bug),
 					style = MaterialTheme.typography.bodySmall,
 					color = MaterialTheme.colorScheme.onSurfaceVariant,
 					textDecoration = TextDecoration.Underline,
@@ -178,11 +184,11 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		}
 	}
 
-	SectionLabel("SEARCH QUERY (OPTIONAL)")
+	SectionLabel(stringResource(R.string.settings_label_search_query))
 	OutlinedTextField(
 		value = searchQuery,
 		onValueChange = { searchQuery = it },
-		placeholder = { Text("e.g. landscape mountains") },
+		placeholder = { Text(stringResource(R.string.settings_placeholder_search_query)) },
 		singleLine = true,
 		keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
 		modifier = Modifier
@@ -196,7 +202,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	)
 
 	Spacer(Modifier.height(16.dp))
-	SectionLabel("CATEGORIES")
+	SectionLabel(stringResource(R.string.settings_label_categories))
 
 	Row {
 		WallhavenCategory.entries.forEach { category ->
@@ -214,14 +220,14 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 					onSave(settings.copy(categories = newSet))
 				},
-				label = { Text(category.displayName) },
+				label = { Text(stringResource(category.nameRes)) },
 				modifier = Modifier.padding(end = 8.dp)
 			)
 		}
 	}
 
 	Spacer(Modifier.height(16.dp))
-	SectionLabel("CONTENT RATING")
+	SectionLabel(stringResource(R.string.settings_label_content_rating))
 
 	Row {
 		Purity.entries.forEach { purity ->
@@ -240,14 +246,14 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 					onSave(settings.copy(purity = newSet))
 				},
-				label = { Text(purity.displayName) },
+				label = { Text(stringResource(purity.nameRes)) },
 				modifier = Modifier.padding(end = 8.dp)
 			)
 		}
 	}
 
 	Spacer(Modifier.height(16.dp))
-	SectionLabel("ASPECT RATIO")
+	SectionLabel(stringResource(R.string.settings_label_aspect_ratio))
 
 	val selectedRatios = aspectRatio.split(",")
 		.map { it.trim() }
@@ -277,7 +283,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	OutlinedTextField(
 		value = aspectRatio,
 		onValueChange = { aspectRatio = it },
-		placeholder = { Text("Custom, e.g. 9x16 or 9x16,16x9") },
+		placeholder = { Text(stringResource(R.string.settings_placeholder_aspect_ratio)) },
 		singleLine = true,
 		modifier = Modifier
 			.fillMaxWidth()
@@ -290,7 +296,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	)
 
 	Text(
-		"Leave blank to skip ratio filtering",
+		text = stringResource(R.string.settings_hint_aspect_ratio),
 		style = MaterialTheme.typography.bodySmall,
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(top = 4.dp)
@@ -303,7 +309,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	val context = LocalContext.current
 	var intervalExpanded by remember { mutableStateOf(false) }
 
-	SectionLabel("UPDATE INTERVAL")
+	SectionLabel(stringResource(R.string.settings_label_update_interval))
 	ExposedDropdownMenuBox(
 		expanded = intervalExpanded,
 		onExpandedChange = { intervalExpanded = it }
@@ -336,9 +342,9 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	}
 
 	Spacer(Modifier.height(16.dp))
-	SectionLabel("WALLPAPER TARGET")
+	SectionLabel(stringResource(R.string.settings_label_wallpaper_target))
 	Text(
-		"Lock screen may not work on some devices (e.g. Samsung One UI)",
+		text = stringResource(R.string.settings_hint_wallpaper_target),
 		style = MaterialTheme.typography.bodySmall,
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(bottom = 8.dp)
@@ -355,9 +361,9 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 			Text(
 				text = when (target) {
-					WallpaperTarget.HOME -> "Home screen only"
-					WallpaperTarget.LOCK -> "Lock screen only"
-					WallpaperTarget.BOTH -> "Both"
+					WallpaperTarget.HOME -> stringResource(R.string.settings_target_home)
+					WallpaperTarget.LOCK -> stringResource(R.string.settings_target_lock)
+					WallpaperTarget.BOTH -> stringResource(R.string.settings_target_both)
 				},
 				modifier = Modifier.padding(start = 4.dp)
 			)
@@ -366,16 +372,16 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	ToggleSetting(
-		label = "Wi-Fi only",
-		subtitle = "Skip updates on mobile data",
+		label = stringResource(R.string.settings_label_wifi_only),
+		subtitle = stringResource(R.string.settings_subtitle_wifi_only),
 		checked = settings.wifiOnly,
 		onToggle = { onSave(settings.copy(wifiOnly = it)) }
 	)
 
 	Spacer(Modifier.height(8.dp))
 	ToggleSetting(
-		label = "Auto-start on boot",
-		subtitle = "No root required",
+		label = stringResource(R.string.settings_label_auto_start),
+		subtitle = stringResource(R.string.settings_subtitle_auto_start),
 		checked = settings.autoStartOnBoot,
 		onToggle = { onSave(settings.copy(autoStartOnBoot = it)) }
 	)
@@ -390,9 +396,9 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		if (apiKey != settings.apiKey) apiKey = settings.apiKey
 	}
 
-	SectionLabel("WALLPAPER POOL SIZE")
+	SectionLabel(stringResource(R.string.settings_label_pool_size))
 	Text(
-		"Wallpapers kept on device and shown in gallery",
+		text = stringResource(R.string.settings_subtitle_pool_size),
 		style = MaterialTheme.typography.bodySmall,
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(bottom = 8.dp)
@@ -412,7 +418,7 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 			Text(
 				text = if (size == 0) {
-					"0 — current only, no gallery"
+					stringResource(R.string.settings_pool_size_zero)
 				} else {
 					"$size"
 				},
@@ -422,11 +428,11 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	}
 
 	Spacer(Modifier.height(16.dp))
-	SectionLabel("API KEY (OPTIONAL, REQUIRED FOR NSFW)")
+	SectionLabel(stringResource(R.string.settings_label_api_key))
 	OutlinedTextField(
 		value = apiKey,
 		onValueChange = { apiKey = it },
-		placeholder = { Text("Your Wallhaven API key") },
+		placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
 		visualTransformation = PasswordVisualTransformation(),
 		keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
 		modifier = Modifier
