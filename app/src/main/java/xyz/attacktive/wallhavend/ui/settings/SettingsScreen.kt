@@ -44,17 +44,18 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -67,6 +68,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.ASPECT_RATIO_SUGGESTIONS
 import xyz.attacktive.wallhavend.domain.model.AppSettings
@@ -182,9 +184,6 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
 	var aspectRatio by rememberSaveable { mutableStateOf(settings.aspectRatio) }
 	var filterColor by rememberSaveable { mutableStateOf(settings.filterColor) }
-	var searchQueryHasFocused by remember { mutableStateOf(false) }
-	var aspectRatioHasFocused by remember { mutableStateOf(false) }
-	var filterColorHasFocused by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) {
@@ -204,6 +203,24 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		}
 	}
 
+	PersistOnChange(
+		value = searchQuery,
+		upstream = settings.searchQuery,
+		onPersist = { onSave(settings.copy(searchQuery = it)) }
+	)
+
+	PersistOnChange(
+		value = aspectRatio,
+		upstream = settings.aspectRatio,
+		onPersist = { onSave(settings.copy(aspectRatio = it)) }
+	)
+
+	PersistOnChange(
+		value = filterColor,
+		upstream = settings.filterColor,
+		onPersist = { onSave(settings.copy(filterColor = it)) }
+	)
+
 	SectionLabel(stringResource(R.string.settings_label_search_query))
 	OutlinedTextField(
 		value = searchQuery,
@@ -211,14 +228,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		placeholder = { Text(stringResource(R.string.settings_placeholder_search_query)) },
 		singleLine = true,
 		keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-		modifier = Modifier
-			.fillMaxWidth()
-			.onFocusChanged { focusState ->
-				when {
-					focusState.isFocused -> searchQueryHasFocused = true
-					searchQueryHasFocused -> onSave(settings.copy(searchQuery = searchQuery))
-				}
-			}
+		modifier = Modifier.fillMaxWidth()
 	)
 
 	Spacer(Modifier.height(16.dp))
@@ -305,14 +315,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		onValueChange = { aspectRatio = it },
 		placeholder = { Text(stringResource(R.string.settings_placeholder_aspect_ratio)) },
 		singleLine = true,
-		modifier = Modifier
-			.fillMaxWidth()
-			.onFocusChanged { focusState ->
-				when {
-					focusState.isFocused -> aspectRatioHasFocused = true
-					aspectRatioHasFocused -> onSave(settings.copy(aspectRatio = aspectRatio))
-				}
-			}
+		modifier = Modifier.fillMaxWidth()
 	)
 
 	Text(
@@ -347,14 +350,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			}
 		},
 		singleLine = true,
-		modifier = Modifier
-			.fillMaxWidth()
-			.onFocusChanged { focusState ->
-				when {
-					focusState.isFocused -> filterColorHasFocused = true
-					filterColorHasFocused -> onSave(settings.copy(filterColor = filterColor))
-				}
-			}
+		modifier = Modifier.fillMaxWidth()
 	)
 
 	Text(
@@ -452,11 +448,18 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 @Composable
 private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var apiKey by rememberSaveable { mutableStateOf(settings.apiKey) }
-	var apiKeyHasFocused by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.apiKey) {
-		if (apiKey != settings.apiKey) apiKey = settings.apiKey
+		if (apiKey != settings.apiKey) {
+			apiKey = settings.apiKey
+		}
 	}
+
+	PersistOnChange(
+		value = apiKey,
+		upstream = settings.apiKey,
+		onPersist = { onSave(settings.copy(apiKey = it)) }
+	)
 
 	SectionLabel(stringResource(R.string.settings_label_pool_size))
 	Text(
@@ -497,14 +500,7 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
 		visualTransformation = PasswordVisualTransformation(),
 		keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-		modifier = Modifier
-			.fillMaxWidth()
-			.onFocusChanged { focusState ->
-				when {
-					focusState.isFocused -> apiKeyHasFocused = true
-					apiKeyHasFocused -> onSave(settings.copy(apiKey = apiKey))
-				}
-			}
+		modifier = Modifier.fillMaxWidth()
 	)
 }
 
@@ -522,6 +518,30 @@ private fun ToggleSetting(label: String, subtitle: String, checked: Boolean, onT
 		Switch(checked = checked, onCheckedChange = onToggle)
 	}
 }
+
+@Composable
+private fun PersistOnChange(value: String, upstream: String, onPersist: (String) -> Unit) {
+	LaunchedEffect(value, upstream) {
+		if (value != upstream) {
+			delay(SAVE_DEBOUNCE_MS)
+			onPersist(value)
+		}
+	}
+
+	val latestValue by rememberUpdatedState(value)
+	val latestUpstream by rememberUpdatedState(upstream)
+	val latestOnPersist by rememberUpdatedState(onPersist)
+
+	DisposableEffect(Unit) {
+		onDispose {
+			if (latestValue != latestUpstream) {
+				latestOnPersist(latestValue)
+			}
+		}
+	}
+}
+
+private const val SAVE_DEBOUNCE_MS = 500L
 
 @Composable
 private fun SectionLabel(text: String) {
