@@ -10,7 +10,8 @@ data class AppSettings(
 	val wifiOnly: Boolean = true,
 	val poolSize: Int = 10,
 	val apiKey: String = "",
-	val autoStartOnBoot: Boolean = true
+	val autoStartOnBoot: Boolean = true,
+	val filterColor: String = ""
 )
 
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)

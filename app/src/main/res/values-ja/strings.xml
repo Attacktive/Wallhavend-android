@@ -20,6 +20,9 @@
 	<string name="settings_label_aspect_ratio">アスペクト比</string>
 	<string name="settings_hint_aspect_ratio">比率によるフィルタリングをスキップするには空欄にします</string>
 	<string name="settings_placeholder_aspect_ratio">カスタム 例: 9x16 または 9x16,16x9</string>
+	<string name="settings_label_filter_color">カラーフィルター (任意)</string>
+	<string name="settings_hint_filter_color">カラーフィルタリングをスキップするには空欄にします</string>
+	<string name="settings_placeholder_filter_color">例: ff0000 または ff0000,0066cc</string>
 	<string name="settings_label_update_interval">更新間隔</string>
 	<string name="settings_label_wallpaper_target">壁紙の対象</string>
 	<string name="settings_hint_wallpaper_target">ロック画面は一部のデバイス (例: Samsung One UI) では動作しない場合があります</string>

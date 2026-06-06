@@ -20,6 +20,9 @@
 	<string name="settings_label_aspect_ratio">ASPECT RATIO</string>
 	<string name="settings_hint_aspect_ratio">Leave blank to skip ratio filtering</string>
 	<string name="settings_placeholder_aspect_ratio">Custom, e.g. 9x16 or 9x16,16x9</string>
+	<string name="settings_label_filter_color">COLOR FILTER (OPTIONAL)</string>
+	<string name="settings_hint_filter_color">Leave blank to skip color filtering</string>
+	<string name="settings_placeholder_filter_color">e.g. ff0000 or ff0000,0066cc</string>
 	<string name="settings_label_update_interval">UPDATE INTERVAL</string>
 	<string name="settings_label_wallpaper_target">WALLPAPER TARGET</string>
 	<string name="settings_hint_wallpaper_target">Lock screen may not work on some devices (e.g. Samsung One UI)</string>

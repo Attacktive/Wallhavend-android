@@ -20,6 +20,9 @@
 	<string name="settings_label_aspect_ratio">RATIO D\'ASPECT</string>
 	<string name="settings_hint_aspect_ratio">Laisser vide pour ignorer le filtrage par ratio</string>
 	<string name="settings_placeholder_aspect_ratio">Personnalisé, ex: 9x16 ou 9x16,16x9</string>
+	<string name="settings_label_filter_color">FILTRE COULEUR (OPTIONNEL)</string>
+	<string name="settings_hint_filter_color">Laisser vide pour ignorer le filtre couleur</string>
+	<string name="settings_placeholder_filter_color">ex: ff0000 ou ff0000,0066cc</string>
 	<string name="settings_label_update_interval">INTERVALLE DE MISE À JOUR</string>
 	<string name="settings_label_wallpaper_target">CIBLE DU FOND D\'ÉCRAN</string>
 	<string name="settings_hint_wallpaper_target">L\'écran de verrouillage peut ne pas fonctionner sur certains appareils (ex: Samsung One UI)</string>

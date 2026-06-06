@@ -22,6 +22,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		val categories: String,
 		val purity: String,
 		val ratios: String?,
+		val colors: String?,
 		val apiKey: String?
 	)
 
@@ -30,6 +31,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		categories = categories.toBitString(),
 		purity = purity.toBitString(),
 		ratios = aspectRatio.ifBlank { null },
+		colors = filterColor.ifBlank { null },
 		apiKey = apiKey.ifBlank { null }
 	)
 
@@ -69,6 +71,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 				.shuffled()
 				.take(6)
 				.joinToString(""),
+			colors = key.colors,
 			apiKey = key.apiKey
 		)
 

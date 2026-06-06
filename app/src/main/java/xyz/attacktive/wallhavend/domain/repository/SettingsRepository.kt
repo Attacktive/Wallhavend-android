@@ -31,6 +31,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val POOL_SIZE = intPreferencesKey("pool_size")
 		val API_KEY = stringPreferencesKey("api_key")
 		val AUTO_START_ON_BOOT = booleanPreferencesKey("auto_start_on_boot")
+		val FILTER_COLOR = stringPreferencesKey("filter_color")
 		val LAST_UPDATED_MS = longPreferencesKey("last_updated_ms")
 		val CURRENT_WALLPAPER_PATH = stringPreferencesKey("current_wallpaper_path")
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
@@ -55,7 +56,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				wifiOnly = preferences[Keys.WIFI_ONLY] ?: true,
 				poolSize = preferences[Keys.POOL_SIZE] ?: 10,
 				apiKey = preferences[Keys.API_KEY] ?: "",
-				autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true
+				autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true,
+				filterColor = preferences[Keys.FILTER_COLOR] ?: ""
 			)
 			.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 		}
@@ -80,6 +82,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 			preferences[Keys.POOL_SIZE] = settings.poolSize
 			preferences[Keys.API_KEY] = settings.apiKey
 			preferences[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
+			preferences[Keys.FILTER_COLOR] = settings.filterColor
 		}
 
 		logger.debug(TAG, "save() completed")

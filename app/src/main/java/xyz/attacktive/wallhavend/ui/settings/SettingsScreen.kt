@@ -1,20 +1,28 @@
 package xyz.attacktive.wallhavend.ui.settings
 
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -45,7 +53,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -55,6 +65,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import xyz.attacktive.wallhavend.R
@@ -171,8 +182,10 @@ fun SettingsScreen(
 private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
 	var aspectRatio by rememberSaveable { mutableStateOf(settings.aspectRatio) }
+	var filterColor by rememberSaveable { mutableStateOf(settings.filterColor) }
 	var searchQueryHasFocused by remember { mutableStateOf(false) }
 	var aspectRatioHasFocused by remember { mutableStateOf(false) }
+	var filterColorHasFocused by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) {
@@ -183,6 +196,12 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	LaunchedEffect(settings.aspectRatio) {
 		if (aspectRatio != settings.aspectRatio) {
 			aspectRatio = settings.aspectRatio
+		}
+	}
+
+	LaunchedEffect(settings.filterColor) {
+		if (filterColor != settings.filterColor) {
+			filterColor = settings.filterColor
 		}
 	}
 
@@ -299,6 +318,48 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Text(
 		text = stringResource(R.string.settings_hint_aspect_ratio),
+		style = MaterialTheme.typography.bodySmall,
+		color = MaterialTheme.colorScheme.onSurfaceVariant,
+		modifier = Modifier.padding(top = 4.dp)
+	)
+
+	Spacer(Modifier.height(16.dp))
+	SectionLabel(stringResource(R.string.settings_label_filter_color))
+	ColorSwatchPicker(
+		selected = filterColor,
+		onSelect = { newColor ->
+			filterColor = newColor
+			onSave(settings.copy(filterColor = newColor))
+		}
+	)
+
+	OutlinedTextField(
+		value = filterColor,
+		onValueChange = { filterColor = it.replace("#", "") },
+		placeholder = { Text(stringResource(R.string.settings_placeholder_filter_color)) },
+		trailingIcon = {
+			if (filterColor.isNotEmpty()) {
+				IconButton(onClick = {
+					filterColor = ""
+					onSave(settings.copy(filterColor = ""))
+				}) {
+					Icon(Icons.Filled.Clear, contentDescription = null)
+				}
+			}
+		},
+		singleLine = true,
+		modifier = Modifier
+			.fillMaxWidth()
+			.onFocusChanged { focusState ->
+				when {
+					focusState.isFocused -> filterColorHasFocused = true
+					filterColorHasFocused -> onSave(settings.copy(filterColor = filterColor))
+				}
+			}
+	)
+
+	Text(
+		text = stringResource(R.string.settings_hint_filter_color),
 		style = MaterialTheme.typography.bodySmall,
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(top = 4.dp)
@@ -471,6 +532,67 @@ private fun SectionLabel(text: String) {
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(bottom = 4.dp)
 	)
+}
+
+@Composable
+private fun ColorSwatchPicker(selected: String, onSelect: (String) -> Unit) {
+	val swatches = listOf(
+		"660000", "990000", "cc0000", "cc3333", "ea4c88", "993399", "663399",
+		"333399", "0066cc", "0099cc", "66cccc", "77cc33", "669900", "336600",
+		"666600", "999900", "cccc33", "ffff00", "ffcc33", "ff9900", "ff6600",
+		"cc6633", "996633", "663300", "000000", "999999", "cccccc", "ffffff", "424153"
+	)
+
+	val selectedSet = selected.split(",")
+		.map { it.trim().lowercase() }
+		.filter { it.isNotEmpty() }
+		.toSet()
+
+	FlowRow(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(vertical = 4.dp)
+	) {
+		swatches.forEach { hex ->
+			val argb = "#$hex".toColorInt()
+			val isSelected = hex in selectedSet
+			val luminance = (0.299f * android.graphics.Color.red(argb) +
+				0.587f * android.graphics.Color.green(argb) +
+				0.114f * android.graphics.Color.blue(argb)) / 255f
+
+			Box(
+				contentAlignment = Alignment.Center,
+				modifier = Modifier
+					.padding(2.dp)
+					.size(32.dp)
+					.clip(CircleShape)
+					.background(Color(argb))
+					.border(
+						width = if (isSelected) 2.dp else 0.5.dp,
+						color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.4f),
+						shape = CircleShape
+					)
+					.clickable {
+						val newSet = if (isSelected) {
+							selectedSet - hex
+						} else {
+							selectedSet + hex
+						}
+
+						onSelect(newSet.joinToString(","))
+					}
+			) {
+				if (isSelected) {
+					Icon(
+						imageVector = Icons.Filled.Check,
+						contentDescription = null,
+						tint = if (luminance > 0.5f) Color.Black else Color.White,
+						modifier = Modifier.size(18.dp)
+					)
+				}
+			}
+		}
+	}
 }
 
 @Composable

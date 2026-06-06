@@ -20,6 +20,9 @@
 	<string name="settings_label_aspect_ratio">宽高比</string>
 	<string name="settings_hint_aspect_ratio">留空以跳过比例过滤</string>
 	<string name="settings_placeholder_aspect_ratio">自定义，例如：9x16 或 9x16,16x9</string>
+	<string name="settings_label_filter_color">颜色筛选（可选）</string>
+	<string name="settings_hint_filter_color">留空以跳过颜色筛选</string>
+	<string name="settings_placeholder_filter_color">例如：ff0000 或 ff0000,0066cc</string>
 	<string name="settings_label_update_interval">更新间隔</string>
 	<string name="settings_label_wallpaper_target">壁纸应用范围</string>
 	<string name="settings_hint_wallpaper_target">锁屏壁纸在某些设备（如三星 One UI）上可能无法生效</string>
