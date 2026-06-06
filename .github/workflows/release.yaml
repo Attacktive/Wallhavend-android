@@ -32,15 +32,15 @@ jobs:
 
       - name: 'Rename artifacts'
         run: |
-          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/app-release-${{ github.ref_name }}.apk
-          mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/app-release-${{ github.ref_name }}.aab
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/Wallhavend-${{ github.ref_name }}.apk
+          mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab
 
       - name: 'Upload APK to GitHub Releases'
         uses: 'softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b'
         with:
           files: |
-            app/build/outputs/apk/release/app-release-${{ github.ref_name }}.apk
-            app/build/outputs/bundle/release/app-release-${{ github.ref_name }}.aab
+            app/build/outputs/apk/release/Wallhavend-${{ github.ref_name }}.apk
+            app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab
           generate_release_notes: true
 
 #      - name: 'Upload AAB to Google Play'
