@@ -65,7 +65,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColorInt
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import xyz.attacktive.wallhavend.R
@@ -335,7 +334,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	OutlinedTextField(
 		value = filterColor,
-		onValueChange = { filterColor = it.replace("#", "") },
+		onValueChange = { filterColor = it.replace("#", "").lowercase() },
 		placeholder = { Text(stringResource(R.string.settings_placeholder_filter_color)) },
 		trailingIcon = {
 			if (filterColor.isNotEmpty()) {
@@ -534,31 +533,39 @@ private fun SectionLabel(text: String) {
 	)
 }
 
+private data class Swatch(val hex: String, val argb: Int, val luminance: Float)
+
+private val SWATCHES: List<Swatch> = listOf(
+	"660000", "990000", "cc0000", "cc3333", "ea4c88", "993399", "663399",
+	"333399", "0066cc", "0099cc", "66cccc", "77cc33", "669900", "336600",
+	"666600", "999900", "cccc33", "ffff00", "ffcc33", "ff9900", "ff6600",
+	"cc6633", "996633", "663300", "000000", "999999", "cccccc", "ffffff", "424153"
+).map { hex ->
+	val argb = (hex.toLong(16) or 0xFF000000).toInt()
+	val r = (argb shr 16) and 0xFF
+	val g = (argb shr 8) and 0xFF
+	val b = argb and 0xFF
+	val luminance = (0.299f * r + 0.587f * g + 0.114f * b) / 255f
+
+	Swatch(hex, argb, luminance)
+}
+
 @Composable
 private fun ColorSwatchPicker(selected: String, onSelect: (String) -> Unit) {
-	val swatches = listOf(
-		"660000", "990000", "cc0000", "cc3333", "ea4c88", "993399", "663399",
-		"333399", "0066cc", "0099cc", "66cccc", "77cc33", "669900", "336600",
-		"666600", "999900", "cccc33", "ffff00", "ffcc33", "ff9900", "ff6600",
-		"cc6633", "996633", "663300", "000000", "999999", "cccccc", "ffffff", "424153"
-	)
-
-	val selectedSet = selected.split(",")
-		.map { it.trim().lowercase() }
-		.filter { it.isNotEmpty() }
-		.toSet()
+	val selectedSet = remember(selected) {
+		selected.split(",")
+			.map { it.trim().lowercase() }
+			.filter { it.isNotEmpty() }
+			.toSet()
+	}
 
 	FlowRow(
 		modifier = Modifier
 			.fillMaxWidth()
 			.padding(vertical = 4.dp)
 	) {
-		swatches.forEach { hex ->
-			val argb = "#$hex".toColorInt()
-			val isSelected = hex in selectedSet
-			val luminance = (0.299f * android.graphics.Color.red(argb) +
-				0.587f * android.graphics.Color.green(argb) +
-				0.114f * android.graphics.Color.blue(argb)) / 255f
+		SWATCHES.forEach { swatch ->
+			val isSelected = swatch.hex in selectedSet
 
 			Box(
 				contentAlignment = Alignment.Center,
@@ -566,17 +573,17 @@ private fun ColorSwatchPicker(selected: String, onSelect: (String) -> Unit) {
 					.padding(2.dp)
 					.size(32.dp)
 					.clip(CircleShape)
-					.background(Color(argb))
+					.background(Color(swatch.argb))
 					.border(
-						width = if (isSelected) 2.dp else 0.5.dp,
-						color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.4f),
+						width = if (isSelected) { 2.dp } else { 0.5.dp },
+						color = if (isSelected) { MaterialTheme.colorScheme.primary } else { Color.Gray.copy(alpha = 0.4f) },
 						shape = CircleShape
 					)
 					.clickable {
 						val newSet = if (isSelected) {
-							selectedSet - hex
+							selectedSet - swatch.hex
 						} else {
-							selectedSet + hex
+							selectedSet + swatch.hex
 						}
 
 						onSelect(newSet.joinToString(","))
@@ -586,7 +593,7 @@ private fun ColorSwatchPicker(selected: String, onSelect: (String) -> Unit) {
 					Icon(
 						imageVector = Icons.Filled.Check,
 						contentDescription = null,
-						tint = if (luminance > 0.5f) Color.Black else Color.White,
+						tint = if (swatch.luminance > 0.5f) { Color.Black } else { Color.White },
 						modifier = Modifier.size(18.dp)
 					)
 				}
