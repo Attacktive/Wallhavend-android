@@ -1,5 +1,6 @@
 package xyz.attacktive.wallhavend.ui.settings
 
+import kotlin.time.Duration.Companion.milliseconds
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -521,9 +522,11 @@ private fun ToggleSetting(label: String, subtitle: String, checked: Boolean, onT
 
 @Composable
 private fun PersistOnChange(value: String, upstream: String, onPersist: (String) -> Unit) {
+	val saveDebounceMs = 500.milliseconds
+
 	LaunchedEffect(value, upstream) {
 		if (value != upstream) {
-			delay(SAVE_DEBOUNCE_MS)
+			delay(saveDebounceMs)
 			onPersist(value)
 		}
 	}
@@ -540,8 +543,6 @@ private fun PersistOnChange(value: String, upstream: String, onPersist: (String)
 		}
 	}
 }
-
-private const val SAVE_DEBOUNCE_MS = 500L
 
 @Composable
 private fun SectionLabel(text: String) {
