@@ -13,10 +13,10 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import xyz.attacktive.wallhavend.domain.model.AppSettings
-import xyz.attacktive.wallhavend.domain.model.Purity
-import xyz.attacktive.wallhavend.domain.model.Sorting
-import xyz.attacktive.wallhavend.domain.model.ToplistRange
-import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
+import xyz.attacktive.wallhavend.domain.model.query.Purity
+import xyz.attacktive.wallhavend.domain.model.query.Sorting
+import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
+import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.util.AppLogger
 
@@ -45,9 +45,9 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		.map { preferences -> AppSettings(
 				searchQuery = preferences[Keys.SEARCH_QUERY] ?: "",
 				categories = (preferences[Keys.CATEGORIES] ?: setOf("GENERAL"))
-					.mapNotNull { runCatching { WallhavenCategory.valueOf(it) }.getOrNull() }
+					.mapNotNull { runCatching { Category.valueOf(it) }.getOrNull() }
 					.toSet()
-					.ifEmpty { setOf(WallhavenCategory.GENERAL) },
+					.ifEmpty { setOf(Category.GENERAL) },
 				purity = (preferences[Keys.PURITY] ?: setOf("SFW"))
 					.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
 					.toSet()

@@ -1,4 +1,4 @@
-package xyz.attacktive.wallhavend.domain.model
+package xyz.attacktive.wallhavend.domain.model.query
 
 sealed interface BitIndexable {
 	val bitIndex: Int

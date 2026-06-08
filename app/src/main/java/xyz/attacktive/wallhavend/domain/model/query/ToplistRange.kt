@@ -1,4 +1,4 @@
-package xyz.attacktive.wallhavend.domain.model
+package xyz.attacktive.wallhavend.domain.model.query
 
 import androidx.annotation.StringRes
 import xyz.attacktive.wallhavend.R

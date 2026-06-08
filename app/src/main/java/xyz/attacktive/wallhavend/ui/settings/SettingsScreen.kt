@@ -74,11 +74,11 @@ import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.ASPECT_RATIO_SUGGESTIONS
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
-import xyz.attacktive.wallhavend.domain.model.Purity
-import xyz.attacktive.wallhavend.domain.model.Sorting
-import xyz.attacktive.wallhavend.domain.model.ToplistRange
+import xyz.attacktive.wallhavend.domain.model.query.Purity
+import xyz.attacktive.wallhavend.domain.model.query.Sorting
+import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
 import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
-import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
+import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -238,7 +238,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	SectionLabel(stringResource(R.string.settings_label_categories))
 
 	Row {
-		WallhavenCategory.entries.forEach { category ->
+		Category.entries.forEach { category ->
 			val isSelected = category in settings.categories
 			FilterChip(
 				selected = isSelected,

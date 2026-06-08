@@ -1,8 +1,13 @@
 package xyz.attacktive.wallhavend.domain.model
 
+import xyz.attacktive.wallhavend.domain.model.query.Category
+import xyz.attacktive.wallhavend.domain.model.query.Purity
+import xyz.attacktive.wallhavend.domain.model.query.Sorting
+import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
+
 data class AppSettings(
 	val searchQuery: String = "",
-	val categories: Set<WallhavenCategory> = setOf(WallhavenCategory.GENERAL),
+	val categories: Set<Category> = setOf(Category.GENERAL),
 	val purity: Set<Purity> = setOf(Purity.SFW),
 	val aspectRatio: String = "",
 	val updateIntervalMinutes: Int = 60,

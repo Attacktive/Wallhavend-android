@@ -12,10 +12,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.domain.model.AppSettings
-import xyz.attacktive.wallhavend.domain.model.Purity
-import xyz.attacktive.wallhavend.domain.model.Sorting
-import xyz.attacktive.wallhavend.domain.model.ToplistRange
-import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
+import xyz.attacktive.wallhavend.domain.model.query.Purity
+import xyz.attacktive.wallhavend.domain.model.query.Sorting
+import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
+import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 
@@ -41,7 +41,7 @@ class SettingsRepositoryTest {
 		assertTrue(settings.wifiOnly)
 		assertEquals(10, settings.poolSize)
 		assertEquals(WallpaperTarget.HOME, settings.wallpaperTarget)
-		assertEquals(setOf(WallhavenCategory.GENERAL), settings.categories)
+		assertEquals(setOf(Category.GENERAL), settings.categories)
 		assertEquals(setOf(Purity.SFW), settings.purity)
 		assertEquals(Sorting.RANDOM, settings.sorting)
 		assertEquals(ToplistRange.ONE_MONTH, settings.toplistRange)
@@ -68,7 +68,7 @@ class SettingsRepositoryTest {
 		val repository = createRepository()
 		val modified = AppSettings(
 			searchQuery = "mountains",
-			categories = setOf(WallhavenCategory.GENERAL, WallhavenCategory.ANIME),
+			categories = setOf(Category.GENERAL, Category.ANIME),
 			purity = setOf(Purity.SFW, Purity.SKETCHY),
 			aspectRatio = "16x9",
 			updateIntervalMinutes = 30,
