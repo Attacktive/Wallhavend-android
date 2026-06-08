@@ -43,6 +43,15 @@ jobs:
             app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab
           generate_release_notes: true
 
+      - name: 'Create release notes'
+        run: |
+          mkdir -p whatsnew
+          MSG=$(git tag -l --format='%(contents)' ${{ github.ref_name }})
+          if [ -z "$MSG" ]; then
+            MSG=$(git log -1 --pretty=%B)
+          fi
+          echo "$MSG" | cut -c1-500 > whatsnew/whatsnew-en-US
+
       - name: 'Upload AAB to Google Play'
         uses: 'r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5'
         with:
@@ -50,5 +59,6 @@ jobs:
           packageName: 'xyz.attacktive.wallhavend'
           releaseFiles: 'app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab'
           mappingFile: 'app/build/outputs/mapping/release/mapping.txt'
+          whatsNewDirectory: 'whatsnew'
           tracks: 'beta'
           status: 'completed'
