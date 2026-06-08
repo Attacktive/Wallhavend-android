@@ -10,6 +10,10 @@ Supports filtering by category, purity, and aspect ratio. Runs as a foreground s
 
 **Min SDK:** Android 8.0 (API 26)
 
+<a href="https://play.google.com/store/apps/details?id=xyz.attacktive.wallhavend">
+	<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="200">
+</a>
+
 ---
 
 Wallpapers provided by [Wallhaven](https://wallhaven.cc). All images remain property of their respective uploaders.
