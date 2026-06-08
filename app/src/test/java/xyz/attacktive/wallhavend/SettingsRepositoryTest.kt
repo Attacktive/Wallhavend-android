@@ -70,7 +70,6 @@ class SettingsRepositoryTest {
 			searchQuery = "mountains",
 			categories = setOf(Category.GENERAL, Category.ANIME),
 			purity = setOf(Purity.SFW, Purity.SKETCHY),
-			aspectRatio = "16x9",
 			updateIntervalMinutes = 30,
 			wallpaperTarget = WallpaperTarget.HOME,
 			wifiOnly = false,
@@ -88,13 +87,4 @@ class SettingsRepositoryTest {
 		assertEquals(modified, loaded)
 	}
 
-	@Test
-	fun `save and reload 10x16 aspect ratio`() = runTest {
-		val repository = createRepository()
-		val settings = AppSettings(aspectRatio = "10x16")
-		repository.save(settings)
-
-		val loaded = repository.settings.first { it.aspectRatio == "10x16" }
-		assertEquals("10x16", loaded.aspectRatio)
-	}
 }

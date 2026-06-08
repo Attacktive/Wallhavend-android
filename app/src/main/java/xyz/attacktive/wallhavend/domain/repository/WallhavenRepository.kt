@@ -34,11 +34,11 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		val toplistRange: String?
 	)
 
-	private fun AppSettings.toSearchKey() = SearchKey(
+	private fun AppSettings.toSearchKey(aspectRatio: String) = SearchKey(
 		query = searchQuery.ifBlank { null },
 		categories = categories.toBitString(),
 		purity = purity.toBitString(),
-		ratios = aspectRatio.ifBlank { null },
+		ratios = aspectRatio,
 		colors = filterColor.ifBlank { null },
 		apiKey = apiKey.ifBlank { null },
 		sorting = sorting,
@@ -49,8 +49,8 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		}
 	)
 
-	suspend fun next(settings: AppSettings): Result<Pair<Wallpaper, File>> = mutex.withLock {
-		val key = settings.toSearchKey()
+	suspend fun next(settings: AppSettings, aspectRatio: String): Result<Pair<Wallpaper, File>> = mutex.withLock {
+		val key = settings.toSearchKey(aspectRatio)
 		if (key != cacheKey) {
 			cache.clear()
 			cacheKey = key

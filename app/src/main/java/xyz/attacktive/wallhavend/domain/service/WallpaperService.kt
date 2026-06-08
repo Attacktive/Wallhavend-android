@@ -15,6 +15,9 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +35,7 @@ import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_CH
 import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_ID
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.AppSettings
+import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
@@ -106,7 +110,7 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun handleOnlineUpdate(settings: AppSettings) {
-		wallhavenRepository.next(settings)
+		wallhavenRepository.next(settings, screenAspectRatio())
 			.fold(
 				onSuccess = { (_, file) -> onWallpaperFetched(file, settings) },
 				onFailure = { throwable -> onFetchError(throwable, settings) }
@@ -149,7 +153,7 @@ class WallpaperService: Service() {
 	private fun onFetchError(throwable: Throwable, settings: AppSettings) {
 		val error = when (throwable) {
 			// Wallhaven server bug: certain ratios yield zero results when an API key is present
-			is NoResultsException -> if (settings.apiKey.isNotBlank() && settings.aspectRatio.isNotBlank()) {
+			is NoResultsException -> if (settings.apiKey.isNotBlank()) {
 				AppError.NoResultsWithRatioHint
 			} else {
 				AppError.NoResults
@@ -243,6 +247,27 @@ class WallpaperService: Service() {
 			delay(10_000)
 			stateRepository.update { it.copy(error = null) }
 		}
+	}
+
+	private fun screenAspectRatio(): String {
+		val windowManager = getSystemService(WindowManager::class.java)
+
+		val (width, height) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			val bounds = windowManager.currentWindowMetrics.bounds
+			bounds.width() to bounds.height()
+		} else {
+			legacyScreenDimensions(windowManager)
+		}
+
+		return closestAspectRatio(width, height)
+	}
+
+	@Suppress("DEPRECATION")
+	private fun legacyScreenDimensions(windowManager: WindowManager): Pair<Int, Int> {
+		val displayMetrics = DisplayMetrics()
+		windowManager.defaultDisplay.getRealMetrics(displayMetrics)
+
+		return displayMetrics.widthPixels to displayMetrics.heightPixels
 	}
 
 	private fun isOnline(): Boolean {

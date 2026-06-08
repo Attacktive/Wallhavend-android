@@ -16,11 +16,7 @@
 	<string name="settings_label_search_query">검색어 (선택 사항)</string>
 	<string name="settings_placeholder_search_query">예: landscape mountains</string>
 	<string name="settings_label_categories">카테고리</string>
-	<string name="settings_label_content_rating">콘텐츠 등급</string>
-	<string name="settings_label_aspect_ratio">화면 비율</string>
-	<string name="settings_hint_aspect_ratio">비율 필터링을 건너뛰려면 비워 두세요</string>
-	<string name="settings_placeholder_aspect_ratio">사용자 지정 예: 9x16 또는 9x16,16x9</string>
-	<string name="settings_label_filter_color">색상 필터 (선택 사항)</string>
+	<string name="settings_label_content_rating">콘텐츠 등급</string>	<string name="settings_label_filter_color">색상 필터 (선택 사항)</string>
 	<string name="settings_hint_filter_color">색상 필터링을 건너뛰려면 비워 두세요</string>
 	<string name="settings_placeholder_filter_color">예: ff0000 또는 ff0000,0066cc</string>
 	<string name="settings_label_update_interval">업데이트 간격</string>

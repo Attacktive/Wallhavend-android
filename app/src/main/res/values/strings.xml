@@ -16,11 +16,7 @@
 	<string name="settings_label_search_query">SEARCH QUERY (OPTIONAL)</string>
 	<string name="settings_placeholder_search_query">e.g. landscape mountains</string>
 	<string name="settings_label_categories">CATEGORIES</string>
-	<string name="settings_label_content_rating">CONTENT RATING</string>
-	<string name="settings_label_aspect_ratio">ASPECT RATIO</string>
-	<string name="settings_hint_aspect_ratio">Leave blank to skip ratio filtering</string>
-	<string name="settings_placeholder_aspect_ratio">Custom, e.g. 9x16 or 9x16,16x9</string>
-	<string name="settings_label_filter_color">COLOR FILTER (OPTIONAL)</string>
+	<string name="settings_label_content_rating">CONTENT RATING</string>	<string name="settings_label_filter_color">COLOR FILTER (OPTIONAL)</string>
 	<string name="settings_hint_filter_color">Leave blank to skip color filtering</string>
 	<string name="settings_placeholder_filter_color">e.g. ff0000 or ff0000,0066cc</string>
 	<string name="settings_label_sorting">SORTING</string>

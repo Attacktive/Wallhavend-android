@@ -47,7 +47,7 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		val result = repository.next(AppSettings())
+		val result = repository.next(AppSettings(), "9x16")
 		assertTrue(result.isSuccess)
 		assertEquals("w1", result.getOrNull()?.first?.id)
 
@@ -61,8 +61,8 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		repository.next(AppSettings())
-		repository.next(AppSettings())
+		repository.next(AppSettings(), "9x16")
+		repository.next(AppSettings(), "9x16")
 
 		coVerify(exactly = 1) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
@@ -74,8 +74,8 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		repository.next(AppSettings(searchQuery = "mountains"))
-		repository.next(AppSettings(searchQuery = "ocean"))
+		repository.next(AppSettings(searchQuery = "mountains"), "9x16")
+		repository.next(AppSettings(searchQuery = "ocean"), "9x16")
 
 		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
@@ -87,8 +87,8 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		repository.next(AppSettings(filterColor = "cc0000"))
-		repository.next(AppSettings(filterColor = "0066cc"))
+		repository.next(AppSettings(filterColor = "cc0000"), "9x16")
+		repository.next(AppSettings(filterColor = "0066cc"), "9x16")
 
 		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
@@ -100,8 +100,8 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		repository.next(AppSettings(sorting = Sorting.RANDOM))
-		repository.next(AppSettings(sorting = Sorting.VIEWS))
+		repository.next(AppSettings(sorting = Sorting.RANDOM), "9x16")
+		repository.next(AppSettings(sorting = Sorting.VIEWS), "9x16")
 
 		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
@@ -113,8 +113,21 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		repository.next(AppSettings(sorting = Sorting.TOPLIST, toplistRange = ToplistRange.ONE_MONTH))
-		repository.next(AppSettings(sorting = Sorting.TOPLIST, toplistRange = ToplistRange.ONE_YEAR))
+		repository.next(AppSettings(sorting = Sorting.TOPLIST, toplistRange = ToplistRange.ONE_MONTH), "9x16")
+		repository.next(AppSettings(sorting = Sorting.TOPLIST, toplistRange = ToplistRange.ONE_YEAR), "9x16")
+
+		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `cache invalidates when aspect ratio changes`() = runTest {
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(3)
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		repository.next(AppSettings(), "9x16")
+		repository.next(AppSettings(), "16x9")
 
 		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
@@ -123,7 +136,7 @@ class WallhavenRepositoryTest {
 	fun `returns NoResultsException when API returns empty list`() = runTest {
 		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(0)
 
-		val result = repository.next(AppSettings())
+		val result = repository.next(AppSettings(), "9x16")
 		assertTrue(result.isFailure)
 		assertTrue(result.exceptionOrNull() is NoResultsException)
 	}
@@ -151,15 +164,15 @@ class WallhavenRepositoryTest {
 		}
 
 		// First call - should request page 1
-		val res1 = repository.next(AppSettings(sorting = Sorting.VIEWS))
+		val res1 = repository.next(AppSettings(sorting = Sorting.VIEWS), "9x16")
 		assertEquals("w-1-1", res1.getOrNull()?.first?.id)
 
 		// Second call - cache is empty, should request page 2
-		val res2 = repository.next(AppSettings(sorting = Sorting.VIEWS))
+		val res2 = repository.next(AppSettings(sorting = Sorting.VIEWS), "9x16")
 		assertEquals("w-2-1", res2.getOrNull()?.first?.id)
 
 		// Third call - cache is empty, currentPage (3) > lastPage (2), should wrap back and request page 1
-		val res3 = repository.next(AppSettings(sorting = Sorting.VIEWS))
+		val res3 = repository.next(AppSettings(sorting = Sorting.VIEWS), "9x16")
 		assertEquals("w-1-1", res3.getOrNull()?.first?.id)
 
 		// Verify page 1 was requested twice, page 2 was requested once

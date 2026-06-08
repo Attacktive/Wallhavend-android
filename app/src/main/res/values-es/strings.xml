@@ -16,11 +16,7 @@
 	<string name="settings_label_search_query">CONSULTA DE BÚSQUEDA (OPCIONAL)</string>
 	<string name="settings_placeholder_search_query">ej. landscape mountains</string>
 	<string name="settings_label_categories">CATEGORÍAS</string>
-	<string name="settings_label_content_rating">CLASIFICACIÓN DE CONTENIDO</string>
-	<string name="settings_label_aspect_ratio">RELACIÓN DE ASPECTO</string>
-	<string name="settings_hint_aspect_ratio">Dejar en blanco para omitir el filtrado por relación</string>
-	<string name="settings_placeholder_aspect_ratio">Personalizado, ej. 9x16 o 9x16,16x9</string>
-	<string name="settings_label_filter_color">FILTRO DE COLOR (OPCIONAL)</string>
+	<string name="settings_label_content_rating">CLASIFICACIÓN DE CONTENIDO</string>	<string name="settings_label_filter_color">FILTRO DE COLOR (OPCIONAL)</string>
 	<string name="settings_hint_filter_color">Dejar en blanco para omitir el filtrado por color</string>
 	<string name="settings_placeholder_filter_color">ej. ff0000 o ff0000,0066cc</string>
 	<string name="settings_label_update_interval">INTERVALO DE ACTUALIZACIÓN</string>

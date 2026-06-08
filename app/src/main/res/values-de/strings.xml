@@ -16,11 +16,7 @@
 	<string name="settings_label_search_query">SUCHANFRAGE (OPTIONAL)</string>
 	<string name="settings_placeholder_search_query">z.B. landscape mountains</string>
 	<string name="settings_label_categories">KATEGORIEN</string>
-	<string name="settings_label_content_rating">CONTENT-RATING</string>
-	<string name="settings_label_aspect_ratio">SEITENVERHÄLTNIS</string>
-	<string name="settings_hint_aspect_ratio">Leer lassen, um das Filtern nach Verhältnis zu überspringen</string>
-	<string name="settings_placeholder_aspect_ratio">Benutzerdefiniert, z.B. 9x16 oder 9x16,16x9</string>
-	<string name="settings_label_filter_color">FARBFILTER (OPTIONAL)</string>
+	<string name="settings_label_content_rating">CONTENT-RATING</string>	<string name="settings_label_filter_color">FARBFILTER (OPTIONAL)</string>
 	<string name="settings_hint_filter_color">Leer lassen, um das Filtern nach Farbe zu überspringen</string>
 	<string name="settings_placeholder_filter_color">z.B. ff0000 oder ff0000,0066cc</string>
 	<string name="settings_label_update_interval">AKTUALISIERUNGSINTERVALL</string>

@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -72,7 +71,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import xyz.attacktive.wallhavend.R
-import xyz.attacktive.wallhavend.domain.model.ASPECT_RATIO_SUGGESTIONS
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.query.Purity
@@ -186,18 +184,11 @@ fun SettingsScreen(
 @Composable
 private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
-	var aspectRatio by rememberSaveable { mutableStateOf(settings.aspectRatio) }
 	var filterColor by rememberSaveable { mutableStateOf(settings.filterColor) }
 
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) {
 			searchQuery = settings.searchQuery
-		}
-	}
-
-	LaunchedEffect(settings.aspectRatio) {
-		if (aspectRatio != settings.aspectRatio) {
-			aspectRatio = settings.aspectRatio
 		}
 	}
 
@@ -211,12 +202,6 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		value = searchQuery,
 		upstream = settings.searchQuery,
 		onPersist = { onSave(settings.copy(searchQuery = it)) }
-	)
-
-	PersistOnChange(
-		value = aspectRatio,
-		upstream = settings.aspectRatio,
-		onPersist = { onSave(settings.copy(aspectRatio = it)) }
 	)
 
 	PersistOnChange(
@@ -285,49 +270,6 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			)
 		}
 	}
-
-	Spacer(Modifier.height(16.dp))
-	SectionLabel(stringResource(R.string.settings_label_aspect_ratio))
-
-	val selectedRatios = aspectRatio.split(",")
-		.map { it.trim() }
-		.filter { it.isNotEmpty() }
-		.toSet()
-
-	Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-		ASPECT_RATIO_SUGGESTIONS.forEach { ratio ->
-			FilterChip(
-				selected = ratio in selectedRatios,
-				onClick = {
-					val newSet = if (ratio in selectedRatios) {
-						selectedRatios - ratio
-					} else {
-						selectedRatios + ratio
-					}
-
-					aspectRatio = newSet.joinToString(",")
-					onSave(settings.copy(aspectRatio = aspectRatio))
-				},
-				label = { Text(ratio) },
-				modifier = Modifier.padding(end = 8.dp)
-			)
-		}
-	}
-
-	OutlinedTextField(
-		value = aspectRatio,
-		onValueChange = { aspectRatio = it },
-		placeholder = { Text(stringResource(R.string.settings_placeholder_aspect_ratio)) },
-		singleLine = true,
-		modifier = Modifier.fillMaxWidth()
-	)
-
-	Text(
-		text = stringResource(R.string.settings_hint_aspect_ratio),
-		style = MaterialTheme.typography.bodySmall,
-		color = MaterialTheme.colorScheme.onSurfaceVariant,
-		modifier = Modifier.padding(top = 4.dp)
-	)
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_filter_color))

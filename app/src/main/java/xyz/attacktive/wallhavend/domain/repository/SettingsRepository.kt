@@ -26,7 +26,6 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val SEARCH_QUERY = stringPreferencesKey("search_query")
 		val CATEGORIES = stringSetPreferencesKey("categories")
 		val PURITY = stringSetPreferencesKey("purity")
-		val ASPECT_RATIO = stringPreferencesKey("aspect_ratio")
 		val UPDATE_INTERVAL_MINUTES = intPreferencesKey("update_interval_minutes")
 		val WALLPAPER_TARGET = stringPreferencesKey("wallpaper_target")
 		val WIFI_ONLY = booleanPreferencesKey("wifi_only")
@@ -52,7 +51,6 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 					.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
 					.toSet()
 					.ifEmpty { setOf(Purity.SFW) },
-				aspectRatio = preferences[Keys.ASPECT_RATIO] ?: "",
 				updateIntervalMinutes = preferences[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
 				wallpaperTarget = preferences[Keys.WALLPAPER_TARGET]
 					?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
@@ -81,7 +79,6 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				.map { it.name }
 				.toSet()
 
-			preferences[Keys.ASPECT_RATIO] = settings.aspectRatio
 			preferences[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
 			preferences[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
 			preferences[Keys.WIFI_ONLY] = settings.wifiOnly
