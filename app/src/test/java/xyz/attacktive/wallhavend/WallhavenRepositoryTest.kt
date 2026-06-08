@@ -40,7 +40,7 @@ class WallhavenRepositoryTest {
 
 	@Test
 	fun `next fetches from API and returns first result`() = runTest {
-		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(5)
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(5)
 		coEvery { fileManager.download(any()) } answers {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
@@ -49,12 +49,12 @@ class WallhavenRepositoryTest {
 		assertTrue(result.isSuccess)
 		assertEquals("w1", result.getOrNull()?.first?.id)
 
-		coVerify(exactly = 1) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) }
+		coVerify(exactly = 1) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
 
 	@Test
 	fun `next reuses cache on second call`() = runTest {
-		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(5)
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(5)
 		coEvery { fileManager.download(any()) } answers {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
@@ -62,12 +62,12 @@ class WallhavenRepositoryTest {
 		repository.next(AppSettings())
 		repository.next(AppSettings())
 
-		coVerify(exactly = 1) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) }
+		coVerify(exactly = 1) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
 
 	@Test
 	fun `cache invalidates when query changes`() = runTest {
-		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(3)
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(3)
 		coEvery { fileManager.download(any()) } answers {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
@@ -75,12 +75,12 @@ class WallhavenRepositoryTest {
 		repository.next(AppSettings(searchQuery = "mountains"))
 		repository.next(AppSettings(searchQuery = "ocean"))
 
-		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) }
+		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
 
 	@Test
 	fun `cache invalidates when filterColor changes`() = runTest {
-		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(3)
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(3)
 		coEvery { fileManager.download(any()) } answers {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
@@ -88,12 +88,38 @@ class WallhavenRepositoryTest {
 		repository.next(AppSettings(filterColor = "cc0000"))
 		repository.next(AppSettings(filterColor = "0066cc"))
 
-		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) }
+		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `cache invalidates when sorting changes`() = runTest {
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(3)
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		repository.next(AppSettings(sorting = "random"))
+		repository.next(AppSettings(sorting = "views"))
+
+		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `cache invalidates when toplistRange changes`() = runTest {
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(3)
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		repository.next(AppSettings(sorting = "toplist", toplistRange = "1M"))
+		repository.next(AppSettings(sorting = "toplist", toplistRange = "1y"))
+
+		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
 
 	@Test
 	fun `returns NoResultsException when API returns empty list`() = runTest {
-		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(0)
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(0)
 
 		val result = repository.next(AppSettings())
 		assertTrue(result.isFailure)

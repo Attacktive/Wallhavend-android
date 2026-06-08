@@ -75,6 +75,8 @@ import xyz.attacktive.wallhavend.domain.model.ASPECT_RATIO_SUGGESTIONS
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.Purity
+import xyz.attacktive.wallhavend.domain.model.SORTING_OPTIONS
+import xyz.attacktive.wallhavend.domain.model.TOPLIST_RANGE_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
@@ -360,6 +362,73 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(top = 4.dp)
 	)
+
+	var sortingExpanded by remember { mutableStateOf(false) }
+	var toplistRangeExpanded by remember { mutableStateOf(false) }
+
+	Spacer(Modifier.height(16.dp))
+	SectionLabel(stringResource(R.string.settings_label_sorting))
+	ExposedDropdownMenuBox(
+		expanded = sortingExpanded,
+		onExpandedChange = { sortingExpanded = it }
+	) {
+		OutlinedTextField(
+			value = formatSorting(settings.sorting),
+			onValueChange = {},
+			readOnly = true,
+			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortingExpanded) },
+			modifier = Modifier
+				.fillMaxWidth()
+				.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+		)
+
+		ExposedDropdownMenu(expanded = sortingExpanded, onDismissRequest = { sortingExpanded = false }) {
+			SORTING_OPTIONS.forEach { option ->
+				DropdownMenuItem(
+					text = { Text(formatSorting(option)) },
+					onClick = {
+						if (option != settings.sorting) {
+							onSave(settings.copy(sorting = option))
+						}
+						sortingExpanded = false
+					}
+				)
+			}
+		}
+	}
+
+	if (settings.sorting == "toplist") {
+		Spacer(Modifier.height(16.dp))
+		SectionLabel(stringResource(R.string.settings_label_toplist_range))
+		ExposedDropdownMenuBox(
+			expanded = toplistRangeExpanded,
+			onExpandedChange = { toplistRangeExpanded = it }
+		) {
+			OutlinedTextField(
+				value = formatToplistRange(settings.toplistRange),
+				onValueChange = {},
+				readOnly = true,
+				trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toplistRangeExpanded) },
+				modifier = Modifier
+					.fillMaxWidth()
+					.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+			)
+
+			ExposedDropdownMenu(expanded = toplistRangeExpanded, onDismissRequest = { toplistRangeExpanded = false }) {
+				TOPLIST_RANGE_OPTIONS.forEach { range ->
+					DropdownMenuItem(
+						text = { Text(formatToplistRange(range)) },
+						onClick = {
+							if (range != settings.toplistRange) {
+								onSave(settings.copy(toplistRange = range))
+							}
+							toplistRangeExpanded = false
+						}
+					)
+				}
+			}
+		}
+	}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -629,4 +698,26 @@ private fun formatInterval(minutes: Int) = when {
 	minutes == 60 -> stringResource(R.string.settings_unit_hr_single)
 	minutes % 60 == 0 -> stringResource(R.string.settings_unit_hr_plural, minutes / 60)
 	else -> stringResource(R.string.settings_unit_min, minutes)
+}
+
+@Composable
+private fun formatSorting(sorting: String) = when (sorting) {
+	"random" -> stringResource(R.string.settings_sorting_random)
+	"date_added" -> stringResource(R.string.settings_sorting_date_added)
+	"views" -> stringResource(R.string.settings_sorting_views)
+	"favorites" -> stringResource(R.string.settings_sorting_favorites)
+	"toplist" -> stringResource(R.string.settings_sorting_toplist)
+	else -> sorting
+}
+
+@Composable
+private fun formatToplistRange(range: String) = when (range) {
+	"1d" -> stringResource(R.string.settings_toplist_range_1d)
+	"3d" -> stringResource(R.string.settings_toplist_range_3d)
+	"1w" -> stringResource(R.string.settings_toplist_range_1w)
+	"1M" -> stringResource(R.string.settings_toplist_range_1m)
+	"3M" -> stringResource(R.string.settings_toplist_range_3m)
+	"6M" -> stringResource(R.string.settings_toplist_range_6m)
+	"1y" -> stringResource(R.string.settings_toplist_range_1y)
+	else -> range
 }

@@ -13,6 +13,8 @@ interface WallhavenApiService {
 		@Query(value = "ratios", encoded = true) ratios: String?,
 		@Query("sorting") sorting: String,
 		@Query("seed") seed: String?,
+		@Query("topRange") topRange: String?,
+		@Query("page") page: Int?,
 		@Query("colors") colors: String?,
 		@Query("apikey") apiKey: String?
 	): SearchResponseDto

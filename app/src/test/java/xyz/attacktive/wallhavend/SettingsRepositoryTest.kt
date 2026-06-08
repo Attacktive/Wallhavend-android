@@ -41,6 +41,8 @@ class SettingsRepositoryTest {
 		assertEquals(WallpaperTarget.HOME, settings.wallpaperTarget)
 		assertEquals(setOf(WallhavenCategory.GENERAL), settings.categories)
 		assertEquals(setOf(Purity.SFW), settings.purity)
+		assertEquals("random", settings.sorting)
+		assertEquals("1M", settings.toplistRange)
 	}
 
 	@Test
@@ -72,7 +74,9 @@ class SettingsRepositoryTest {
 			wifiOnly = false,
 			poolSize = 25,
 			apiKey = "secret",
-			autoStartOnBoot = true
+			autoStartOnBoot = true,
+			sorting = "toplist",
+			toplistRange = "1y"
 		)
 
 		repository.save(modified)

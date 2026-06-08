@@ -16,6 +16,8 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 class WallhavenRepository @Inject constructor(private val wallhavenApiService: WallhavenApiService, private val fileManager: WallpaperFileManager) {
 	private var cache = ArrayDeque<WallpaperDto>()
 	private var cacheKey: SearchKey? = null
+	private var currentPage = 1
+	private var lastPage = 1
 
 	private data class SearchKey(
 		val query: String?,
@@ -23,7 +25,9 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		val purity: String,
 		val ratios: String?,
 		val colors: String?,
-		val apiKey: String?
+		val apiKey: String?,
+		val sorting: String,
+		val toplistRange: String
 	)
 
 	private fun AppSettings.toSearchKey() = SearchKey(
@@ -32,7 +36,9 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		purity = purity.toBitString(),
 		ratios = aspectRatio.ifBlank { null },
 		colors = filterColor.ifBlank { null },
-		apiKey = apiKey.ifBlank { null }
+		apiKey = apiKey.ifBlank { null },
+		sorting = sorting,
+		toplistRange = toplistRange
 	)
 
 	suspend fun next(settings: AppSettings): Result<Pair<Wallpaper, File>> {
@@ -40,6 +46,8 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		if (key != cacheKey) {
 			cache.clear()
 			cacheKey = key
+			currentPage = 1
+			lastPage = 1
 		}
 
 		if (cache.isEmpty()) {
@@ -61,19 +69,42 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 	}
 
 	private suspend fun refetch(key: SearchKey) = runCatching {
+		val pageToFetch = if (key.sorting == "random") {
+			1
+		} else {
+			if (currentPage > lastPage) {
+				1
+			} else {
+				currentPage
+			}
+		}
+
 		val response = wallhavenApiService.search(
 			query = key.query,
 			categories = key.categories,
 			purity = key.purity,
 			ratios = key.ratios,
-			sorting = "random",
-			seed = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
-				.shuffled()
-				.take(6)
-				.joinToString(""),
+			sorting = key.sorting,
+			seed = if (key.sorting == "random") {
+				(('a'..'z') + ('A'..'Z') + ('0'..'9'))
+					.shuffled()
+					.take(6)
+					.joinToString("")
+			} else {
+				null
+			},
+			topRange = if (key.sorting == "toplist") {
+				key.toplistRange
+			} else {
+				null
+			},
+			page = pageToFetch,
 			colors = key.colors,
 			apiKey = key.apiKey
 		)
+
+		currentPage = response.meta.currentPage + 1
+		lastPage = response.meta.lastPage
 
 		cache = ArrayDeque(response.data)
 	}
