@@ -8,6 +8,7 @@ import xyz.attacktive.wallhavend.data.api.dto.WallpaperDto
 import xyz.attacktive.wallhavend.data.api.dto.toDomain
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.Sorting
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.toBitString
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
@@ -26,8 +27,8 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		val ratios: String?,
 		val colors: String?,
 		val apiKey: String?,
-		val sorting: String,
-		val toplistRange: String
+		val sorting: Sorting,
+		val toplistRange: String?
 	)
 
 	private fun AppSettings.toSearchKey() = SearchKey(
@@ -38,7 +39,11 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		colors = filterColor.ifBlank { null },
 		apiKey = apiKey.ifBlank { null },
 		sorting = sorting,
-		toplistRange = toplistRange
+		toplistRange = if (sorting == Sorting.TOPLIST) {
+			toplistRange.apiValue
+		} else {
+			null
+		}
 	)
 
 	suspend fun next(settings: AppSettings): Result<Pair<Wallpaper, File>> {
@@ -69,7 +74,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 	}
 
 	private suspend fun refetch(key: SearchKey) = runCatching {
-		val pageToFetch = if (key.sorting == "random") {
+		val pageToFetch = if (key.sorting == Sorting.RANDOM) {
 			1
 		} else {
 			if (currentPage > lastPage) {
@@ -84,20 +89,13 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 			categories = key.categories,
 			purity = key.purity,
 			ratios = key.ratios,
-			sorting = key.sorting,
-			seed = if (key.sorting == "random") {
-				(('a'..'z') + ('A'..'Z') + ('0'..'9'))
-					.shuffled()
-					.take(6)
-					.joinToString("")
+			sorting = key.sorting.apiValue,
+			seed = if (key.sorting == Sorting.RANDOM) {
+				randomSeed()
 			} else {
 				null
 			},
-			topRange = if (key.sorting == "toplist") {
-				key.toplistRange
-			} else {
-				null
-			},
+			topRange = key.toplistRange,
 			page = pageToFetch,
 			colors = key.colors,
 			apiKey = key.apiKey
@@ -108,4 +106,9 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 
 		cache = ArrayDeque(response.data)
 	}
+
+	private fun randomSeed() = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
+		.shuffled()
+		.take(6)
+		.joinToString("")
 }

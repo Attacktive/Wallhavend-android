@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.Purity
+import xyz.attacktive.wallhavend.domain.model.Sorting
+import xyz.attacktive.wallhavend.domain.model.ToplistRange
 import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.util.AppLogger
@@ -60,8 +62,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				apiKey = preferences[Keys.API_KEY] ?: "",
 				autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true,
 				filterColor = preferences[Keys.FILTER_COLOR] ?: "",
-				sorting = preferences[Keys.SORTING] ?: "random",
-				toplistRange = preferences[Keys.TOPLIST_RANGE] ?: "1M"
+				sorting = Sorting.fromApiValue(preferences[Keys.SORTING] ?: "random"),
+				toplistRange = ToplistRange.fromApiValue(preferences[Keys.TOPLIST_RANGE] ?: "1M")
 			)
 			.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 		}
@@ -87,8 +89,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 			preferences[Keys.API_KEY] = settings.apiKey
 			preferences[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
 			preferences[Keys.FILTER_COLOR] = settings.filterColor
-			preferences[Keys.SORTING] = settings.sorting
-			preferences[Keys.TOPLIST_RANGE] = settings.toplistRange
+			preferences[Keys.SORTING] = settings.sorting.apiValue
+			preferences[Keys.TOPLIST_RANGE] = settings.toplistRange.apiValue
 		}
 
 		logger.debug(TAG, "save() completed")

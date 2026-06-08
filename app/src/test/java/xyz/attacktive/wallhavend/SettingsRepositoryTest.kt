@@ -13,6 +13,8 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.Purity
+import xyz.attacktive.wallhavend.domain.model.Sorting
+import xyz.attacktive.wallhavend.domain.model.ToplistRange
 import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
@@ -41,8 +43,8 @@ class SettingsRepositoryTest {
 		assertEquals(WallpaperTarget.HOME, settings.wallpaperTarget)
 		assertEquals(setOf(WallhavenCategory.GENERAL), settings.categories)
 		assertEquals(setOf(Purity.SFW), settings.purity)
-		assertEquals("random", settings.sorting)
-		assertEquals("1M", settings.toplistRange)
+		assertEquals(Sorting.RANDOM, settings.sorting)
+		assertEquals(ToplistRange.ONE_MONTH, settings.toplistRange)
 	}
 
 	@Test
@@ -75,8 +77,8 @@ class SettingsRepositoryTest {
 			poolSize = 25,
 			apiKey = "secret",
 			autoStartOnBoot = true,
-			sorting = "toplist",
-			toplistRange = "1y"
+			sorting = Sorting.TOPLIST,
+			toplistRange = ToplistRange.ONE_YEAR
 		)
 
 		repository.save(modified)

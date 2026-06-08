@@ -75,8 +75,8 @@ import xyz.attacktive.wallhavend.domain.model.ASPECT_RATIO_SUGGESTIONS
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.Purity
-import xyz.attacktive.wallhavend.domain.model.SORTING_OPTIONS
-import xyz.attacktive.wallhavend.domain.model.TOPLIST_RANGE_OPTIONS
+import xyz.attacktive.wallhavend.domain.model.Sorting
+import xyz.attacktive.wallhavend.domain.model.ToplistRange
 import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.WallhavenCategory
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
@@ -373,7 +373,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		onExpandedChange = { sortingExpanded = it }
 	) {
 		OutlinedTextField(
-			value = formatSorting(settings.sorting),
+			value = stringResource(settings.sorting.nameRes),
 			onValueChange = {},
 			readOnly = true,
 			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortingExpanded) },
@@ -383,9 +383,9 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		)
 
 		ExposedDropdownMenu(expanded = sortingExpanded, onDismissRequest = { sortingExpanded = false }) {
-			SORTING_OPTIONS.forEach { option ->
+			Sorting.entries.forEach { option ->
 				DropdownMenuItem(
-					text = { Text(formatSorting(option)) },
+					text = { Text(stringResource(option.nameRes)) },
 					onClick = {
 						if (option != settings.sorting) {
 							onSave(settings.copy(sorting = option))
@@ -397,7 +397,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		}
 	}
 
-	if (settings.sorting == "toplist") {
+	if (settings.sorting == Sorting.TOPLIST) {
 		Spacer(Modifier.height(16.dp))
 		SectionLabel(stringResource(R.string.settings_label_toplist_range))
 		ExposedDropdownMenuBox(
@@ -405,7 +405,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			onExpandedChange = { toplistRangeExpanded = it }
 		) {
 			OutlinedTextField(
-				value = formatToplistRange(settings.toplistRange),
+				value = stringResource(settings.toplistRange.nameRes),
 				onValueChange = {},
 				readOnly = true,
 				trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toplistRangeExpanded) },
@@ -415,9 +415,9 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			)
 
 			ExposedDropdownMenu(expanded = toplistRangeExpanded, onDismissRequest = { toplistRangeExpanded = false }) {
-				TOPLIST_RANGE_OPTIONS.forEach { range ->
+				ToplistRange.entries.forEach { range ->
 					DropdownMenuItem(
-						text = { Text(formatToplistRange(range)) },
+						text = { Text(stringResource(range.nameRes)) },
 						onClick = {
 							if (range != settings.toplistRange) {
 								onSave(settings.copy(toplistRange = range))
@@ -700,24 +700,3 @@ private fun formatInterval(minutes: Int) = when {
 	else -> stringResource(R.string.settings_unit_min, minutes)
 }
 
-@Composable
-private fun formatSorting(sorting: String) = when (sorting) {
-	"random" -> stringResource(R.string.settings_sorting_random)
-	"date_added" -> stringResource(R.string.settings_sorting_date_added)
-	"views" -> stringResource(R.string.settings_sorting_views)
-	"favorites" -> stringResource(R.string.settings_sorting_favorites)
-	"toplist" -> stringResource(R.string.settings_sorting_toplist)
-	else -> sorting
-}
-
-@Composable
-private fun formatToplistRange(range: String) = when (range) {
-	"1d" -> stringResource(R.string.settings_toplist_range_1d)
-	"3d" -> stringResource(R.string.settings_toplist_range_3d)
-	"1w" -> stringResource(R.string.settings_toplist_range_1w)
-	"1M" -> stringResource(R.string.settings_toplist_range_1m)
-	"3M" -> stringResource(R.string.settings_toplist_range_3m)
-	"6M" -> stringResource(R.string.settings_toplist_range_6m)
-	"1y" -> stringResource(R.string.settings_toplist_range_1y)
-	else -> range
-}

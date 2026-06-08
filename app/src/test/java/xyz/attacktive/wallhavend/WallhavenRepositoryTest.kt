@@ -15,6 +15,8 @@ import xyz.attacktive.wallhavend.data.api.dto.SearchResponseDto
 import xyz.attacktive.wallhavend.data.api.dto.WallpaperDto
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.Sorting
+import xyz.attacktive.wallhavend.domain.model.ToplistRange
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.repository.WallhavenRepository
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
@@ -98,8 +100,8 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		repository.next(AppSettings(sorting = "random"))
-		repository.next(AppSettings(sorting = "views"))
+		repository.next(AppSettings(sorting = Sorting.RANDOM))
+		repository.next(AppSettings(sorting = Sorting.VIEWS))
 
 		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
@@ -111,8 +113,8 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		repository.next(AppSettings(sorting = "toplist", toplistRange = "1M"))
-		repository.next(AppSettings(sorting = "toplist", toplistRange = "1y"))
+		repository.next(AppSettings(sorting = Sorting.TOPLIST, toplistRange = ToplistRange.ONE_MONTH))
+		repository.next(AppSettings(sorting = Sorting.TOPLIST, toplistRange = ToplistRange.ONE_YEAR))
 
 		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
