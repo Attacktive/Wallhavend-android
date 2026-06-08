@@ -3,6 +3,8 @@ package xyz.attacktive.wallhavend.domain.repository
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import xyz.attacktive.wallhavend.data.api.WallhavenApiService
 import xyz.attacktive.wallhavend.data.api.dto.WallpaperDto
 import xyz.attacktive.wallhavend.data.api.dto.toDomain
@@ -15,7 +17,7 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 @Singleton
 class WallhavenRepository @Inject constructor(private val wallhavenApiService: WallhavenApiService, private val fileManager: WallpaperFileManager) {
-	// Not thread-safe: callers must ensure next() is not called concurrently.
+	private val mutex = Mutex()
 	private var cache = ArrayDeque<WallpaperDto>()
 	private var cacheKey: SearchKey? = null
 	private var currentPage = 1
@@ -47,7 +49,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		}
 	)
 
-	suspend fun next(settings: AppSettings): Result<Pair<Wallpaper, File>> {
+	suspend fun next(settings: AppSettings): Result<Pair<Wallpaper, File>> = mutex.withLock {
 		val key = settings.toSearchKey()
 		if (key != cacheKey) {
 			cache.clear()
@@ -59,18 +61,18 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		if (cache.isEmpty()) {
 			val fetchResult = refetch(key)
 			if (fetchResult.isFailure) {
-				return Result.failure(fetchResult.exceptionOrNull()!!)
+				return@withLock Result.failure(fetchResult.exceptionOrNull()!!)
 			}
 		}
 
 		if (cache.isEmpty()) {
-			return Result.failure(NoResultsException())
+			return@withLock Result.failure(NoResultsException())
 		}
 
 		val dto = cache.removeFirst()
 		val wallpaper = dto.toDomain()
 
-		return fileManager.download(wallpaper)
+		fileManager.download(wallpaper)
 			.map { file -> Pair(wallpaper, file) }
 	}
 
