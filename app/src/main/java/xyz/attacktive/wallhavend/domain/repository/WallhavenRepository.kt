@@ -15,6 +15,7 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 @Singleton
 class WallhavenRepository @Inject constructor(private val wallhavenApiService: WallhavenApiService, private val fileManager: WallpaperFileManager) {
+	// Not thread-safe: callers must ensure next() is not called concurrently.
 	private var cache = ArrayDeque<WallpaperDto>()
 	private var cacheKey: SearchKey? = null
 	private var currentPage = 1
@@ -74,10 +75,14 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 	}
 
 	private suspend fun refetch(key: SearchKey) = runCatching {
+		// Random sorting always fetches page 1 with a fresh seed.
+		// Deterministic sorts walk through pages; after the last page, wrap back to 1.
+		// (currentPage is advanced to response.currentPage + 1 after each fetch.)
 		val pageToFetch = if (key.sorting == Sorting.RANDOM) {
 			1
 		} else {
 			if (currentPage > lastPage) {
+				currentPage = 1
 				1
 			} else {
 				currentPage

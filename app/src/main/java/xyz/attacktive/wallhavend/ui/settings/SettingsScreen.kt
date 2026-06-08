@@ -2,6 +2,7 @@ package xyz.attacktive.wallhavend.ui.settings
 
 import kotlin.time.Duration.Companion.milliseconds
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -364,7 +365,6 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	)
 
 	var sortingExpanded by remember { mutableStateOf(false) }
-	var toplistRangeExpanded by remember { mutableStateOf(false) }
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_sorting))
@@ -397,34 +397,38 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		}
 	}
 
-	if (settings.sorting == Sorting.TOPLIST) {
-		Spacer(Modifier.height(16.dp))
-		SectionLabel(stringResource(R.string.settings_label_toplist_range))
-		ExposedDropdownMenuBox(
-			expanded = toplistRangeExpanded,
-			onExpandedChange = { toplistRangeExpanded = it }
-		) {
-			OutlinedTextField(
-				value = stringResource(settings.toplistRange.nameRes),
-				onValueChange = {},
-				readOnly = true,
-				trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toplistRangeExpanded) },
-				modifier = Modifier
-					.fillMaxWidth()
-					.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-			)
+	AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST) {
+		var toplistRangeExpanded by remember { mutableStateOf(false) }
+		Column {
+			Spacer(Modifier.height(16.dp))
+			SectionLabel(stringResource(R.string.settings_label_toplist_range))
+			ExposedDropdownMenuBox(
+				expanded = toplistRangeExpanded,
+				onExpandedChange = { toplistRangeExpanded = it }
+			) {
+				OutlinedTextField(
+					value = stringResource(settings.toplistRange.nameRes),
+					onValueChange = {},
+					readOnly = true,
+					trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toplistRangeExpanded) },
+					modifier = Modifier
+						.fillMaxWidth()
+						.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+				)
 
-			ExposedDropdownMenu(expanded = toplistRangeExpanded, onDismissRequest = { toplistRangeExpanded = false }) {
-				ToplistRange.entries.forEach { range ->
-					DropdownMenuItem(
-						text = { Text(stringResource(range.nameRes)) },
-						onClick = {
-							if (range != settings.toplistRange) {
-								onSave(settings.copy(toplistRange = range))
+				ExposedDropdownMenu(expanded = toplistRangeExpanded, onDismissRequest = { toplistRangeExpanded = false }) {
+					ToplistRange.entries.forEach { range ->
+						DropdownMenuItem(
+							text = { Text(stringResource(range.nameRes)) },
+							onClick = {
+								if (range != settings.toplistRange) {
+									onSave(settings.copy(toplistRange = range))
+								}
+
+								toplistRangeExpanded = false
 							}
-							toplistRangeExpanded = false
-						}
-					)
+						)
+					}
 				}
 			}
 		}

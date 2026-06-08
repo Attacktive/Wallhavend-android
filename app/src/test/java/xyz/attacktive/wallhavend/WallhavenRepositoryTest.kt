@@ -28,9 +28,9 @@ class WallhavenRepositoryTest {
 
 	private fun makeDto(id: String) = WallpaperDto(id, "https://wallhaven.cc/$id", "https://cdn/w/$id.jpg", "1920x1080", "image/jpeg")
 
-	private fun makePage(count: Int) = SearchResponseDto(
-		data = (1..count).map { makeDto("w$it") },
-		meta = MetaDto(1, 1, 24, count)
+	private fun makePage(count: Int, currentPage: Int = 1, lastPage: Int = 1) = SearchResponseDto(
+		data = (1..count).map { makeDto(if (currentPage == 1 && lastPage == 1) "w$it" else "w-${currentPage}-${it}") },
+		meta = MetaDto(currentPage, lastPage, 24, count)
 	)
 
 	private fun makeFile(id: String) = File("/tmp/$id.jpg")
@@ -126,5 +126,55 @@ class WallhavenRepositoryTest {
 		val result = repository.next(AppSettings())
 		assertTrue(result.isFailure)
 		assertTrue(result.exceptionOrNull() is NoResultsException)
+	}
+
+	@Test
+	fun `pagination walks through pages and wraps back to page 1`() = runTest {
+		// Page 1: lastPage = 2, returns 1 item
+		coEvery {
+			wallhavenApiService.search(
+				query = any(), categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = 1, colors = any(), apiKey = any()
+			)
+		} returns makePage(count = 1, currentPage = 1, lastPage = 2)
+
+		// Page 2: lastPage = 2, returns 1 item
+		coEvery {
+			wallhavenApiService.search(
+				query = any(), categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+			)
+		} returns makePage(count = 1, currentPage = 2, lastPage = 2)
+
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		// First call - should request page 1
+		val res1 = repository.next(AppSettings(sorting = Sorting.VIEWS))
+		assertEquals("w-1-1", res1.getOrNull()?.first?.id)
+
+		// Second call - cache is empty, should request page 2
+		val res2 = repository.next(AppSettings(sorting = Sorting.VIEWS))
+		assertEquals("w-2-1", res2.getOrNull()?.first?.id)
+
+		// Third call - cache is empty, currentPage (3) > lastPage (2), should wrap back and request page 1
+		val res3 = repository.next(AppSettings(sorting = Sorting.VIEWS))
+		assertEquals("w-1-1", res3.getOrNull()?.first?.id)
+
+		// Verify page 1 was requested twice, page 2 was requested once
+		coVerify(exactly = 2) {
+			wallhavenApiService.search(
+				query = any(), categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = 1, colors = any(), apiKey = any()
+			)
+		}
+
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				query = any(), categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+			)
+		}
 	}
 }
