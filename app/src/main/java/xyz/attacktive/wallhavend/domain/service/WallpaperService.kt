@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -88,7 +89,7 @@ class WallpaperService: Service() {
 			runCatching { performUpdate() }
 			while (true) {
 				val intervalMs = settingsRepository.settings.first().updateIntervalMinutes * 60_000L
-				delay(intervalMs)
+				delay(intervalMs.milliseconds)
 				runCatching { performUpdate() }
 			}
 		}
@@ -244,7 +245,7 @@ class WallpaperService: Service() {
 		stateRepository.update { it.copy(error = error) }
 
 		serviceScope.launch {
-			delay(10_000)
+			delay(10_000.milliseconds)
 			stateRepository.update { it.copy(error = null) }
 		}
 	}
