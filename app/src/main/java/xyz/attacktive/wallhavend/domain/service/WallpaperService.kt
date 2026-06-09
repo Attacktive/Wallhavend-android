@@ -35,10 +35,10 @@ import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_CH
 import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_ID
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.AppSettings
-import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.repository.WallhavenRepository

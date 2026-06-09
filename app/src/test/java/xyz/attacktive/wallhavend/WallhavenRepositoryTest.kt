@@ -15,9 +15,9 @@ import xyz.attacktive.wallhavend.data.api.dto.SearchResponseDto
 import xyz.attacktive.wallhavend.data.api.dto.WallpaperDto
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
-import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.repository.WallhavenRepository
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 

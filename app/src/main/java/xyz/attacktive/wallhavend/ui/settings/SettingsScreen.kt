@@ -73,12 +73,12 @@ import kotlinx.coroutines.delay
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
+import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
+import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
-import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
-import xyz.attacktive.wallhavend.domain.model.query.Category
-import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

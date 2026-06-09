@@ -12,11 +12,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.domain.model.AppSettings
+import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
-import xyz.attacktive.wallhavend.domain.model.query.Category
-import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 
 class SettingsRepositoryTest {

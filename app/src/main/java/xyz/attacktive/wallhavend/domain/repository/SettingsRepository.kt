@@ -13,11 +13,11 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import xyz.attacktive.wallhavend.domain.model.AppSettings
+import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
-import xyz.attacktive.wallhavend.domain.model.query.Category
-import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.util.AppLogger
 
 @Singleton

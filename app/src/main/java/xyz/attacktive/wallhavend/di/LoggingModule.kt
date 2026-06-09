@@ -1,12 +1,12 @@
 package xyz.attacktive.wallhavend.di
 
-import xyz.attacktive.wallhavend.util.AppLogger
-import xyz.attacktive.wallhavend.util.LogcatLogger
+import javax.inject.Singleton
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
+import xyz.attacktive.wallhavend.util.AppLogger
+import xyz.attacktive.wallhavend.util.LogcatLogger
 
 @Module
 @InstallIn(SingletonComponent::class)
