@@ -35,6 +35,18 @@ jobs:
           mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/Wallhavend-${{ github.ref_name }}.apk
           mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab
 
+      - name: 'Generate release notes'
+        id: release_notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES=$(gh api "repos/${{ github.repository }}/releases/generate-notes" -f tag_name="${{ github.ref_name }}" --jq '.body')
+          {
+            echo 'body<<EOF'
+            echo "$NOTES"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: 'Upload APK to GitHub Releases'
         uses: 'softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b'
         with:
@@ -43,14 +55,14 @@ jobs:
             app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab
           generate_release_notes: true
 
-      - name: 'Create release notes'
+      - name: 'Create whatsnew file'
+        env:
+          RELEASE_NOTES: ${{ steps.release_notes.outputs.body }}
         run: |
           mkdir -p whatsnew
-          MSG=$(git tag -l --format='%(contents)' ${{ github.ref_name }})
-          if [ -z "$MSG" ]; then
-            MSG=$(git log -1 --pretty=%B)
-          fi
-          echo "$MSG" | cut -c1-500 > whatsnew/whatsnew-en-US
+          printf '%s' "$RELEASE_NOTES" \
+            | sed 's/ by @[^ ]* in [^ ]*//g' \
+            | cut -c1-500 > whatsnew/whatsnew-en-US
 
       - name: 'Upload AAB to Google Play'
         uses: 'r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5'
