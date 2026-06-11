@@ -3,6 +3,9 @@ package xyz.attacktive.wallhavend.domain.repository
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import xyz.attacktive.wallhavend.data.api.WallhavenApiService
@@ -24,7 +27,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 	private var lastPage = 1
 
 	private data class SearchKey(
-		val query: String?,
+		val keywords: List<String>,
 		val categories: String,
 		val purity: String,
 		val ratios: String?,
@@ -35,7 +38,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 	)
 
 	private fun AppSettings.toSearchKey(aspectRatio: String) = SearchKey(
-		query = searchQuery.ifBlank { null },
+		keywords = searchQuery.trim().split(Regex("[,;|\\s]+")).filter { it.isNotBlank() },
 		categories = categories.toBitString(),
 		purity = purity.toBitString(),
 		ratios = aspectRatio,
@@ -91,27 +94,45 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 			}
 		}
 
-		val response = wallhavenApiService.search(
-			query = key.query,
-			categories = key.categories,
-			purity = key.purity,
-			ratios = key.ratios,
-			sorting = key.sorting.apiValue,
-			seed = if (key.sorting == Sorting.RANDOM) {
-				randomSeed()
+		val effectiveKeywords: List<String?> = key.keywords.ifEmpty { listOf(null) }
+
+		val responses = coroutineScope {
+			effectiveKeywords
+				.map { keyword ->
+					async {
+						wallhavenApiService.search(
+							query = keyword,
+							categories = key.categories,
+							purity = key.purity,
+							ratios = key.ratios,
+							sorting = key.sorting.apiValue,
+							seed = if (key.sorting == Sorting.RANDOM) {
+								randomSeed()
+							} else {
+								null
+							},
+							topRange = key.toplistRange,
+							page = pageToFetch,
+							colors = key.colors,
+							apiKey = key.apiKey
+						)
+					}
+				}
+				.awaitAll()
+		}
+
+		val firstResponse = responses.first()
+		currentPage = firstResponse.meta.currentPage + 1
+		lastPage = firstResponse.meta.lastPage
+
+		cache = ArrayDeque(
+			if (effectiveKeywords.size > 1) {
+				responses.flatMap { it.data }
+					.shuffled()
 			} else {
-				null
-			},
-			topRange = key.toplistRange,
-			page = pageToFetch,
-			colors = key.colors,
-			apiKey = key.apiKey
+				responses.single().data
+			}
 		)
-
-		currentPage = response.meta.currentPage + 1
-		lastPage = response.meta.lastPage
-
-		cache = ArrayDeque(response.data)
 	}
 
 	private fun randomSeed() = (('a'..'z') + ('A'..'Z') + ('0'..'9'))

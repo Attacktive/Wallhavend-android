@@ -28,10 +28,20 @@ class WallhavenRepositoryTest {
 
 	private fun makeDto(id: String) = WallpaperDto(id, "https://wallhaven.cc/$id", "https://cdn/w/$id.jpg", "1920x1080", "image/jpeg")
 
-	private fun makePage(count: Int, currentPage: Int = 1, lastPage: Int = 1) = SearchResponseDto(
-		data = (1..count).map { makeDto(if (currentPage == 1 && lastPage == 1) "w$it" else "w-${currentPage}-${it}") },
-		meta = MetaDto(currentPage, lastPage, 24, count)
-	)
+	private fun makePage(count: Int, currentPage: Int = 1, lastPage: Int = 1, idPrefix: String = "w"): SearchResponseDto {
+		val data = (1..count)
+			.map {
+				val id = if (currentPage == 1 && lastPage == 1) {
+					"$idPrefix$it"
+				} else {
+					"$idPrefix-${currentPage}-${it}"
+				}
+
+				makeDto(id)
+			}
+
+		return SearchResponseDto(data, MetaDto(currentPage, lastPage, 24, count))
+	}
 
 	private fun makeFile(id: String) = File("/tmp/$id.jpg")
 
@@ -189,5 +199,90 @@ class WallhavenRepositoryTest {
 				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
 			)
 		}
+	}
+
+	@Test
+	fun `multi-keyword query fans out parallel API calls`() = runTest {
+		coEvery {
+			wallhavenApiService.search(
+				query = "ocean", categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+			)
+		} returns makePage(2, idPrefix = "ocean")
+
+		coEvery {
+			wallhavenApiService.search(
+				query = "mountains", categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+			)
+		} returns makePage(2, idPrefix = "mountains")
+
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		val result = repository.next(AppSettings(searchQuery = "ocean mountains"), "9x16")
+		assertTrue(result.isSuccess)
+
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				query = "ocean", categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+			)
+		}
+
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				query = "mountains", categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+			)
+		}
+	}
+
+	@Test
+	fun `multi-keyword merges results into combined pool`() = runTest {
+		coEvery {
+			wallhavenApiService.search(
+				query = "ocean", categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+			)
+		} returns makePage(3, idPrefix = "ocean")
+
+		coEvery {
+			wallhavenApiService.search(
+				query = "mountains", categories = any(), purity = any(), ratios = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+			)
+		} returns makePage(2, idPrefix = "mountains")
+
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		val ids = mutableListOf<String>()
+		repeat(5) {
+			val result = repository.next(AppSettings(searchQuery = "ocean mountains"), "9x16")
+			ids.add(result.getOrNull()!!.first.id)
+		}
+
+		assertEquals(5, ids.size)
+		assertTrue(ids.any { it.startsWith("ocean") })
+		assertTrue(ids.any { it.startsWith("mountains") })
+		coVerify(exactly = 2) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `comma semicolon and pipe delimiters also split the query`() = runTest {
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(1)
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		for (delimiter in listOf(",", ";", "|")) {
+			val repo = WallhavenRepository(wallhavenApiService, fileManager)
+			repo.next(AppSettings(searchQuery = "ocean${delimiter}mountains"), "9x16")
+		}
+
+		coVerify(exactly = 6) { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
 }
