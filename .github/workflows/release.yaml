@@ -61,6 +61,7 @@ jobs:
         run: |
           mkdir -p whatsnew
           printf '%s' "$RELEASE_NOTES" \
+            | sed '/^## What'\''s Changed$/d' \
             | sed 's/ by @[^ ]* in [^ ]*//g' \
             | cut -c1-500 > whatsnew/whatsnew-en-US
 
@@ -71,6 +72,7 @@ jobs:
           packageName: 'xyz.attacktive.wallhavend'
           releaseFiles: 'app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab'
           mappingFile: 'app/build/outputs/mapping/release/mapping.txt'
+          debugSymbols: 'app/build/outputs/native-debug-symbols/release/native-debug-symbols.zip'
           whatsNewDirectory: 'whatsnew'
           tracks: 'beta'
           status: 'completed'
