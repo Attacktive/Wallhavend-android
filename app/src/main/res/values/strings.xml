@@ -33,6 +33,8 @@
 	<string name="settings_toplist_range_3m">3 months</string>
 	<string name="settings_toplist_range_6m">6 months</string>
 	<string name="settings_toplist_range_1y">1 year</string>
+	<string name="settings_label_avoid_blurry">Avoid blurry wallpapers</string>
+	<string name="settings_subtitle_avoid_blurry">Only fetch wallpapers at least as large as your screen</string>
 	<string name="settings_label_update_interval">UPDATE INTERVAL</string>
 	<string name="settings_label_wallpaper_target">WALLPAPER TARGET</string>
 	<string name="settings_hint_wallpaper_target">Lock screen may not work on some devices (e.g. Samsung One UI)</string>

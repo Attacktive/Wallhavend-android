@@ -35,6 +35,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val FILTER_COLOR = stringPreferencesKey("filter_color")
 		val SORTING = stringPreferencesKey("sorting")
 		val TOPLIST_RANGE = stringPreferencesKey("toplist_range")
+		val AVOID_BLURRY_WALLPAPERS = booleanPreferencesKey("avoid_blurry_wallpapers")
 		val LAST_UPDATED_MS = longPreferencesKey("last_updated_ms")
 		val CURRENT_WALLPAPER_PATH = stringPreferencesKey("current_wallpaper_path")
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
@@ -61,7 +62,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true,
 				filterColor = preferences[Keys.FILTER_COLOR] ?: "",
 				sorting = Sorting.fromApiValue(preferences[Keys.SORTING] ?: "random"),
-				toplistRange = ToplistRange.fromApiValue(preferences[Keys.TOPLIST_RANGE] ?: "1M")
+				toplistRange = ToplistRange.fromApiValue(preferences[Keys.TOPLIST_RANGE] ?: "1M"),
+				avoidBlurryWallpapers = preferences[Keys.AVOID_BLURRY_WALLPAPERS] ?: false
 			)
 			.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 		}
@@ -88,6 +90,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 			preferences[Keys.FILTER_COLOR] = settings.filterColor
 			preferences[Keys.SORTING] = settings.sorting.apiValue
 			preferences[Keys.TOPLIST_RANGE] = settings.toplistRange.apiValue
+			preferences[Keys.AVOID_BLURRY_WALLPAPERS] = settings.avoidBlurryWallpapers
 		}
 
 		logger.debug(TAG, "save() completed")

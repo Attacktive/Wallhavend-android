@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -87,4 +88,14 @@ class SettingsRepositoryTest {
 		assertEquals(modified, loaded)
 	}
 
+	@Test
+	fun `avoidBlurryWallpapers defaults to false and round-trips`() = runTest {
+		val repository = createRepository()
+		assertFalse(repository.settings.first().avoidBlurryWallpapers)
+
+		repository.save(AppSettings(searchQuery = "marker", avoidBlurryWallpapers = true))
+
+		val loaded = repository.settings.first { it.searchQuery == "marker" }
+		assertTrue(loaded.avoidBlurryWallpapers)
+	}
 }

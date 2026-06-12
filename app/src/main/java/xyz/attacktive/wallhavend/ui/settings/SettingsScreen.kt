@@ -375,6 +375,14 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			}
 		}
 	}
+
+	Spacer(Modifier.height(16.dp))
+	ToggleSetting(
+		label = stringResource(R.string.settings_label_avoid_blurry),
+		subtitle = stringResource(R.string.settings_subtitle_avoid_blurry),
+		checked = settings.avoidBlurryWallpapers,
+		onToggle = { onSave(settings.copy(avoidBlurryWallpapers = it)) }
+	)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -11,6 +11,7 @@ interface WallhavenApiService {
 		@Query("categories") categories: String,
 		@Query("purity") purity: String,
 		@Query(value = "ratios", encoded = true) ratios: String?,
+		@Query("atleast") atleast: String?,
 		@Query("sorting") sorting: String,
 		@Query("seed") seed: String?,
 		@Query("topRange") topRange: String?,

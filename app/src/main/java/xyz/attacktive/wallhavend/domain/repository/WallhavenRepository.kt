@@ -13,6 +13,7 @@ import xyz.attacktive.wallhavend.data.api.dto.WallpaperDto
 import xyz.attacktive.wallhavend.data.api.dto.toDomain
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.toBitString
@@ -31,17 +32,23 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		val categories: String,
 		val purity: String,
 		val ratios: String?,
+		val atleast: String?,
 		val colors: String?,
 		val apiKey: String?,
 		val sorting: Sorting,
 		val toplistRange: String?
 	)
 
-	private fun AppSettings.toSearchKey(aspectRatio: String) = SearchKey(
+	private fun AppSettings.toSearchKey(screenInfo: ScreenInfo) = SearchKey(
 		keywords = searchQuery.trim().split(Regex("[,;|\\s]+")).filter { it.isNotBlank() },
 		categories = categories.toBitString(),
 		purity = purity.toBitString(),
-		ratios = aspectRatio,
+		ratios = screenInfo.aspectRatio,
+		atleast = if (avoidBlurryWallpapers) {
+			"${screenInfo.width}x${screenInfo.height}"
+		} else {
+			null
+		},
 		colors = filterColor.ifBlank { null },
 		apiKey = apiKey.ifBlank { null },
 		sorting = sorting,
@@ -52,8 +59,8 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		}
 	)
 
-	suspend fun next(settings: AppSettings, aspectRatio: String): Result<Pair<Wallpaper, File>> = mutex.withLock {
-		val key = settings.toSearchKey(aspectRatio)
+	suspend fun next(settings: AppSettings, screenInfo: ScreenInfo): Result<Pair<Wallpaper, File>> = mutex.withLock {
+		val key = settings.toSearchKey(screenInfo)
 		if (key != cacheKey) {
 			cache.clear()
 			cacheKey = key
@@ -105,6 +112,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 							categories = key.categories,
 							purity = key.purity,
 							ratios = key.ratios,
+							atleast = key.atleast,
 							sorting = key.sorting.apiValue,
 							seed = if (key.sorting == Sorting.RANDOM) {
 								randomSeed()

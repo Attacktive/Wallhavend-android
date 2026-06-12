@@ -37,6 +37,7 @@ import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_ID
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
@@ -111,7 +112,7 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun handleOnlineUpdate(settings: AppSettings) {
-		wallhavenRepository.next(settings, screenAspectRatio())
+		wallhavenRepository.next(settings, screenInfo())
 			.fold(
 				onSuccess = { (_, file) -> onWallpaperFetched(file, settings) },
 				onFailure = { throwable -> onFetchError(throwable, settings) }
@@ -250,7 +251,7 @@ class WallpaperService: Service() {
 		}
 	}
 
-	private fun screenAspectRatio(): String {
+	private fun screenInfo(): ScreenInfo {
 		val windowManager = getSystemService(WindowManager::class.java)
 
 		val (width, height) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -260,7 +261,7 @@ class WallpaperService: Service() {
 			legacyScreenDimensions(windowManager)
 		}
 
-		return closestAspectRatio(width, height)
+		return ScreenInfo(closestAspectRatio(width, height), width, height)
 	}
 
 	@Suppress("DEPRECATION")

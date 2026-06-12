@@ -18,7 +18,8 @@ data class AppSettings(
 	val autoStartOnBoot: Boolean = true,
 	val filterColor: String = "",
 	val sorting: Sorting = Sorting.RANDOM,
-	val toplistRange: ToplistRange = ToplistRange.ONE_MONTH
+	val toplistRange: ToplistRange = ToplistRange.ONE_MONTH,
+	val avoidBlurryWallpapers: Boolean = false
 )
 
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)
