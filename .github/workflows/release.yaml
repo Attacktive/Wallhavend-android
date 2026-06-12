@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@v6'
+        with:
+          fetch-depth: 0
 
       - name: 'Set up JDK'
         uses: 'actions/setup-java@v5'
@@ -60,10 +62,24 @@ jobs:
           RELEASE_NOTES: ${{ steps.release_notes.outputs.body }}
         run: |
           mkdir -p whatsnew
-          printf '%s' "$RELEASE_NOTES" \
+          NOTES=$(printf '%s' "$RELEASE_NOTES" \
             | sed '/^## What'\''s Changed$/d' \
             | sed 's/ by @[^ ]* in [^ ]*//g' \
-            | cut -c1-500 > whatsnew/whatsnew-en-US
+            | sed '/^\*\*Full Changelog\*\*:/d' \
+            | sed '/^[[:space:]]*$/d')
+
+          if [ -z "$NOTES" ]; then
+            PREVIOUS_TAG=$(git describe --tags --abbrev=0 '${{ github.ref_name }}^' 2>/dev/null || true)
+            if [ -n "$PREVIOUS_TAG" ]; then
+              RANGE="$PREVIOUS_TAG..${{ github.ref_name }}"
+            else
+              RANGE='${{ github.ref_name }}'
+            fi
+
+            NOTES=$(git log "$RANGE" --pretty='- %s' | grep -v '^- chore: bump version' || true)
+          fi
+
+          printf '%s' "$NOTES" | head -c 500 > whatsnew/whatsnew-en-US
 
       - name: 'Upload AAB to Google Play'
         uses: 'r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5'
