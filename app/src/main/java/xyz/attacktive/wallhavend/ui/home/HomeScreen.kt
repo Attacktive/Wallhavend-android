@@ -109,6 +109,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 		) {
 			StatusCard(state = state)
 			Spacer(modifier = Modifier.height(12.dp))
+
 			QuickActions(
 				state = state,
 				onStartStop = {
@@ -136,6 +137,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 			if (state.poolPaths.isNotEmpty()) {
 				Text(stringResource(R.string.home_recent_wallpapers), style = MaterialTheme.typography.labelSmall)
 				Spacer(modifier = Modifier.height(8.dp))
+
 				WallpaperGrid(
 					paths = state.poolPaths,
 					currentPath = state.currentWallpaperPath,
@@ -158,10 +160,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 @Composable
 private fun StatusCard(state: ServiceState) {
 	Card(modifier = Modifier.fillMaxWidth()) {
-		Row(
-			modifier = Modifier.padding(12.dp),
-			verticalAlignment = Alignment.CenterVertically
-		) {
+		Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
 			Column(modifier = Modifier.weight(1f)) {
 				Text(
 					text = stringResource(if (state.isRunning) R.string.home_status_auto_update_on else R.string.home_status_auto_update_off),

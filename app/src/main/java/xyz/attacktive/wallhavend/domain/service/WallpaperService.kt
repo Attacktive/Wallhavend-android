@@ -63,6 +63,7 @@ class WallpaperService: Service() {
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		startForeground(NOTIFICATION_ID, buildNotification())
+
 		when (intent?.action) {
 			ACTION_STOP -> stopSelf()
 			ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate(forceDownload = true) }
@@ -72,7 +73,6 @@ class WallpaperService: Service() {
 					serviceScope.launch { applySpecificPath(path) }
 				}
 			}
-
 			else -> startTimerLoop()
 		}
 
@@ -170,6 +170,7 @@ class WallpaperService: Service() {
 
 	private fun cycleFromPool(settings: AppSettings) {
 		val current = stateRepository.state.value.currentWallpaperPath
+
 		val pool = fileManager.listAll()
 			.reversed()
 			.map { it.absolutePath }

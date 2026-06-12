@@ -73,6 +73,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 
 		dataStore.edit { preferences ->
 			preferences[Keys.SEARCH_QUERY] = settings.searchQuery
+
 			preferences[Keys.CATEGORIES] = settings.categories
 				.map { it.name }
 				.toSet()
@@ -107,6 +108,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 	suspend fun saveServiceState(lastUpdatedMs: Long, currentPath: String?, previousPath: String?) {
 		dataStore.edit { preferences ->
 			preferences[Keys.LAST_UPDATED_MS] = lastUpdatedMs
+
 			if (currentPath != null) {
 				preferences[Keys.CURRENT_WALLPAPER_PATH] = currentPath
 			} else {

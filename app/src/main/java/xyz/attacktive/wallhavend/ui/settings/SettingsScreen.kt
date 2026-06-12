@@ -89,6 +89,7 @@ fun SettingsScreen(
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
 	val saveError by viewModel.saveError.collectAsStateWithLifecycle()
 	var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+
 	val tabs = listOf(
 		stringResource(R.string.settings_tab_content),
 		stringResource(R.string.settings_tab_schedule),
@@ -98,6 +99,7 @@ fun SettingsScreen(
 	val snackbarHostState = remember { SnackbarHostState() }
 
 	val saveErrorFormat = stringResource(R.string.settings_error_save_failed)
+
 	LaunchedEffect(saveError) {
 		if (saveError != null) {
 			snackbarHostState.showSnackbar(saveErrorFormat.format(saveError))
@@ -136,6 +138,7 @@ fun SettingsScreen(
 					)
 				}
 			}
+
 			Column(
 				modifier = Modifier
 					.fillMaxSize()
@@ -211,6 +214,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	)
 
 	SectionLabel(stringResource(R.string.settings_label_search_query))
+
 	OutlinedTextField(
 		value = searchQuery,
 		onValueChange = { searchQuery = it },
@@ -273,6 +277,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_filter_color))
+
 	ColorSwatchPicker(
 		selected = filterColor,
 		onSelect = { newColor ->
@@ -310,10 +315,8 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_sorting))
-	ExposedDropdownMenuBox(
-		expanded = sortingExpanded,
-		onExpandedChange = { sortingExpanded = it }
-	) {
+
+	ExposedDropdownMenuBox(expanded = sortingExpanded, onExpandedChange = { sortingExpanded = it }) {
 		OutlinedTextField(
 			value = stringResource(settings.sorting.nameRes),
 			onValueChange = {},
@@ -332,6 +335,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 						if (option != settings.sorting) {
 							onSave(settings.copy(sorting = option))
 						}
+
 						sortingExpanded = false
 					}
 				)
@@ -341,13 +345,12 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST) {
 		var toplistRangeExpanded by remember { mutableStateOf(false) }
+
 		Column {
 			Spacer(Modifier.height(16.dp))
 			SectionLabel(stringResource(R.string.settings_label_toplist_range))
-			ExposedDropdownMenuBox(
-				expanded = toplistRangeExpanded,
-				onExpandedChange = { toplistRangeExpanded = it }
-			) {
+
+			ExposedDropdownMenuBox(expanded = toplistRangeExpanded, onExpandedChange = { toplistRangeExpanded = it }) {
 				OutlinedTextField(
 					value = stringResource(settings.toplistRange.nameRes),
 					onValueChange = {},
@@ -377,6 +380,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	}
 
 	Spacer(Modifier.height(16.dp))
+
 	ToggleSetting(
 		label = stringResource(R.string.settings_label_avoid_blurry),
 		subtitle = stringResource(R.string.settings_subtitle_avoid_blurry),
@@ -392,10 +396,8 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var intervalExpanded by remember { mutableStateOf(false) }
 
 	SectionLabel(stringResource(R.string.settings_label_update_interval))
-	ExposedDropdownMenuBox(
-		expanded = intervalExpanded,
-		onExpandedChange = { intervalExpanded = it }
-	) {
+
+	ExposedDropdownMenuBox(expanded = intervalExpanded, onExpandedChange = { intervalExpanded = it }) {
 		OutlinedTextField(
 			value = formatInterval(settings.updateIntervalMinutes),
 			onValueChange = {},
@@ -425,6 +427,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_wallpaper_target))
+
 	Text(
 		text = stringResource(R.string.settings_hint_wallpaper_target),
 		style = MaterialTheme.typography.bodySmall,
@@ -453,6 +456,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	}
 
 	Spacer(Modifier.height(16.dp))
+
 	ToggleSetting(
 		label = stringResource(R.string.settings_label_wifi_only),
 		subtitle = stringResource(R.string.settings_subtitle_wifi_only),
@@ -461,6 +465,7 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	)
 
 	Spacer(Modifier.height(8.dp))
+
 	ToggleSetting(
 		label = stringResource(R.string.settings_label_auto_start),
 		subtitle = stringResource(R.string.settings_subtitle_auto_start),
@@ -486,6 +491,7 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	)
 
 	SectionLabel(stringResource(R.string.settings_label_pool_size))
+
 	Text(
 		text = stringResource(R.string.settings_subtitle_pool_size),
 		style = MaterialTheme.typography.bodySmall,
@@ -500,10 +506,7 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 				.fillMaxWidth()
 				.clickable { onSave(settings.copy(poolSize = size)) }
 		) {
-			RadioButton(
-				selected = settings.poolSize == size,
-				onClick = null
-			)
+			RadioButton(selected = settings.poolSize == size, onClick = null)
 
 			Text(
 				text = if (size == 0) {
@@ -518,6 +521,7 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_api_key))
+
 	OutlinedTextField(
 		value = apiKey,
 		onValueChange = { apiKey = it },
@@ -539,6 +543,7 @@ private fun ToggleSetting(label: String, subtitle: String, checked: Boolean, onT
 				color = MaterialTheme.colorScheme.onSurfaceVariant
 			)
 		}
+
 		Switch(checked = checked, onCheckedChange = onToggle)
 	}
 }

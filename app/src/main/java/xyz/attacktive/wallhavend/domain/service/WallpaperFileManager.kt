@@ -55,5 +55,4 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 		dir.listFiles()
 			?.sortedByDescending { it.lastModified() }
 			?: emptyList()
-
 }
