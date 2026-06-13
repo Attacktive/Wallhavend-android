@@ -29,7 +29,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 
 					val file = File(dir, "${wallpaper.id}.${wallpaper.fileExtension}")
 
-					requireNotNull(response.body)
+					response.body
 						.byteStream()
 						.use { input ->
 							file.outputStream().use { output -> input.copyTo(output) }
