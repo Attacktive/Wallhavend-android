@@ -99,11 +99,12 @@ class WallpaperService: Service() {
 	private suspend fun performUpdate(forceDownload: Boolean = false) {
 		val settings = settingsRepository.settings.first()
 
-		val online = isOnline()
+		val capabilities = activeNetworkCapabilities()
+		val online = capabilities?.isOnline() == true
 		stateRepository.update { it.copy(isOnline = online) }
 
-		val canDownload = online && (forceDownload || !settings.wifiOnly || isOnWifi())
-
+		val onWifi = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+		val canDownload = online && (forceDownload || !settings.wifiOnly || onWifi)
 		if (canDownload) {
 			handleOnlineUpdate(settings)
 		} else {
@@ -273,23 +274,15 @@ class WallpaperService: Service() {
 		return displayMetrics.widthPixels to displayMetrics.heightPixels
 	}
 
-	private fun isOnline(): Boolean {
-		val connectivityManager = getSystemService(ConnectivityManager::class.java)
-
-		val isConnected = connectivityManager.activeNetwork
-			?.let { connectivityManager.getNetworkCapabilities(it) }
-			?.let { it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && it.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) }
-
-		return isConnected == true
-	}
-
-	private fun isOnWifi(): Boolean {
+	private fun activeNetworkCapabilities(): NetworkCapabilities? {
 		val connectivityManager = getSystemService(ConnectivityManager::class.java)
 
 		return connectivityManager.activeNetwork
 			?.let { connectivityManager.getNetworkCapabilities(it) }
-			?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
 	}
+
+	private fun NetworkCapabilities.isOnline() =
+		hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 
 	private fun buildNotification(): Notification {
 		val state = stateRepository.state.value
