@@ -123,13 +123,7 @@ class WallpaperService: Service() {
 		applyWallpaper(file, settings.wallpaperTarget)
 			.fold(
 				onSuccess = {
-					val remaining = if (settings.poolSize == 0) {
-						fileManager.trimToSize(0)
-						emptyList()
-					} else {
-						fileManager.trimToSize(settings.poolSize)
-					}
-
+					val remaining = fileManager.trimToSize(settings.poolSize)
 					val paths = remaining.map { it.absolutePath }
 					val now = System.currentTimeMillis()
 
