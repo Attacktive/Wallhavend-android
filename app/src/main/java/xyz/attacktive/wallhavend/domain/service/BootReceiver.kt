@@ -7,6 +7,7 @@ import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
@@ -21,8 +22,8 @@ class BootReceiver: BroadcastReceiver() {
 		}
 
 		val pendingResult = goAsync()
-
-		CoroutineScope(Dispatchers.IO).launch {
+		val scope = CoroutineScope(Dispatchers.IO)
+		scope.launch {
 			try {
 				val settings = settingsRepository.settings.first()
 				if (settings.autoStartOnBoot) {
@@ -30,6 +31,7 @@ class BootReceiver: BroadcastReceiver() {
 				}
 			} finally {
 				pendingResult.finish()
+				scope.cancel()
 			}
 		}
 	}
