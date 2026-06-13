@@ -288,8 +288,11 @@ class WallpaperService: Service() {
 		val state = stateRepository.state.value
 
 		val lastUpdated = state.lastUpdatedMs
-			?.let {
-				getString(R.string.home_status_last_updated, SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it)))
+			?.let { timestamp ->
+				val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault())
+					.format(Date(timestamp))
+
+				getString(R.string.home_status_last_updated, formattedTime)
 			}
 			?: getString(R.string.service_status_never)
 

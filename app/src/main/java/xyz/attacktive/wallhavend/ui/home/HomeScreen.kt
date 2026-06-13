@@ -172,9 +172,12 @@ private fun StatusCard(state: ServiceState) {
 					}
 				)
 
-				state.lastUpdatedMs?.let {
+				state.lastUpdatedMs?.let { timestamp ->
+					val formattedTime = SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale)
+						.format(Date(timestamp))
+
 					Text(
-						text = stringResource(R.string.home_status_last_updated, SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale).format(Date(it))),
+						text = stringResource(R.string.home_status_last_updated, formattedTime),
 						style = MaterialTheme.typography.bodySmall
 					)
 				}
