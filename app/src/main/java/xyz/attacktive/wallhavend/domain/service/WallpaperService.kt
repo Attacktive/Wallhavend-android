@@ -168,7 +168,7 @@ class WallpaperService: Service() {
 		postError(error)
 	}
 
-	private fun cycleFromPool(settings: AppSettings) {
+	private suspend fun cycleFromPool(settings: AppSettings) {
 		val current = stateRepository.state.value.currentWallpaperPath
 
 		val pool = fileManager.listAll()
@@ -200,6 +200,9 @@ class WallpaperService: Service() {
 					)
 				}
 
+				val lastUpdatedMs = state.lastUpdatedMs ?: System.currentTimeMillis()
+				settingsRepository.saveServiceState(lastUpdatedMs, next, state.currentWallpaperPath)
+
 				updateNotification()
 			}
 	}
@@ -224,6 +227,9 @@ class WallpaperService: Service() {
 				stateRepository.update {
 					it.copy(currentWallpaperPath = path, previousWallpaperPath = newPreviousPath)
 				}
+
+				val lastUpdatedMs = state.lastUpdatedMs ?: System.currentTimeMillis()
+				settingsRepository.saveServiceState(lastUpdatedMs, path, newPreviousPath)
 
 				updateNotification()
 			}
