@@ -3,11 +3,6 @@ package xyz.attacktive.wallhavend.ui.home
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
-import android.Manifest
-import android.os.Build
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,17 +17,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
@@ -46,17 +38,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -70,24 +56,8 @@ import xyz.attacktive.wallhavend.domain.model.ServiceState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
-	val context = LocalContext.current
-	var pendingSavePath by remember { mutableStateOf<String?>(null) }
-
-	val writePermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-		if (granted) {
-			pendingSavePath?.let { viewModel.saveToPictures(it) }
-		}
-
-		pendingSavePath = null
-	}
-
-	LaunchedEffect(Unit) {
-		viewModel.saveMessage.collect { message ->
-			Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-		}
-	}
 
 	Scaffold(
 		topBar = {
@@ -141,16 +111,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, viewModel: HomeViewModel = hilt
 				WallpaperGrid(
 					paths = state.poolPaths,
 					currentPath = state.currentWallpaperPath,
-					onTap = viewModel::applyFromPool,
-					onDelete = viewModel::deleteFromPool,
-					onSave = { path ->
-						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-							viewModel.saveToPictures(path)
-						} else {
-							pendingSavePath = path
-							writePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-						}
-					}
+					onTap = { path -> onNavigateToPreview(File(path).nameWithoutExtension) }
 				)
 			}
 		}
@@ -212,7 +173,7 @@ private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateN
 }
 
 @Composable
-private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (String) -> Unit, onDelete: (String) -> Unit, onSave: (String) -> Unit) {
+private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (String) -> Unit) {
 	LazyVerticalGrid(
 		columns = GridCells.Fixed(3),
 		contentPadding = PaddingValues(vertical = 4.dp),
@@ -244,34 +205,6 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 					contentScale = ContentScale.Crop,
 					modifier = Modifier.fillMaxSize()
 				)
-
-				IconButton(
-					onClick = { onSave(path) },
-					modifier = Modifier
-						.align(Alignment.TopStart)
-						.size(28.dp)
-				) {
-					Icon(
-						Icons.Default.Save,
-						contentDescription = stringResource(R.string.cd_save_to_pictures),
-						modifier = Modifier.size(16.dp),
-						tint = Color.White
-					)
-				}
-
-				IconButton(
-					onClick = { onDelete(path) },
-					modifier = Modifier
-						.align(Alignment.TopEnd)
-						.size(28.dp)
-				) {
-					Icon(
-						Icons.Default.Close,
-						contentDescription = stringResource(R.string.cd_delete),
-						modifier = Modifier.size(16.dp),
-						tint = Color.White
-					)
-				}
 			}
 		}
 	}

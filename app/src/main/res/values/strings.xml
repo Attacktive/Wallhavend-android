@@ -68,6 +68,10 @@
 	<string name="cd_save_to_pictures">Save to Pictures</string>
 	<string name="cd_delete">Delete</string>
 	<string name="cd_back">Back</string>
+	<string name="preview_action_apply">Apply</string>
+	<string name="preview_action_save">Save</string>
+	<string name="preview_action_remove">Remove</string>
+	<string name="preview_action_open_in_browser">Browser</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 hr</string>
 	<string name="settings_unit_hr_plural">%d hr</string>
