@@ -14,6 +14,24 @@ Supports filtering by category, purity, and aspect ratio. Runs as a foreground s
 	<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="200">
 </a>
 
+## Building from source
+
+Requires JDK 17 and the Android SDK ([Android Studio](https://developer.android.com/studio) bundles both).
+
+```sh
+git clone https://github.com/Attacktive/Wallhavend-android.git
+cd Wallhavend-android
+./gradlew assembleDebug
+```
+
+Debug builds need no secrets. The Wallhaven API key is entered in the app at runtime (for NSFW content only), and `release.keystore` with `KEYSTORE_PASSWORD` are needed only for release signing.
+
+Run the unit tests with `./gradlew test`.
+
+## Contributing
+
+The codebase follows a formatting style that differs from the IDE defaults — see [CONTRIBUTING.md](CONTRIBUTING.md) before sending a pull request.
+
 ---
 
 Wallpapers provided by [Wallhaven](https://wallhaven.cc). All images remain property of their respective uploaders.
