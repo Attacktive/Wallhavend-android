@@ -1,6 +1,7 @@
 package xyz.attacktive.wallhavend.ui.settings
 
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -69,7 +70,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.delay
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS

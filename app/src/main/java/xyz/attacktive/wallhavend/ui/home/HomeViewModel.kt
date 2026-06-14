@@ -2,6 +2,12 @@ package xyz.attacktive.wallhavend.ui.home
 
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import android.content.ContentValues
 import android.content.Context
 import android.media.MediaScannerConnection
@@ -12,12 +18,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository

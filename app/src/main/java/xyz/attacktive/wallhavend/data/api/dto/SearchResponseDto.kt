@@ -1,8 +1,8 @@
 package xyz.attacktive.wallhavend.data.api.dto
 
-import android.annotation.SuppressLint
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import android.annotation.SuppressLint
 
 @SuppressLint("UnsafeOptInUsageError")
 @Serializable
