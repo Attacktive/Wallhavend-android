@@ -13,7 +13,6 @@ import android.app.Service
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -231,17 +230,17 @@ class WallpaperService: Service() {
 	}
 
 	private fun applyWallpaper(file: File, target: WallpaperTarget) = runCatching {
-		val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-			?: error("Failed to decode bitmap from ${file.name}")
-
 		val flags = when (target) {
 			WallpaperTarget.HOME -> WallpaperManager.FLAG_SYSTEM
 			WallpaperTarget.LOCK -> WallpaperManager.FLAG_LOCK
 			WallpaperTarget.BOTH -> WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
 		}
 
-		getSystemService(WallpaperManager::class.java).setBitmap(bitmap, null, true, flags)
-		bitmap.recycle()
+		file.inputStream()
+			.use { input ->
+				getSystemService(WallpaperManager::class.java)
+					.setStream(input, null, true, flags)
+			}
 	}
 
 	private fun postError(error: AppError) {
