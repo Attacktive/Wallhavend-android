@@ -18,6 +18,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.DisplayMetrics
 import android.view.WindowManager
+import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -48,15 +49,21 @@ import xyz.attacktive.wallhavend.domain.repository.WallhavenRepository
 class WallpaperService: Service() {
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
+
 	@Inject
 	lateinit var wallhavenRepository: WallhavenRepository
+
 	@Inject
 	lateinit var fileManager: WallpaperFileManager
+
 	@Inject
 	lateinit var stateRepository: ServiceStateRepository
 
-	private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+	internal var serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
 	private var timerJob: Job? = null
+	private var errorClearJob: Job? = null
 
 	override fun onBind(intent: Intent?) = null
 
@@ -243,10 +250,12 @@ class WallpaperService: Service() {
 			}
 	}
 
-	private fun postError(error: AppError) {
+	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+	internal fun postError(error: AppError) {
 		stateRepository.update { it.copy(error = error) }
 
-		serviceScope.launch {
+		errorClearJob?.cancel()
+		errorClearJob = serviceScope.launch {
 			delay(10_000.milliseconds)
 			stateRepository.update { it.copy(error = null) }
 		}
