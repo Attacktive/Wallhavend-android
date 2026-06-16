@@ -50,7 +50,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: 'Upload APK to GitHub Releases'
-        uses: 'softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b'
+        uses: 'softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda'
         with:
           files: |
             app/build/outputs/apk/release/Wallhavend-${{ github.ref_name }}.apk
