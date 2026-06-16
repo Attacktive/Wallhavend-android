@@ -36,6 +36,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val SORTING = stringPreferencesKey("sorting")
 		val TOPLIST_RANGE = stringPreferencesKey("toplist_range")
 		val AVOID_BLURRY_WALLPAPERS = booleanPreferencesKey("avoid_blurry_wallpapers")
+		val BLOCKED_IDS = stringSetPreferencesKey("blocked_ids")
 		val LAST_UPDATED_MS = longPreferencesKey("last_updated_ms")
 		val CURRENT_WALLPAPER_PATH = stringPreferencesKey("current_wallpaper_path")
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
@@ -63,7 +64,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				filterColor = preferences[Keys.FILTER_COLOR] ?: "",
 				sorting = Sorting.fromApiValue(preferences[Keys.SORTING] ?: "random"),
 				toplistRange = ToplistRange.fromApiValue(preferences[Keys.TOPLIST_RANGE] ?: "1M"),
-				avoidBlurryWallpapers = preferences[Keys.AVOID_BLURRY_WALLPAPERS] ?: false
+				avoidBlurryWallpapers = preferences[Keys.AVOID_BLURRY_WALLPAPERS] ?: false,
+				blockedIds = preferences[Keys.BLOCKED_IDS] ?: emptySet()
 			)
 			.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 		}
@@ -95,6 +97,23 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		}
 
 		logger.debug(TAG, "save() completed")
+	}
+
+	/*
+	 * The blocklist grows from the preview screen while the settings screen edits its own AppSettings
+	 * copy, so routing it through the whole-object save() would let one path clobber the other's writes.
+	 * These mutators touch only the blocked-ids key, and save() intentionally leaves that key alone.
+	 */
+	suspend fun block(id: String) {
+		dataStore.edit { preferences ->
+			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) + id
+		}
+	}
+
+	suspend fun unblock(id: String) {
+		dataStore.edit { preferences ->
+			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) - id
+		}
 	}
 
 	suspend fun loadServiceState() = dataStore.data.first()

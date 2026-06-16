@@ -89,6 +89,24 @@ class SettingsRepositoryTest {
 	}
 
 	@Test
+	fun `block and unblock round-trip and survive a full settings save`() = runTest {
+		val repository = createRepository()
+		assertTrue(repository.settings.first().blockedIds.isEmpty())
+
+		repository.block("abc123")
+		repository.block("def456")
+		assertEquals(setOf("abc123", "def456"), repository.settings.first { it.blockedIds.size == 2 }.blockedIds)
+
+		repository.save(AppSettings(searchQuery = "marker"))
+
+		val afterSave = repository.settings.first { it.searchQuery == "marker" }
+		assertEquals(setOf("abc123", "def456"), afterSave.blockedIds)
+
+		repository.unblock("abc123")
+		assertEquals(setOf("def456"), repository.settings.first { it.blockedIds == setOf("def456") }.blockedIds)
+	}
+
+	@Test
 	fun `avoidBlurryWallpapers defaults to false and round-trips`() = runTest {
 		val repository = createRepository()
 		assertFalse(repository.settings.first().avoidBlurryWallpapers)

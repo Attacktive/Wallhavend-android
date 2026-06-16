@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.OpenInBrowser
@@ -205,6 +206,15 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					label = stringResource(R.string.preview_action_remove),
 					onClick = {
 						viewModel.deleteFromPool(path)
+						onNavigateBack()
+					}
+				)
+
+				PreviewAction(
+					icon = Icons.Default.Block,
+					label = stringResource(R.string.preview_action_block),
+					onClick = {
+						viewModel.blockFromPool(id, path)
 						onNavigateBack()
 					}
 				)

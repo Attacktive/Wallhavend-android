@@ -323,6 +323,57 @@ class WallhavenRepositoryTest {
 	}
 
 	@Test
+	fun `next skips blocked ids`() = runTest {
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(5)
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		val result = repository.next(AppSettings(blockedIds = setOf("w1", "w2")), portraitScreen)
+		assertEquals("w3", result.getOrNull()?.first?.id)
+	}
+
+	@Test
+	fun `next returns NoResultsException when every candidate is blocked`() = runTest {
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(3)
+
+		val result = repository.next(AppSettings(blockedIds = setOf("w1", "w2", "w3")), portraitScreen)
+		assertTrue(result.isFailure)
+		assertTrue(result.exceptionOrNull() is NoResultsException)
+	}
+
+	@Test
+	fun `next advances to the next page when a whole page is blocked`() = runTest {
+		coEvery {
+			wallhavenApiService.search(
+				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
+				sorting = any(), seed = any(), topRange = any(), page = 1, colors = any(), apiKey = any()
+			)
+		} returns makePage(count = 1, currentPage = 1, lastPage = 2)
+
+		coEvery {
+			wallhavenApiService.search(
+				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
+				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+			)
+		} returns makePage(count = 1, currentPage = 2, lastPage = 2)
+
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		val result = repository.next(AppSettings(sorting = Sorting.VIEWS, blockedIds = setOf("w-1-1")), portraitScreen)
+		assertEquals("w-2-1", result.getOrNull()?.first?.id)
+
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
+				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+			)
+		}
+	}
+
+	@Test
 	fun `comma semicolon and pipe delimiters also split the query`() = runTest {
 		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(1)
 		coEvery { fileManager.download(any()) } answers {

@@ -4,6 +4,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.DropdownMenuItem
@@ -57,7 +59,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -84,11 +88,13 @@ import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
 @Composable
 fun SettingsScreen(
 	onNavigateBack: () -> Unit,
+	onNavigateToBlocklist: () -> Unit,
 	viewModel: SettingsViewModel = hiltViewModel()
 ) {
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
 	val saveError by viewModel.saveError.collectAsStateWithLifecycle()
 	var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+	val scrollState = rememberScrollState()
 
 	val tabs = listOf(
 		stringResource(R.string.settings_tab_content),
@@ -139,22 +145,46 @@ fun SettingsScreen(
 				}
 			}
 
-			Column(
-				modifier = Modifier
-					.fillMaxSize()
-					.verticalScroll(rememberScrollState())
-					.padding(16.dp)
-			) {
-				when (selectedTab) {
-					0 -> ContentTab(settings = settings, onSave = viewModel::save)
-					1 -> ScheduleTab(settings = settings, onSave = viewModel::save)
-					2 -> AdvancedTab(settings = settings, onSave = viewModel::save)
+			Box(modifier = Modifier.weight(1f)) {
+				Column(
+					modifier = Modifier
+						.fillMaxSize()
+						.verticalScroll(scrollState)
+						.padding(16.dp)
+				) {
+					when (selectedTab) {
+						0 -> ContentTab(settings = settings, onSave = viewModel::save, onNavigateToBlocklist = onNavigateToBlocklist)
+						1 -> ScheduleTab(settings = settings, onSave = viewModel::save)
+						2 -> AdvancedTab(settings = settings, onSave = viewModel::save)
+					}
 				}
 
-				Spacer(Modifier.height(24.dp))
+				val scrimAlpha by animateFloatAsState(
+					targetValue = if (scrollState.canScrollForward) {
+						1f
+					} else {
+						0f
+					},
+					label = "footerScrim"
+				)
 
-				val uriHandler = LocalUriHandler.current
+				Box(
+					modifier = Modifier
+						.align(Alignment.BottomCenter)
+						.fillMaxWidth()
+						.height(12.dp)
+						.alpha(scrimAlpha)
+						.background(Brush.verticalGradient(listOf(Color.Transparent, MaterialTheme.colorScheme.surfaceContainerHighest)))
+				)
+			}
 
+			val uriHandler = LocalUriHandler.current
+
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 16.dp, vertical = 8.dp)
+			) {
 				Text(
 					text = stringResource(R.string.settings_powered_by),
 					style = MaterialTheme.typography.bodySmall,
@@ -185,7 +215,7 @@ fun SettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onNavigateToBlocklist: () -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
 	var filterColor by rememberSaveable { mutableStateOf(settings.filterColor) }
 
@@ -387,6 +417,31 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		checked = settings.avoidBlurryWallpapers,
 		onToggle = { onSave(settings.copy(avoidBlurryWallpapers = it)) }
 	)
+
+	Spacer(Modifier.height(16.dp))
+
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		modifier = Modifier
+			.fillMaxWidth()
+			.clickable { onNavigateToBlocklist() }
+			.padding(vertical = 8.dp)
+	) {
+		Column(modifier = Modifier.weight(1f)) {
+			Text(stringResource(R.string.blocklist_settings_row))
+			Text(
+				stringResource(R.string.blocklist_settings_subtitle, settings.blockedIds.size),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+		}
+
+		Icon(
+			Icons.AutoMirrored.Filled.KeyboardArrowRight,
+			contentDescription = null,
+			tint = MaterialTheme.colorScheme.onSurfaceVariant
+		)
+	}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

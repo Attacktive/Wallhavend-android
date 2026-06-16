@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import xyz.attacktive.wallhavend.ui.blocklist.BlocklistScreen
 import xyz.attacktive.wallhavend.ui.home.HomeScreen
 import xyz.attacktive.wallhavend.ui.preview.PreviewScreen
 import xyz.attacktive.wallhavend.ui.settings.SettingsScreen
@@ -22,7 +23,14 @@ fun AppNavigationHost(navigationController: NavHostController = rememberNavContr
 		}
 
 		composable("settings") {
-			SettingsScreen(onNavigateBack = { navigationController.popBackStack() })
+			SettingsScreen(
+				onNavigateBack = { navigationController.popBackStack() },
+				onNavigateToBlocklist = { navigationController.navigate("blocklist") }
+			)
+		}
+
+		composable("blocklist") {
+			BlocklistScreen(onNavigateBack = { navigationController.popBackStack() })
 		}
 
 		composable("preview/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) { backStackEntry ->

@@ -68,37 +68,48 @@ class HomeViewModel @Inject constructor(
 
 	fun deleteFromPool(path: String) {
 		viewModelScope.launch(Dispatchers.IO) {
-			File(path).delete()
+			evictFromPool(path)
+		}
+	}
 
-			val state = stateRepository.state.value
-			val newPaths = state.poolPaths - path
+	fun blockFromPool(id: String, path: String) {
+		viewModelScope.launch(Dispatchers.IO) {
+			settingsRepository.block(id)
+			evictFromPool(path)
+		}
+	}
 
-			val newCurrent = if (state.currentWallpaperPath == path) {
-				newPaths.firstOrNull()
-			} else {
-				state.currentWallpaperPath
-			}
+	private suspend fun evictFromPool(path: String) {
+		File(path).delete()
 
-			val newPrev = if (state.previousWallpaperPath == path) {
-				newPaths.getOrNull(1)
-			} else {
-				state.previousWallpaperPath
-			}
+		val state = stateRepository.state.value
+		val newPaths = state.poolPaths - path
 
-			stateRepository.update {
-				it.copy(
-					poolPaths = newPaths,
-					currentWallpaperPath = newCurrent,
-					previousWallpaperPath = newPrev
-				)
-			}
+		val newCurrent = if (state.currentWallpaperPath == path) {
+			newPaths.firstOrNull()
+		} else {
+			state.currentWallpaperPath
+		}
 
-			settingsRepository.saveServiceState(
-				state.lastUpdatedMs ?: System.currentTimeMillis(),
-				newCurrent,
-				newPrev
+		val newPrev = if (state.previousWallpaperPath == path) {
+			newPaths.getOrNull(1)
+		} else {
+			state.previousWallpaperPath
+		}
+
+		stateRepository.update {
+			it.copy(
+				poolPaths = newPaths,
+				currentWallpaperPath = newCurrent,
+				previousWallpaperPath = newPrev
 			)
 		}
+
+		settingsRepository.saveServiceState(
+			state.lastUpdatedMs ?: System.currentTimeMillis(),
+			newCurrent,
+			newPrev
+		)
 	}
 
 	fun saveToPictures(path: String) {

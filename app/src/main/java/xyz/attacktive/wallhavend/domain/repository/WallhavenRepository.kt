@@ -68,22 +68,45 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 			lastPage = 1
 		}
 
-		if (cache.isEmpty()) {
-			val fetchResult = refetch(key)
-			if (fetchResult.isFailure) {
-				return@withLock Result.failure(fetchResult.exceptionOrNull()!!)
-			}
-		}
+		val selection = runCatching { selectNext(key, settings.blockedIds) }
+		val dto = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
+			?: return@withLock Result.failure(NoResultsException())
 
-		if (cache.isEmpty()) {
-			return@withLock Result.failure(NoResultsException())
-		}
-
-		val dto = cache.removeFirst()
 		val wallpaper = dto.toDomain()
 
 		fileManager.download(wallpaper)
 			.map { file -> Pair(wallpaper, file) }
+	}
+
+	/*
+	 * Blocked wallpapers are filtered after the fetch, so they still occupy slots in a returned page.
+	 * Drop them when picking, and when a whole page comes back blocked, advance to the next page rather
+	 * than giving up. A genuinely empty page (no results at all) stops immediately, and an all-blocked
+	 * search is bounded so it can't loop forever before falling back to NoResults.
+	 */
+	private suspend fun selectNext(key: SearchKey, blockedIds: Set<String>): WallpaperDto? {
+		val maxBlockedPageRefetches = 5
+		var refetches = 0
+
+		while (true) {
+			while (cache.isNotEmpty() && cache.first().id in blockedIds) {
+				cache.removeFirst()
+			}
+
+			if (cache.isNotEmpty()) {
+				return cache.removeFirst()
+			}
+
+			if (refetches >= maxBlockedPageRefetches) {
+				return null
+			}
+
+			refetches++
+			val fetchedCount = refetch(key).getOrThrow()
+			if (fetchedCount == 0) {
+				return null
+			}
+		}
 	}
 
 	private suspend fun refetch(key: SearchKey) = runCatching {
@@ -141,6 +164,8 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 				responses.single().data
 			}
 		)
+
+		cache.size
 	}
 
 	private fun randomSeed() = (('a'..'z') + ('A'..'Z') + ('0'..'9'))

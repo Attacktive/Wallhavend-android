@@ -71,7 +71,15 @@
 	<string name="preview_action_apply">Apply</string>
 	<string name="preview_action_save">Save</string>
 	<string name="preview_action_remove">Remove</string>
+	<string name="preview_action_block">Block</string>
 	<string name="preview_action_open_in_browser">Browser</string>
+	<string name="blocklist_title">Blocked wallpapers</string>
+	<string name="blocklist_settings_row">Blocked wallpapers</string>
+	<string name="blocklist_settings_subtitle">%d hidden from rotation</string>
+	<string name="blocklist_empty">Nothing blocked yet. Block a wallpaper from its preview to hide it from future rotations.</string>
+	<string name="blocklist_unblock">Unblock</string>
+	<string name="blocklist_reveal">Reveal thumbnail</string>
+	<string name="blocklist_open_hint">Tap ID to view on wallhaven.cc</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 hr</string>
 	<string name="settings_unit_hr_plural">%d hr</string>
