@@ -73,6 +73,7 @@ class WallpaperService: Service() {
 		when (intent?.action) {
 			ACTION_STOP -> stopSelf()
 			ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate(forceDownload = true) }
+			ACTION_ROLL_NOW -> serviceScope.launch { performUpdate() }
 			ACTION_APPLY_PATH -> {
 				val path = intent.getStringExtra(EXTRA_PATH)
 				if (path != null) {
@@ -352,35 +353,44 @@ class WallpaperService: Service() {
 	companion object {
 		const val ACTION_STOP = "xyz.attacktive.wallhavend.STOP"
 		const val ACTION_UPDATE_NOW = "xyz.attacktive.wallhavend.UPDATE_NOW"
+		const val ACTION_ROLL_NOW = "xyz.attacktive.wallhavend.ROLL_NOW"
 		const val ACTION_APPLY_PATH = "xyz.attacktive.wallhavend.APPLY_PATH"
 		const val EXTRA_PATH = "path"
 
 		fun start(context: Context) {
-			context.startForegroundService(Intent(context, WallpaperService::class.java))
+			val intent = Intent(context, WallpaperService::class.java)
+			context.startForegroundService(intent)
 		}
 
 		fun stop(context: Context) {
-			context.startForegroundService(
-				Intent(context, WallpaperService::class.java)
-					.apply { action = ACTION_STOP }
-			)
+			val intent = Intent(context, WallpaperService::class.java)
+				.apply { action = ACTION_STOP }
+
+			context.startForegroundService(intent)
 		}
 
 		fun updateNow(context: Context) {
-			context.startForegroundService(
-				Intent(context, WallpaperService::class.java)
-					.apply { action = ACTION_UPDATE_NOW }
-			)
+			val intent = Intent(context, WallpaperService::class.java)
+				.apply { action = ACTION_UPDATE_NOW }
+
+			context.startForegroundService(intent)
+		}
+
+		fun rollNow(context: Context) {
+			val intent = Intent(context, WallpaperService::class.java)
+				.apply { action = ACTION_ROLL_NOW }
+
+			context.startForegroundService(intent)
 		}
 
 		fun applyPath(context: Context, path: String) {
-			context.startForegroundService(
-				Intent(context, WallpaperService::class.java)
-					.apply {
-						action = ACTION_APPLY_PATH
-						putExtra(EXTRA_PATH, path)
-					}
-			)
+			val intent = Intent(context, WallpaperService::class.java)
+				.apply {
+					action = ACTION_APPLY_PATH
+					putExtra(EXTRA_PATH, path)
+				}
+
+			context.startForegroundService(intent)
 		}
 	}
 }

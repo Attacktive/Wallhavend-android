@@ -74,8 +74,15 @@ class HomeViewModel @Inject constructor(
 
 	fun blockFromPool(id: String, path: String) {
 		viewModelScope.launch(Dispatchers.IO) {
+			val currentBeforeBlock = stateRepository.state.value.currentWallpaperPath
 			settingsRepository.block(id)
 			evictFromPool(path)
+
+			when (val replacement = blockReplacement(path, currentBeforeBlock, stateRepository.state.value.poolPaths)) {
+				is BlockReplacement.ApplyFromPool -> WallpaperService.applyPath(context, replacement.path)
+				BlockReplacement.Roll -> WallpaperService.rollNow(context)
+				BlockReplacement.None -> Unit
+			}
 		}
 	}
 
