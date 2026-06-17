@@ -86,11 +86,7 @@ import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
-	onNavigateBack: () -> Unit,
-	onNavigateToBlocklist: () -> Unit,
-	viewModel: SettingsViewModel = hiltViewModel()
-) {
+fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
 	val saveError by viewModel.saveError.collectAsStateWithLifecycle()
 	var selectedTab by rememberSaveable { mutableIntStateOf(0) }
