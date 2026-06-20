@@ -40,6 +40,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val LAST_UPDATED_MS = longPreferencesKey("last_updated_ms")
 		val CURRENT_WALLPAPER_PATH = stringPreferencesKey("current_wallpaper_path")
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
+		val AUTO_UPDATE_ENABLED = booleanPreferencesKey("auto_update_enabled")
 	}
 
 	val settings = dataStore.data
@@ -140,6 +141,16 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				preferences.remove(Keys.PREVIOUS_WALLPAPER_PATH)
 			}
 		}
+	}
+
+	/**
+	 * Whether the user wants auto-update running. Persisted so the toggle survives process death:
+	 * the in-memory ServiceState.isRunning resets to false whenever the OS reclaims the process.
+	 */
+	suspend fun loadAutoUpdateEnabled() = dataStore.data.first()[Keys.AUTO_UPDATE_ENABLED] ?: false
+
+	suspend fun setAutoUpdateEnabled(enabled: Boolean) {
+		dataStore.edit { preferences -> preferences[Keys.AUTO_UPDATE_ENABLED] = enabled }
 	}
 
 	companion object {

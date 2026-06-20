@@ -55,6 +55,22 @@ class HomeViewModel @Inject constructor(
 					)
 				}
 			}
+
+			reconcileAutoUpdate()
+		}
+	}
+
+	/**
+	 * A fresh process resets the in-memory running flag to false, so re-derive it from the persisted
+	 * intent and revive the service when the user had auto-update on. The screen is foregrounded when
+	 * this runs, so launching the foreground service is permitted.
+	 */
+	private suspend fun reconcileAutoUpdate() {
+		val enabled = settingsRepository.loadAutoUpdateEnabled()
+		val alreadyRunning = stateRepository.state.value.isRunning
+		if (enabled && !alreadyRunning) {
+			stateRepository.update { it.copy(isRunning = true) }
+			WallpaperService.start(context)
 		}
 	}
 

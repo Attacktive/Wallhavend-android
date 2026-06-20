@@ -71,7 +71,10 @@ class WallpaperService: Service() {
 		startForeground(NOTIFICATION_ID, buildNotification())
 
 		when (intent?.action) {
-			ACTION_STOP -> stopSelf()
+			ACTION_STOP -> serviceScope.launch {
+				settingsRepository.setAutoUpdateEnabled(false)
+				stopSelf()
+			}
 			ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate(forceDownload = true) }
 			ACTION_ROLL_NOW -> serviceScope.launch { performUpdate() }
 			ACTION_APPLY_PATH -> {
@@ -94,7 +97,9 @@ class WallpaperService: Service() {
 		stateRepository.update { it.copy(isRunning = true) }
 
 		timerJob = serviceScope.launch {
+			settingsRepository.setAutoUpdateEnabled(true)
 			runCatching { performUpdate() }
+
 			while (true) {
 				val intervalMs = settingsRepository.settings.first().updateIntervalMinutes * 60_000L
 				delay(intervalMs.milliseconds)

@@ -1,6 +1,10 @@
 package xyz.attacktive.wallhavend
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
@@ -115,5 +119,33 @@ class SettingsRepositoryTest {
 
 		val loaded = repository.settings.first { it.searchQuery == "marker" }
 		assertTrue(loaded.avoidBlurryWallpapers)
+	}
+
+	@Test
+	fun `auto-update enabled defaults to false`() = runTest {
+		val repository = createRepository()
+		assertFalse(repository.loadAutoUpdateEnabled())
+	}
+
+	@Test
+	fun `auto-update enabled survives a process restart`() = runTest {
+		val file = tmpFolder.newFile("intent_prefs.preferences_pb")
+
+		val firstScope = CoroutineScope(backgroundScope.coroutineContext + Job())
+		val firstProcess = SettingsRepository(
+			PreferenceDataStoreFactory.create(scope = firstScope, produceFile = { file }),
+			FakeAppLogger()
+		)
+
+		firstProcess.setAutoUpdateEnabled(true)
+		// Tearing down the DataStore's scope releases the file, simulating the OS killing the process.
+		firstScope.coroutineContext.job.cancelAndJoin()
+
+		val secondProcess = SettingsRepository(
+			PreferenceDataStoreFactory.create(scope = backgroundScope, produceFile = { file }),
+			FakeAppLogger()
+		)
+
+		assertTrue(secondProcess.loadAutoUpdateEnabled())
 	}
 }
