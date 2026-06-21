@@ -77,6 +77,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
+import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
@@ -507,13 +508,44 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	}
 
 	Spacer(Modifier.height(16.dp))
+	SectionLabel(stringResource(R.string.settings_label_rotation_mode))
 
-	ToggleSetting(
-		label = stringResource(R.string.settings_label_wifi_only),
-		subtitle = stringResource(R.string.settings_subtitle_wifi_only),
-		checked = settings.wifiOnly,
-		onToggle = { onSave(settings.copy(wifiOnly = it)) }
-	)
+	RotationMode.entries.forEach { mode ->
+		val enabled = mode != RotationMode.PINNED_ONLY || settings.pinnedIds.isNotEmpty()
+
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			modifier = Modifier
+				.fillMaxWidth()
+				.alpha(if (enabled) { 1f } else { 0.38f })
+				.clickable(enabled = enabled) { onSave(settings.copy(rotationMode = mode)) }
+		) {
+			RadioButton(selected = settings.rotationMode == mode, onClick = null, enabled = enabled)
+
+			Column(modifier = Modifier.padding(start = 4.dp)) {
+				Text(
+					text = when (mode) {
+						RotationMode.FRESH_ANY -> stringResource(R.string.settings_rotation_fresh_any)
+						RotationMode.FRESH_WIFI -> stringResource(R.string.settings_rotation_fresh_wifi)
+						RotationMode.PINNED_ONLY -> stringResource(R.string.settings_rotation_pinned_only)
+					}
+				)
+
+				val description = when {
+					!enabled -> stringResource(R.string.settings_rotation_pinned_disabled_hint)
+					mode == RotationMode.FRESH_ANY -> stringResource(R.string.settings_rotation_fresh_any_desc)
+					mode == RotationMode.FRESH_WIFI -> stringResource(R.string.settings_rotation_fresh_wifi_desc)
+					else -> stringResource(R.string.settings_rotation_pinned_only_desc)
+				}
+
+				Text(
+					text = description,
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant
+				)
+			}
+		}
+	}
 
 	Spacer(Modifier.height(8.dp))
 

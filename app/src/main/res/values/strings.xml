@@ -41,8 +41,14 @@
 	<string name="settings_target_home">Home screen only</string>
 	<string name="settings_target_lock">Lock screen only</string>
 	<string name="settings_target_both">Both</string>
-	<string name="settings_label_wifi_only">Wi-Fi only</string>
-	<string name="settings_subtitle_wifi_only">Skip updates on mobile data</string>
+	<string name="settings_label_rotation_mode">ROTATION MODE</string>
+	<string name="settings_rotation_fresh_any">Fresh — any network</string>
+	<string name="settings_rotation_fresh_any_desc">Download a new wallpaper on any connection</string>
+	<string name="settings_rotation_fresh_wifi">Fresh — Wi-Fi only</string>
+	<string name="settings_rotation_fresh_wifi_desc">Download on Wi-Fi; cycle saved wallpapers on mobile data</string>
+	<string name="settings_rotation_pinned_only">Pinned only</string>
+	<string name="settings_rotation_pinned_only_desc">Cycle only your pinned wallpapers</string>
+	<string name="settings_rotation_pinned_disabled_hint">Pin at least one wallpaper to use this</string>
 	<string name="settings_label_auto_start">Auto-start on boot</string>
 	<string name="settings_subtitle_auto_start">No root required</string>
 	<string name="settings_label_pool_size">WALLPAPER POOL SIZE</string>
@@ -72,7 +78,10 @@
 	<string name="preview_action_save">Save</string>
 	<string name="preview_action_remove">Remove</string>
 	<string name="preview_action_block">Block</string>
+	<string name="preview_action_pin">Pin</string>
+	<string name="preview_action_unpin">Unpin</string>
 	<string name="preview_action_open_in_browser">Browser</string>
+	<string name="cd_pinned">Pinned</string>
 	<string name="blocklist_title">Blocked wallpapers</string>
 	<string name="blocklist_settings_row">Blocked wallpapers</string>
 	<string name="blocklist_settings_subtitle">%d hidden from rotation</string>

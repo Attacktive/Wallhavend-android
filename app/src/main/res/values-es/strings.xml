@@ -25,8 +25,14 @@
 	<string name="settings_target_home">Solo pantalla de inicio</string>
 	<string name="settings_target_lock">Solo pantalla de bloqueo</string>
 	<string name="settings_target_both">Ambas</string>
-	<string name="settings_label_wifi_only">Solo Wi-Fi</string>
-	<string name="settings_subtitle_wifi_only">Omitir actualizaciones con datos móviles</string>
+	<string name="settings_label_rotation_mode">MODO DE ROTACIÓN</string>
+	<string name="settings_rotation_fresh_any">Nuevo — cualquier red</string>
+	<string name="settings_rotation_fresh_any_desc">Descargar un nuevo fondo de pantalla en cualquier conexión</string>
+	<string name="settings_rotation_fresh_wifi">Nuevo — solo Wi-Fi</string>
+	<string name="settings_rotation_fresh_wifi_desc">Descargar con Wi-Fi; rotar los fondos guardados con datos móviles</string>
+	<string name="settings_rotation_pinned_only">Solo fijados</string>
+	<string name="settings_rotation_pinned_only_desc">Rotar solo tus fondos de pantalla fijados</string>
+	<string name="settings_rotation_pinned_disabled_hint">Fija al menos un fondo de pantalla para usar este modo</string>
 	<string name="settings_label_auto_start">Inicio automático al arrancar</string>
 	<string name="settings_subtitle_auto_start">No se requiere root</string>
 	<string name="settings_label_pool_size">TAMAÑO DEL DEPÓSITO DE FONDOS</string>
@@ -52,6 +58,7 @@
 	<string name="cd_save_to_pictures">Guardar en Imágenes</string>
 	<string name="cd_delete">Eliminar</string>
 	<string name="cd_back">Atrás</string>
+	<string name="cd_pinned">Fijado</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 h</string>
 	<string name="settings_unit_hr_plural">%d h</string>

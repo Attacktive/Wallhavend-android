@@ -99,4 +99,60 @@ class WallpaperFileManagerTest {
 
 		files.forEach { assertTrue("${it.name} should be deleted", !it.exists()) }
 	}
+
+	@Test
+	fun `trimToSize keeps a pinned file even when it is older than the cutoff`() {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val files = (1..5).map { i ->
+			File(wallpapersDir, "w$i.jpg")
+				.also {
+					it.writeText("data")
+					it.setLastModified(System.currentTimeMillis() + i * 1000L)
+				}
+		}
+
+		// w1 is the oldest, so without a pin it would be the first evicted.
+		val kept = manager.trimToSize(2, setOf("w1"))
+
+		assertEquals(listOf("w5.jpg", "w4.jpg", "w1.jpg"), kept.map { it.name })
+		assertTrue(files[0].exists())
+		assertTrue(!files[1].exists())
+		assertTrue(!files[2].exists())
+		assertTrue(files[3].exists())
+		assertTrue(files[4].exists())
+	}
+
+	@Test
+	fun `trimToSize keeps pinned files when maxSize is 0`() {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val rotating = File(wallpapersDir, "rot.jpg").also { it.writeText("data") }
+		val pinned = File(wallpapersDir, "pin.jpg").also { it.writeText("data") }
+
+		val kept = manager.trimToSize(0, setOf("pin"))
+
+		assertEquals(listOf("pin.jpg"), kept.map { it.name })
+		assertTrue(pinned.exists())
+		assertTrue(!rotating.exists())
+	}
+
+	@Test
+	fun `pinned files do not count toward maxSize`() {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val files = (1..4).map { i ->
+			File(wallpapersDir, "w$i.jpg")
+				.also {
+					it.writeText("data")
+					it.setLastModified(System.currentTimeMillis() + i * 1000L)
+				}
+		}
+
+		// Pinning the oldest must not consume a rotating-buffer slot: the two newest non-pinned survive too.
+		val kept = manager.trimToSize(2, setOf("w1"))
+
+		assertEquals(3, kept.size)
+		assertTrue(files[0].exists())
+		assertTrue(!files[1].exists())
+		assertTrue(files[2].exists())
+		assertTrue(files[3].exists())
+	}
 }

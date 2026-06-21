@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import android.content.ContentValues
@@ -34,6 +35,10 @@ class HomeViewModel @Inject constructor(
 ): ViewModel() {
 	val serviceState = stateRepository.state
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
+
+	val pinnedIds = settingsRepository.settings
+		.map { it.pinnedIds }
+		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
 	private val _saveMessage = MutableSharedFlow<String>(extraBufferCapacity = 1)
 	val saveMessage = _saveMessage.asSharedFlow()
@@ -82,6 +87,16 @@ class HomeViewModel @Inject constructor(
 		WallpaperService.applyPath(context, path)
 	}
 
+	fun togglePin(id: String) {
+		viewModelScope.launch(Dispatchers.IO) {
+			if (id in pinnedIds.value) {
+				settingsRepository.unpin(id)
+			} else {
+				settingsRepository.pin(id)
+			}
+		}
+	}
+
 	fun deleteFromPool(path: String) {
 		viewModelScope.launch(Dispatchers.IO) {
 			evictFromPool(path)
@@ -103,7 +118,9 @@ class HomeViewModel @Inject constructor(
 	}
 
 	private suspend fun evictFromPool(path: String) {
-		File(path).delete()
+		val file = File(path)
+		settingsRepository.unpin(file.nameWithoutExtension)
+		file.delete()
 
 		val state = stateRepository.state.value
 		val newPaths = state.poolPaths - path

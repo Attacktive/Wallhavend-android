@@ -25,8 +25,14 @@
 	<string name="settings_target_home">ホーム画面のみ</string>
 	<string name="settings_target_lock">ロック画面のみ</string>
 	<string name="settings_target_both">両方</string>
-	<string name="settings_label_wifi_only">Wi-Fiのみ</string>
-	<string name="settings_subtitle_wifi_only">モバイルデータ通信時は更新をスキップ</string>
+	<string name="settings_label_rotation_mode">ローテーションモード</string>
+	<string name="settings_rotation_fresh_any">新規取得 — すべてのネットワーク</string>
+	<string name="settings_rotation_fresh_any_desc">どの接続でも新しい壁紙をダウンロードします</string>
+	<string name="settings_rotation_fresh_wifi">新規取得 — Wi-Fiのみ</string>
+	<string name="settings_rotation_fresh_wifi_desc">Wi-Fiでは新しくダウンロードし、モバイルデータでは保存済みの壁紙を切り替えます</string>
+	<string name="settings_rotation_pinned_only">ピン留めのみ</string>
+	<string name="settings_rotation_pinned_only_desc">ピン留めした壁紙のみを切り替えます</string>
+	<string name="settings_rotation_pinned_disabled_hint">このモードを使うには壁紙を1枚以上ピン留めしてください</string>
 	<string name="settings_label_auto_start">起動時に自動開始</string>
 	<string name="settings_subtitle_auto_start">Root権限は不要です</string>
 	<string name="settings_label_pool_size">壁紙プールのサイズ</string>
@@ -52,6 +58,7 @@
 	<string name="cd_save_to_pictures">ピクチャに保存</string>
 	<string name="cd_delete">削除</string>
 	<string name="cd_back">戻る</string>
+	<string name="cd_pinned">ピン留め</string>
 	<string name="settings_unit_min">%d分</string>
 	<string name="settings_unit_hr_single">1時間</string>
 	<string name="settings_unit_hr_plural">%d時間</string>

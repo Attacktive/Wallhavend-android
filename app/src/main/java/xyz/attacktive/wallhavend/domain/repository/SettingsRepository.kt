@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import xyz.attacktive.wallhavend.domain.model.AppSettings
+import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.Purity
@@ -28,7 +29,10 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val PURITY = stringSetPreferencesKey("purity")
 		val UPDATE_INTERVAL_MINUTES = intPreferencesKey("update_interval_minutes")
 		val WALLPAPER_TARGET = stringPreferencesKey("wallpaper_target")
+
+		// Retained read-only so installs predating the rotation-mode picker can migrate; never written anymore.
 		val WIFI_ONLY = booleanPreferencesKey("wifi_only")
+		val ROTATION_MODE = stringPreferencesKey("rotation_mode")
 		val POOL_SIZE = intPreferencesKey("pool_size")
 		val API_KEY = stringPreferencesKey("api_key")
 		val AUTO_START_ON_BOOT = booleanPreferencesKey("auto_start_on_boot")
@@ -37,6 +41,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val TOPLIST_RANGE = stringPreferencesKey("toplist_range")
 		val AVOID_BLURRY_WALLPAPERS = booleanPreferencesKey("avoid_blurry_wallpapers")
 		val BLOCKED_IDS = stringSetPreferencesKey("blocked_ids")
+		val PINNED_IDS = stringSetPreferencesKey("pinned_ids")
 		val LAST_UPDATED_MS = longPreferencesKey("last_updated_ms")
 		val CURRENT_WALLPAPER_PATH = stringPreferencesKey("current_wallpaper_path")
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
@@ -58,7 +63,9 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				wallpaperTarget = preferences[Keys.WALLPAPER_TARGET]
 					?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
 					?: WallpaperTarget.HOME,
-				wifiOnly = preferences[Keys.WIFI_ONLY] ?: true,
+				rotationMode = preferences[Keys.ROTATION_MODE]
+					?.let { runCatching { RotationMode.valueOf(it) }.getOrNull() }
+					?: migrateRotationMode(preferences[Keys.WIFI_ONLY]),
 				poolSize = preferences[Keys.POOL_SIZE] ?: 10,
 				apiKey = preferences[Keys.API_KEY] ?: "",
 				autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true,
@@ -66,7 +73,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				sorting = Sorting.fromApiValue(preferences[Keys.SORTING] ?: "random"),
 				toplistRange = ToplistRange.fromApiValue(preferences[Keys.TOPLIST_RANGE] ?: "1M"),
 				avoidBlurryWallpapers = preferences[Keys.AVOID_BLURRY_WALLPAPERS] ?: false,
-				blockedIds = preferences[Keys.BLOCKED_IDS] ?: emptySet()
+				blockedIds = preferences[Keys.BLOCKED_IDS] ?: emptySet(),
+				pinnedIds = preferences[Keys.PINNED_IDS] ?: emptySet()
 			)
 			.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 		}
@@ -87,7 +95,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 
 			preferences[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
 			preferences[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
-			preferences[Keys.WIFI_ONLY] = settings.wifiOnly
+			preferences[Keys.ROTATION_MODE] = settings.rotationMode.name
 			preferences[Keys.POOL_SIZE] = settings.poolSize
 			preferences[Keys.API_KEY] = settings.apiKey
 			preferences[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
@@ -114,6 +122,19 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 	suspend fun unblock(id: String) {
 		dataStore.edit { preferences ->
 			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) - id
+		}
+	}
+
+	/* Same isolation rationale as block/unblock: the pin set grows from the preview screen, so it gets its own key that save() leaves untouched. */
+	suspend fun pin(id: String) {
+		dataStore.edit { preferences ->
+			preferences[Keys.PINNED_IDS] = (preferences[Keys.PINNED_IDS] ?: emptySet()) + id
+		}
+	}
+
+	suspend fun unpin(id: String) {
+		dataStore.edit { preferences ->
+			preferences[Keys.PINNED_IDS] = (preferences[Keys.PINNED_IDS] ?: emptySet()) - id
 		}
 	}
 
@@ -157,6 +178,14 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		private const val TAG = "SettingsRepository"
 	}
 }
+
+/** Maps the pre-rotation-mode `wifi_only` flag onto its equivalent mode for installs that predate the picker. */
+private fun migrateRotationMode(wifiOnly: Boolean?) =
+	if (wifiOnly == false) {
+		RotationMode.FRESH_ANY
+	} else {
+		RotationMode.FRESH_WIFI
+	}
 
 /** Renders settings for logging without exposing the API key. */
 private fun AppSettings.redactedForLog(): AppSettings =

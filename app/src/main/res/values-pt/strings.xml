@@ -25,8 +25,14 @@
 	<string name="settings_target_home">Apenas tela inicial</string>
 	<string name="settings_target_lock">Apenas tela de bloqueio</string>
 	<string name="settings_target_both">Ambas</string>
-	<string name="settings_label_wifi_only">Apenas Wi-Fi</string>
-	<string name="settings_subtitle_wifi_only">Pular atualizações em dados móveis</string>
+	<string name="settings_label_rotation_mode">MODO DE ROTAÇÃO</string>
+	<string name="settings_rotation_fresh_any">Novo — qualquer rede</string>
+	<string name="settings_rotation_fresh_any_desc">Baixar um novo papel de parede em qualquer conexão</string>
+	<string name="settings_rotation_fresh_wifi">Novo — somente Wi-Fi</string>
+	<string name="settings_rotation_fresh_wifi_desc">Baixar no Wi-Fi; alternar os papéis salvos em dados móveis</string>
+	<string name="settings_rotation_pinned_only">Somente fixados</string>
+	<string name="settings_rotation_pinned_only_desc">Alternar apenas os seus papéis de parede fixados</string>
+	<string name="settings_rotation_pinned_disabled_hint">Fixe pelo menos um papel de parede para usar este modo</string>
 	<string name="settings_label_auto_start">Iniciar com o sistema</string>
 	<string name="settings_subtitle_auto_start">Não requer root</string>
 	<string name="settings_label_pool_size">TAMANHO DA GALERIA</string>
@@ -52,6 +58,7 @@
 	<string name="cd_save_to_pictures">Salvar em Imagens</string>
 	<string name="cd_delete">Excluir</string>
 	<string name="cd_back">Voltar</string>
+	<string name="cd_pinned">Fixado</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 h</string>
 	<string name="settings_unit_hr_plural">%d h</string>

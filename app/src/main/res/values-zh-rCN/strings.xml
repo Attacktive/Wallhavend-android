@@ -25,8 +25,14 @@
 	<string name="settings_target_home">仅主屏幕</string>
 	<string name="settings_target_lock">仅锁屏</string>
 	<string name="settings_target_both">主屏幕与锁屏</string>
-	<string name="settings_label_wifi_only">仅限 Wi-Fi</string>
-	<string name="settings_subtitle_wifi_only">使用移动数据时跳过更新</string>
+	<string name="settings_label_rotation_mode">轮换模式</string>
+	<string name="settings_rotation_fresh_any">获取新图 — 任意网络</string>
+	<string name="settings_rotation_fresh_any_desc">在任意连接下下载新壁纸</string>
+	<string name="settings_rotation_fresh_wifi">获取新图 — 仅 Wi-Fi</string>
+	<string name="settings_rotation_fresh_wifi_desc">在 Wi-Fi 下下载新壁纸；使用移动数据时轮换已保存的壁纸</string>
+	<string name="settings_rotation_pinned_only">仅置顶</string>
+	<string name="settings_rotation_pinned_only_desc">仅轮换您置顶的壁纸</string>
+	<string name="settings_rotation_pinned_disabled_hint">置顶至少一张壁纸后才能使用此模式</string>
 	<string name="settings_label_auto_start">开机自启动</string>
 	<string name="settings_subtitle_auto_start">无需 Root 权限</string>
 	<string name="settings_label_pool_size">壁纸缓存数量</string>
@@ -52,6 +58,7 @@
 	<string name="cd_save_to_pictures">保存至相册</string>
 	<string name="cd_delete">删除</string>
 	<string name="cd_back">返回</string>
+	<string name="cd_pinned">已置顶</string>
 	<string name="settings_unit_min">%d 分钟</string>
 	<string name="settings_unit_hr_single">1 小时</string>
 	<string name="settings_unit_hr_plural">%d 小时</string>

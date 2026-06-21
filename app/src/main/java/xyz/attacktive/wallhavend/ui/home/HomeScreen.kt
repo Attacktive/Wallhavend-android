@@ -4,6 +4,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,14 +18,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
@@ -58,6 +62,7 @@ import xyz.attacktive.wallhavend.domain.model.ServiceState
 @Composable
 fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
+	val pinnedIds by viewModel.pinnedIds.collectAsStateWithLifecycle()
 
 	Scaffold(
 		topBar = {
@@ -111,6 +116,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 				WallpaperGrid(
 					paths = state.poolPaths,
 					currentPath = state.currentWallpaperPath,
+					pinnedIds = pinnedIds,
 					onTap = { path -> onNavigateToPreview(File(path).nameWithoutExtension) }
 				)
 			}
@@ -173,7 +179,7 @@ private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateN
 }
 
 @Composable
-private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (String) -> Unit) {
+private fun WallpaperGrid(paths: List<String>, currentPath: String?, pinnedIds: Set<String>, onTap: (String) -> Unit) {
 	LazyVerticalGrid(
 		columns = GridCells.Fixed(3),
 		contentPadding = PaddingValues(vertical = 4.dp),
@@ -182,6 +188,7 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 	) {
 		items(paths) { path ->
 			val isCurrent = path == currentPath
+			val isPinned = File(path).nameWithoutExtension in pinnedIds
 
 			Box(
 				modifier = Modifier
@@ -205,6 +212,25 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, onTap: (Str
 					contentScale = ContentScale.Crop,
 					modifier = Modifier.fillMaxSize()
 				)
+
+				if (isPinned) {
+					Box(
+						contentAlignment = Alignment.Center,
+						modifier = Modifier
+							.align(Alignment.TopEnd)
+							.padding(4.dp)
+							.size(18.dp)
+							.clip(CircleShape)
+							.background(MaterialTheme.colorScheme.primary)
+					) {
+						Icon(
+							Icons.Default.PushPin,
+							contentDescription = stringResource(R.string.cd_pinned),
+							tint = MaterialTheme.colorScheme.onPrimary,
+							modifier = Modifier.size(12.dp)
+						)
+					}
+				}
 			}
 		}
 	}

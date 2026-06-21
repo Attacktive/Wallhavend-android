@@ -25,8 +25,14 @@
 	<string name="settings_target_home">Nur Startbildschirm</string>
 	<string name="settings_target_lock">Nur Sperrbildschirm</string>
 	<string name="settings_target_both">Beide</string>
-	<string name="settings_label_wifi_only">Nur WLAN</string>
-	<string name="settings_subtitle_wifi_only">Updates bei mobilen Daten überspringen</string>
+	<string name="settings_label_rotation_mode">ROTATIONSMODUS</string>
+	<string name="settings_rotation_fresh_any">Neu — beliebiges Netzwerk</string>
+	<string name="settings_rotation_fresh_any_desc">Ein neues Hintergrundbild über jede Verbindung herunterladen</string>
+	<string name="settings_rotation_fresh_wifi">Neu — nur WLAN</string>
+	<string name="settings_rotation_fresh_wifi_desc">Im WLAN neu herunterladen; bei mobilen Daten gespeicherte Hintergründe durchwechseln</string>
+	<string name="settings_rotation_pinned_only">Nur angeheftete</string>
+	<string name="settings_rotation_pinned_only_desc">Nur deine angehefteten Hintergrundbilder durchwechseln</string>
+	<string name="settings_rotation_pinned_disabled_hint">Hefte mindestens ein Hintergrundbild an, um diesen Modus zu nutzen</string>
 	<string name="settings_label_auto_start">Automatischer Start beim Booten</string>
 	<string name="settings_subtitle_auto_start">Kein Root erforderlich</string>
 	<string name="settings_label_pool_size">POOL-GRÖSSE</string>
@@ -52,6 +58,7 @@
 	<string name="cd_save_to_pictures">In Bildern speichern</string>
 	<string name="cd_delete">Löschen</string>
 	<string name="cd_back">Zurück</string>
+	<string name="cd_pinned">Angeheftet</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 Std.</string>
 	<string name="settings_unit_hr_plural">%d Std.</string>

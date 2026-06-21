@@ -35,7 +35,9 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material.icons.outlined.PushPin as PushPinOutlined
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +68,7 @@ import xyz.attacktive.wallhavend.ui.home.HomeViewModel
 @Composable
 fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
+	val pinnedIds by viewModel.pinnedIds.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val path = remember(state.poolPaths, id) {
 		state.poolPaths.firstOrNull { File(it).nameWithoutExtension == id }
@@ -199,6 +202,18 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 							writePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 						}
 					}
+				)
+
+				val isPinned = id in pinnedIds
+
+				PreviewAction(
+					icon = if (isPinned) {
+						Icons.Default.PushPin
+					} else {
+						Icons.Outlined.PushPinOutlined
+					},
+					label = stringResource(if (isPinned) { R.string.preview_action_unpin } else { R.string.preview_action_pin }),
+					onClick = { viewModel.togglePin(id) }
 				)
 
 				PreviewAction(

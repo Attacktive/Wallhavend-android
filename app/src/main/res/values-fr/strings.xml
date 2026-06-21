@@ -25,8 +25,14 @@
 	<string name="settings_target_home">Écran d\'accueil uniquement</string>
 	<string name="settings_target_lock">Écran de verrouillage uniquement</string>
 	<string name="settings_target_both">Les deux</string>
-	<string name="settings_label_wifi_only">Wi-Fi uniquement</string>
-	<string name="settings_subtitle_wifi_only">Passer les mises à jour sur données mobiles</string>
+	<string name="settings_label_rotation_mode">MODE DE ROTATION</string>
+	<string name="settings_rotation_fresh_any">Nouveau — tout réseau</string>
+	<string name="settings_rotation_fresh_any_desc">Télécharger un nouveau fond d\'écran sur toute connexion</string>
+	<string name="settings_rotation_fresh_wifi">Nouveau — Wi-Fi uniquement</string>
+	<string name="settings_rotation_fresh_wifi_desc">Télécharger en Wi-Fi ; faire défiler les fonds enregistrés en données mobiles</string>
+	<string name="settings_rotation_pinned_only">Épinglés uniquement</string>
+	<string name="settings_rotation_pinned_only_desc">Faire défiler uniquement vos fonds d\'écran épinglés</string>
+	<string name="settings_rotation_pinned_disabled_hint">Épinglez au moins un fond d\'écran pour utiliser ce mode</string>
 	<string name="settings_label_auto_start">Démarrage auto au boot</string>
 	<string name="settings_subtitle_auto_start">Pas besoin de root</string>
 	<string name="settings_label_pool_size">TAILLE DE LA RÉSERVE</string>
@@ -52,6 +58,7 @@
 	<string name="cd_save_to_pictures">Enregistrer dans Images</string>
 	<string name="cd_delete">Supprimer</string>
 	<string name="cd_back">Retour</string>
+	<string name="cd_pinned">Épinglé</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 h</string>
 	<string name="settings_unit_hr_plural">%d h</string>

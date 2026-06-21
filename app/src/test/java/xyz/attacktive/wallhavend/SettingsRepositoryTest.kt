@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -17,6 +18,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.domain.model.AppSettings
+import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.Purity
@@ -43,7 +45,7 @@ class SettingsRepositoryTest {
 		val settings = repository.settings.first()
 
 		assertEquals(60, settings.updateIntervalMinutes)
-		assertTrue(settings.wifiOnly)
+		assertEquals(RotationMode.FRESH_WIFI, settings.rotationMode)
 		assertEquals(10, settings.poolSize)
 		assertEquals(WallpaperTarget.HOME, settings.wallpaperTarget)
 		assertEquals(setOf(Category.GENERAL), settings.categories)
@@ -53,7 +55,7 @@ class SettingsRepositoryTest {
 	}
 
 	@Test
-	fun `wifiOnly is not read from legacy unmetered_only key`() = runTest {
+	fun `legacy unmetered_only key does not influence rotation mode`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
 			produceFile = { tmpFolder.newFile("legacy_prefs.preferences_pb") }
@@ -65,7 +67,7 @@ class SettingsRepositoryTest {
 
 		val repository = SettingsRepository(dataStore, FakeAppLogger())
 
-		assertTrue(repository.settings.first().wifiOnly)
+		assertEquals(RotationMode.FRESH_WIFI, repository.settings.first().rotationMode)
 	}
 
 	@Test
@@ -77,7 +79,7 @@ class SettingsRepositoryTest {
 			purity = setOf(Purity.SFW, Purity.SKETCHY),
 			updateIntervalMinutes = 30,
 			wallpaperTarget = WallpaperTarget.HOME,
-			wifiOnly = false,
+			rotationMode = RotationMode.FRESH_ANY,
 			poolSize = 25,
 			apiKey = "secret",
 			autoStartOnBoot = true,
@@ -90,6 +92,79 @@ class SettingsRepositoryTest {
 		val loaded = repository.settings.first { it == modified }
 
 		assertEquals(modified, loaded)
+	}
+
+	@Test
+	fun `legacy wifiOnly false migrates to fresh-any rotation mode`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("migrate_any.preferences_pb") }
+		)
+
+		dataStore.edit { prefs -> prefs[booleanPreferencesKey("wifi_only")] = false }
+
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
+
+		assertEquals(RotationMode.FRESH_ANY, repository.settings.first().rotationMode)
+	}
+
+	@Test
+	fun `legacy wifiOnly true migrates to fresh-wifi rotation mode`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("migrate_wifi.preferences_pb") }
+		)
+
+		dataStore.edit { prefs -> prefs[booleanPreferencesKey("wifi_only")] = true }
+
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
+
+		assertEquals(RotationMode.FRESH_WIFI, repository.settings.first().rotationMode)
+	}
+
+	@Test
+	fun `explicit rotation mode wins over legacy wifiOnly`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("explicit_mode.preferences_pb") }
+		)
+
+		dataStore.edit { prefs ->
+			prefs[booleanPreferencesKey("wifi_only")] = false
+			prefs[stringPreferencesKey("rotation_mode")] = "PINNED_ONLY"
+		}
+
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
+
+		assertEquals(RotationMode.PINNED_ONLY, repository.settings.first().rotationMode)
+	}
+
+	@Test
+	fun `rotation mode round-trips through save`() = runTest {
+		val repository = createRepository()
+		repository.save(AppSettings(searchQuery = "marker", rotationMode = RotationMode.PINNED_ONLY))
+
+		val loaded = repository.settings.first { it.searchQuery == "marker" }
+
+		assertEquals(RotationMode.PINNED_ONLY, loaded.rotationMode)
+	}
+
+	@Test
+	fun `pin and unpin round-trip and survive a full settings save`() = runTest {
+		val repository = createRepository()
+		assertTrue(repository.settings.first().pinnedIds.isEmpty())
+
+		repository.pin("abc123")
+		repository.pin("def456")
+		assertEquals(setOf("abc123", "def456"), repository.settings.first { it.pinnedIds.size == 2 }.pinnedIds)
+
+		repository.save(AppSettings(searchQuery = "marker"))
+
+		val afterSave = repository.settings.first { it.searchQuery == "marker" }
+		assertEquals(setOf("abc123", "def456"), afterSave.pinnedIds)
+
+		repository.unpin("abc123")
+		assertEquals(setOf("def456"), repository.settings.first { it.pinnedIds == setOf("def456") }.pinnedIds)
 	}
 
 	@Test

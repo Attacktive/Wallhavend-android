@@ -37,6 +37,7 @@ import xyz.attacktive.wallhavend.WallhavendApplication.Companion.NOTIFICATION_ID
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
@@ -116,9 +117,11 @@ class WallpaperService: Service() {
 		stateRepository.update { it.copy(isOnline = online) }
 
 		val onWifi = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
-		val canDownload = online && (forceDownload || !settings.wifiOnly || onWifi)
-		if (canDownload) {
+
+		if (shouldDownload(settings.rotationMode, online, onWifi, forceDownload)) {
 			handleOnlineUpdate(settings)
+		} else if (settings.rotationMode == RotationMode.PINNED_ONLY) {
+			cyclePinnedOnly(settings)
 		} else {
 			cycleFromPool(settings)
 		}
@@ -136,7 +139,7 @@ class WallpaperService: Service() {
 		applyWallpaper(file, settings.wallpaperTarget)
 			.fold(
 				onSuccess = {
-					val remaining = fileManager.trimToSize(settings.poolSize)
+					val remaining = fileManager.trimToSize(settings.poolSize, settings.pinnedIds)
 					val paths = remaining.map { it.absolutePath }
 					val now = System.currentTimeMillis()
 
@@ -176,21 +179,24 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun cycleFromPool(settings: AppSettings) {
-		val current = stateRepository.state.value.currentWallpaperPath
-
 		val pool = fileManager.listAll()
 			.reversed()
 			.map { it.absolutePath }
 
-		val currentIndex = if (current != null) {
-			pool.indexOf(current)
-		} else {
-			-1
-		}
+		cycle(pool, settings)
+	}
 
-		val next = pool.getOrNull(currentIndex + 1)
-			?: pool.firstOrNull()
-			?: return
+	private suspend fun cyclePinnedOnly(settings: AppSettings) {
+		val pool = fileManager.listAll()
+			.filter { it.nameWithoutExtension in settings.pinnedIds }
+			.reversed()
+			.map { it.absolutePath }
+
+		cycle(pool, settings)
+	}
+
+	private suspend fun cycle(pool: List<String>, settings: AppSettings) {
+		val next = nextInCycle(pool, stateRepository.state.value.currentWallpaperPath) ?: return
 
 		val file = File(next)
 		if (!file.exists()) {

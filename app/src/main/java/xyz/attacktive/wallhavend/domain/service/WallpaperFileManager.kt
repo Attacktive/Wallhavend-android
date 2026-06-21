@@ -42,13 +42,13 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 
 	fun listAll() = sortedFiles()
 
-	fun trimToSize(maxSize: Int): List<File> {
-		val all = sortedFiles()
+	fun trimToSize(maxSize: Int, pinnedIds: Set<String> = emptySet()): List<File> {
+		val (pinned, rotating) = sortedFiles().partition { it.nameWithoutExtension in pinnedIds }
 
-		all.drop(maxSize)
+		rotating.drop(maxSize)
 			.forEach { it.delete() }
 
-		return all.take(maxSize)
+		return (pinned + rotating.take(maxSize)).sortedByDescending { it.lastModified() }
 	}
 
 	private fun sortedFiles() =

@@ -12,7 +12,7 @@ data class AppSettings(
 	val purity: Set<Purity> = setOf(Purity.SFW),
 	val updateIntervalMinutes: Int = 60,
 	val wallpaperTarget: WallpaperTarget = WallpaperTarget.HOME,
-	val wifiOnly: Boolean = true,
+	val rotationMode: RotationMode = RotationMode.FRESH_WIFI,
 	val poolSize: Int = 10,
 	val apiKey: String = "",
 	val autoStartOnBoot: Boolean = true,
@@ -20,7 +20,8 @@ data class AppSettings(
 	val sorting: Sorting = Sorting.RANDOM,
 	val toplistRange: ToplistRange = ToplistRange.ONE_MONTH,
 	val avoidBlurryWallpapers: Boolean = false,
-	val blockedIds: Set<String> = emptySet()
+	val blockedIds: Set<String> = emptySet(),
+	val pinnedIds: Set<String> = emptySet()
 )
 
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)

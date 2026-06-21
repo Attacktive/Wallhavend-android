@@ -25,8 +25,14 @@
 	<string name="settings_target_home">홈 화면만</string>
 	<string name="settings_target_lock">잠금 화면만</string>
 	<string name="settings_target_both">둘 다</string>
-	<string name="settings_label_wifi_only">Wi-Fi 전용</string>
-	<string name="settings_subtitle_wifi_only">모바일 데이터 사용 시 업데이트 건너뛰기</string>
+	<string name="settings_label_rotation_mode">순환 모드</string>
+	<string name="settings_rotation_fresh_any">새로 받기 — 모든 네트워크</string>
+	<string name="settings_rotation_fresh_any_desc">모든 연결에서 새 배경화면을 다운로드합니다</string>
+	<string name="settings_rotation_fresh_wifi">새로 받기 — Wi-Fi 전용</string>
+	<string name="settings_rotation_fresh_wifi_desc">Wi-Fi에서는 새로 다운로드하고, 모바일 데이터에서는 저장된 배경화면을 순환합니다</string>
+	<string name="settings_rotation_pinned_only">고정된 항목만</string>
+	<string name="settings_rotation_pinned_only_desc">고정한 배경화면만 순환합니다</string>
+	<string name="settings_rotation_pinned_disabled_hint">이 모드를 사용하려면 배경화면을 하나 이상 고정하세요</string>
 	<string name="settings_label_auto_start">부팅 시 자동 시작</string>
 	<string name="settings_subtitle_auto_start">루트 권한이 필요하지 않습니다</string>
 	<string name="settings_label_pool_size">배경화면 풀 크기</string>
@@ -52,6 +58,7 @@
 	<string name="cd_save_to_pictures">사진 폴더에 저장</string>
 	<string name="cd_delete">삭제</string>
 	<string name="cd_back">뒤로</string>
+	<string name="cd_pinned">고정</string>
 	<string name="settings_unit_min">%d분</string>
 	<string name="settings_unit_hr_single">1시간</string>
 	<string name="settings_unit_hr_plural">%d시간</string>
