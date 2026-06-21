@@ -37,7 +37,6 @@
 	<string name="settings_subtitle_auto_start">Kein Root erforderlich</string>
 	<string name="settings_label_pool_size">POOL-GRÖSSE</string>
 	<string name="settings_subtitle_pool_size">Hintergrundbilder, die auf dem Gerät behalten und in der Galerie angezeigt werden</string>
-	<string name="settings_pool_size_zero">0 — nur aktuelles, keine Galerie</string>
 	<string name="settings_label_api_key">API-KEY (OPTIONAL, FÜR NSFW ERFORDERLICH)</string>
 	<string name="settings_placeholder_api_key">Dein Wallhaven API-Key</string>
 	<string name="settings_powered_by">Unterstützt von wallhaven.cc</string>

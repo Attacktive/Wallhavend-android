@@ -592,11 +592,7 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 			RadioButton(selected = settings.poolSize == size, onClick = null)
 
 			Text(
-				text = if (size == 0) {
-					stringResource(R.string.settings_pool_size_zero)
-				} else {
-					"$size"
-				},
+				text = "$size",
 				modifier = Modifier.padding(start = 4.dp)
 			)
 		}

@@ -37,7 +37,6 @@
 	<string name="settings_subtitle_auto_start">루트 권한이 필요하지 않습니다</string>
 	<string name="settings_label_pool_size">배경화면 풀 크기</string>
 	<string name="settings_subtitle_pool_size">기기에 보관되고 갤러리에 표시되는 배경화면 수</string>
-	<string name="settings_pool_size_zero">0 — 현재 배경화면만 사용, 갤러리 없음</string>
 	<string name="settings_label_api_key">API 키 (선택 사항, NSFW 필수)</string>
 	<string name="settings_placeholder_api_key">Wallhaven API 키</string>
 	<string name="settings_powered_by">Powered by wallhaven.cc</string>

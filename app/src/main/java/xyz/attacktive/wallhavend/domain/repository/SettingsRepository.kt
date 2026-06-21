@@ -66,7 +66,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				rotationMode = preferences[Keys.ROTATION_MODE]
 					?.let { runCatching { RotationMode.valueOf(it) }.getOrNull() }
 					?: migrateRotationMode(preferences[Keys.WIFI_ONLY]),
-				poolSize = preferences[Keys.POOL_SIZE] ?: 10,
+				poolSize = (preferences[Keys.POOL_SIZE] ?: 10).coerceAtLeast(1),
 				apiKey = preferences[Keys.API_KEY] ?: "",
 				autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true,
 				filterColor = preferences[Keys.FILTER_COLOR] ?: "",

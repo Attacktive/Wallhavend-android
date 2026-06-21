@@ -37,7 +37,6 @@
 	<string name="settings_subtitle_auto_start">无需 Root 权限</string>
 	<string name="settings_label_pool_size">壁纸缓存数量</string>
 	<string name="settings_subtitle_pool_size">在设备上保留并在图库中显示的壁纸数量</string>
-	<string name="settings_pool_size_zero">0 — 仅当前壁纸，不使用图库</string>
 	<string name="settings_label_api_key">API 密钥 (可选，访问 NSFW 内容必填)</string>
 	<string name="settings_placeholder_api_key">您的 Wallhaven API 密钥</string>
 	<string name="settings_powered_by">由 wallhaven.cc 提供支持</string>

@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -68,6 +69,20 @@ class SettingsRepositoryTest {
 		val repository = SettingsRepository(dataStore, FakeAppLogger())
 
 		assertEquals(RotationMode.FRESH_WIFI, repository.settings.first().rotationMode)
+	}
+
+	@Test
+	fun `legacy pool size of 0 migrates to the new minimum of 1`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("migrate_pool.preferences_pb") }
+		)
+
+		dataStore.edit { prefs -> prefs[intPreferencesKey("pool_size")] = 0 }
+
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
+
+		assertEquals(1, repository.settings.first().poolSize)
 	}
 
 	@Test

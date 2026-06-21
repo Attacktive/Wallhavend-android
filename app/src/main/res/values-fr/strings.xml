@@ -37,7 +37,6 @@
 	<string name="settings_subtitle_auto_start">Pas besoin de root</string>
 	<string name="settings_label_pool_size">TAILLE DE LA RÉSERVE</string>
 	<string name="settings_subtitle_pool_size">Fonds d\'écran gardés sur l\'appareil et affichés dans la galerie</string>
-	<string name="settings_pool_size_zero">0 — actuel uniquement, pas de galerie</string>
 	<string name="settings_label_api_key">CLÉ API (OPTIONNEL, REQUIS POUR NSFW)</string>
 	<string name="settings_placeholder_api_key">Votre clé API Wallhaven</string>
 	<string name="settings_powered_by">Propulsé par wallhaven.cc</string>

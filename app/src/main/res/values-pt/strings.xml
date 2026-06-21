@@ -37,7 +37,6 @@
 	<string name="settings_subtitle_auto_start">Não requer root</string>
 	<string name="settings_label_pool_size">TAMANHO DA GALERIA</string>
 	<string name="settings_subtitle_pool_size">Papéis de parede mantidos no dispositivo e exibidos na galeria</string>
-	<string name="settings_pool_size_zero">0 — apenas atual, sem galeria</string>
 	<string name="settings_label_api_key">CHAVE API (OPCIONAL, NECESSÁRIA PARA NSFW)</string>
 	<string name="settings_placeholder_api_key">Sua chave API do Wallhaven</string>
 	<string name="settings_powered_by">Distribuído por wallhaven.cc</string>

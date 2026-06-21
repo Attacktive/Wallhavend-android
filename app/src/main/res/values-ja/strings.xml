@@ -37,7 +37,6 @@
 	<string name="settings_subtitle_auto_start">Root権限は不要です</string>
 	<string name="settings_label_pool_size">壁紙プールのサイズ</string>
 	<string name="settings_subtitle_pool_size">デバイスに保存され、ギャラリーに表示される壁紙の数</string>
-	<string name="settings_pool_size_zero">0 — 現在の壁紙のみ、ギャラリーなし</string>
 	<string name="settings_label_api_key">APIキー (任意、NSFWに必要)</string>
 	<string name="settings_placeholder_api_key">Wallhaven APIキー</string>
 	<string name="settings_powered_by">Powered by wallhaven.cc</string>

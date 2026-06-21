@@ -37,7 +37,6 @@
 	<string name="settings_subtitle_auto_start">No se requiere root</string>
 	<string name="settings_label_pool_size">TAMAÑO DEL DEPÓSITO DE FONDOS</string>
 	<string name="settings_subtitle_pool_size">Fondos de pantalla guardados en el dispositivo y mostrados en la galería</string>
-	<string name="settings_pool_size_zero">0 — solo actual, sin galería</string>
 	<string name="settings_label_api_key">CLAVE API (OPCIONAL, REQUERIDA PARA NSFW)</string>
 	<string name="settings_placeholder_api_key">Tu clave API de Wallhaven</string>
 	<string name="settings_powered_by">Desarrollado por wallhaven.cc</string>

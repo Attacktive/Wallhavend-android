@@ -53,7 +53,6 @@
 	<string name="settings_subtitle_auto_start">No root required</string>
 	<string name="settings_label_pool_size">WALLPAPER POOL SIZE</string>
 	<string name="settings_subtitle_pool_size">Wallpapers kept on device and shown in gallery</string>
-	<string name="settings_pool_size_zero">0 — current only, no gallery</string>
 	<string name="settings_label_api_key">API KEY (OPTIONAL, REQUIRED FOR NSFW)</string>
 	<string name="settings_placeholder_api_key">Your Wallhaven API key</string>
 	<string name="settings_powered_by">Powered by wallhaven.cc</string>

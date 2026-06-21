@@ -25,7 +25,7 @@ data class AppSettings(
 )
 
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)
-val POOL_SIZE_OPTIONS = listOf(0, 5, 10, 25, 50)
+val POOL_SIZE_OPTIONS = listOf(1, 5, 10, 25, 50)
 
 /**
  * Ratios with meaningful content on Wallhaven (verified by querying meta.total per ratio).
