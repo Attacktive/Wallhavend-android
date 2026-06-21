@@ -192,18 +192,6 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					}
 				)
 
-				PreviewAction(
-					icon = Icons.Default.Download,
-					label = stringResource(R.string.preview_action_save),
-					onClick = {
-						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-							viewModel.saveToPictures(path)
-						} else {
-							writePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-						}
-					}
-				)
-
 				val isPinned = id in pinnedIds
 
 				PreviewAction(
@@ -214,6 +202,18 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					},
 					label = stringResource(if (isPinned) { R.string.preview_action_unpin } else { R.string.preview_action_pin }),
 					onClick = { viewModel.togglePin(id) }
+				)
+
+				PreviewAction(
+					icon = Icons.Default.Download,
+					label = stringResource(R.string.preview_action_save),
+					onClick = {
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+							viewModel.saveToPictures(path)
+						} else {
+							writePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+						}
+					}
 				)
 
 				PreviewAction(
