@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Unit tests for the pure text-cleaning in release-notes.sh.
+# Unit tests for the pure text helpers in release-notes.sh.
 # Run: bash scripts/release-notes.test.sh
 set -uo pipefail
 
@@ -38,6 +38,32 @@ assert_eq "passes already-clean input through unchanged" "- a
 - b" | clean_notes)"
 
 assert_eq "empty input stays empty" "" "$(printf '' | clean_notes)"
+
+# drop_noise removes non-user-facing commit types; keeps features/fixes/refactors/untyped.
+noisy="* ci: bump some action
+* feature: add a thing
+* chore: tidy up
+* Localize strings
+* style: reformat
+* bugfix: fix the bug
+* refactor: move Pin to second slot"
+
+assert_eq "drops ci/chore/style/test; keeps feature/bugfix/refactor/untyped" "* feature: add a thing
+* Localize strings
+* bugfix: fix the bug
+* refactor: move Pin to second slot" "$(printf '%s\n' "$noisy" | drop_noise)"
+
+assert_eq "drops scoped/breaking/hyphen variants too" "- keep me" "$(printf '%s\n' "- ci(deps): x
+- chore!: y
+- keep me
+- test: z" | drop_noise)"
+
+# finalize_notes: noise-only collapses to the generic line; real notes survive.
+assert_eq "chore-only release falls back to the generic line" "$EMPTY_NOTES" "$(printf '%s\n' "* chore: bump version to 1.2.3
+* ci: bump some action" | finalize_notes)"
+
+assert_eq "real notes survive, noise dropped, no fallback" "* feature: shiny thing" "$(printf '%s\n' "* feature: shiny thing
+* chore: tidy" | finalize_notes)"
 
 if [ "$fails" -gt 0 ]; then
 	printf '\n%d test(s) failed\n' "$fails" >&2
