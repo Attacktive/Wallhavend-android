@@ -37,18 +37,6 @@ jobs:
           mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/Wallhavend-${{ github.ref_name }}.apk
           mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab
 
-      - name: 'Generate release notes'
-        id: release_notes
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          NOTES=$(gh api "repos/${{ github.repository }}/releases/generate-notes" -f tag_name="${{ github.ref_name }}" --jq '.body')
-          {
-            echo 'body<<EOF'
-            echo "$NOTES"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-
       - name: 'Upload APK to GitHub Releases'
         uses: 'softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b'
         with:
@@ -59,27 +47,10 @@ jobs:
 
       - name: 'Create whatsnew file'
         env:
-          RELEASE_NOTES: ${{ steps.release_notes.outputs.body }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p whatsnew
-          NOTES=$(printf '%s' "$RELEASE_NOTES" \
-            | sed '/^## What'\''s Changed$/d' \
-            | sed 's/ by @[^ ]* in [^ ]*//g' \
-            | sed '/^\*\*Full Changelog\*\*:/d' \
-            | sed '/^[[:space:]]*$/d')
-
-          if [ -z "$NOTES" ]; then
-            PREVIOUS_TAG=$(git describe --tags --abbrev=0 '${{ github.ref_name }}^' 2>/dev/null || true)
-            if [ -n "$PREVIOUS_TAG" ]; then
-              RANGE="$PREVIOUS_TAG..${{ github.ref_name }}"
-            else
-              RANGE='${{ github.ref_name }}'
-            fi
-
-            NOTES=$(git log "$RANGE" --pretty='- %s' | grep -v '^- chore: bump version' || true)
-          fi
-
-          printf '%s' "$NOTES" | head -c 500 > whatsnew/whatsnew-en-US
+          bash scripts/release-notes.sh '' '${{ github.ref_name }}' | head -c 500 > whatsnew/whatsnew-en-US
 
       - name: 'Upload AAB to Google Play'
         uses: 'r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5'

@@ -1,0 +1,58 @@
+name: 'Promotion notes'
+on:
+  workflow_dispatch:
+    inputs:
+      from_version:
+        description: 'Current PRODUCTION version — exclusive lower bound (e.g. 1.0.0)'
+        required: true
+      to_version:
+        description: 'Version being PROMOTED — inclusive upper bound. Blank = latest tag.'
+        required: false
+
+jobs:
+  notes:
+    name: 'Assemble cumulative whatsnew'
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'read'
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v7'
+        with:
+          fetch-depth: 0
+
+      - name: 'Assemble notes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FROM: ${{ inputs.from_version }}
+          TO: ${{ inputs.to_version }}
+        run: |
+          set -euo pipefail
+
+          to="${TO}"
+          if [ -z "${to}" ]; then
+            to="$(git describe --tags --abbrev=0)"
+          fi
+
+          notes="$(bash scripts/release-notes.sh "${FROM}" "${to}")"
+          count="$(printf '%s' "${notes}" | wc -c | tr -d ' ')"
+
+          {
+            echo "## Promotion notes: ${FROM} → ${to}"
+            echo
+            echo "Paste the block below into the Play Console \"What's new\" for the production release."
+            echo
+            echo '```text'
+            printf '%s\n' "${notes}"
+            echo '```'
+            echo
+            echo "**${count} / 500** characters."
+            if [ "${count}" -gt 500 ]; then
+              echo
+              echo "> ⚠️ Over Play's ~500-char limit — trim before pasting."
+            fi
+            if [ -z "${notes}" ]; then
+              echo
+              echo "> ℹ️ No changes found between \`${FROM}\` and \`${to}\`."
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
