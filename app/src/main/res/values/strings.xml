@@ -16,7 +16,8 @@
 	<string name="settings_label_search_query">SEARCH QUERY (OPTIONAL)</string>
 	<string name="settings_placeholder_search_query">e.g. landscape mountains</string>
 	<string name="settings_label_categories">CATEGORIES</string>
-	<string name="settings_label_content_rating">CONTENT RATING</string>	<string name="settings_label_filter_color">COLOR FILTER (OPTIONAL)</string>
+	<string name="settings_label_content_rating">CONTENT RATING</string>
+	<string name="settings_label_filter_color">COLOR FILTER (OPTIONAL)</string>
 	<string name="settings_hint_filter_color">Leave blank to skip color filtering</string>
 	<string name="settings_placeholder_filter_color">e.g. ff0000 or ff0000,0066cc</string>
 	<string name="settings_label_sorting">SORTING</string>
@@ -52,7 +53,7 @@
 	<string name="settings_label_auto_start">Auto-start on boot</string>
 	<string name="settings_subtitle_auto_start">No root required</string>
 	<string name="settings_label_pool_size">WALLPAPER POOL SIZE</string>
-	<string name="settings_subtitle_pool_size">Wallpapers kept on device and shown in gallery</string>
+	<string name="settings_subtitle_pool_size">Wallpapers kept on device and shown in gallery (excludes pinned)</string>
 	<string name="settings_label_api_key">API KEY (OPTIONAL, REQUIRED FOR NSFW)</string>
 	<string name="settings_placeholder_api_key">Your Wallhaven API key</string>
 	<string name="settings_powered_by">Powered by wallhaven.cc</string>
@@ -64,7 +65,7 @@
 	<string name="purity_sketchy">Sketchy</string>
 	<string name="purity_nsfw">NSFW</string>
 	<string name="error_no_results">⚠ No results — try relaxing your filters</string>
-	<string name="error_no_results_hint">⚠ No results — try clearing the aspect ratio, or remove the API key if you don\'t need NSFW wallpapers</string>
+	<string name="error_no_results_hint">⚠ No results — try relaxing your filters, or remove the API key if you don\'t need NSFW wallpapers</string>
 	<string name="error_api_error">⚠ API error %d</string>
 	<string name="error_unsupported_format">⚠ Unsupported image format — skipping</string>
 	<string name="error_apply_failed">⚠ Failed to apply wallpaper: %s</string>
@@ -79,7 +80,7 @@
 	<string name="preview_action_block">Block</string>
 	<string name="preview_action_pin">Pin</string>
 	<string name="preview_action_unpin">Unpin</string>
-	<string name="preview_action_open_in_browser">Browser</string>
+	<string name="preview_action_open_in_browser">Open</string>
 	<string name="cd_pinned">Pinned</string>
 	<string name="blocklist_title">Blocked wallpapers</string>
 	<string name="blocklist_settings_row">Blocked wallpapers</string>
