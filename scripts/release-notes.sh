@@ -15,10 +15,7 @@ set -euo pipefail
 
 # Strip GitHub's auto-generated boilerplate down to a flat bullet list.
 clean_notes() {
-	sed '/^## What'\''s Changed$/d' \
-		| sed 's/ by @[^ ]* in [^ ]*//g' \
-		| sed '/^\*\*Full Changelog\*\*:/d' \
-		| sed '/^[[:space:]]*$/d'
+	sed '/^## What'\''s Changed$/d' | sed 's/ by @[^ ]* in [^ ]*//g' | sed '/^\*\*Full Changelog\*\*:/d' | sed '/^[[:space:]]*$/d'
 }
 
 # Echo cleaned notes for the (from, to] tag range.
@@ -28,22 +25,18 @@ release_notes() {
 
 	repo="${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner -q .nameWithOwner)}"
 
-	git rev-parse -q --verify "refs/tags/${to}" >/dev/null \
-		|| { echo "release-notes: tag not found: ${to}" >&2; return 1; }
+	git rev-parse -q --verify "refs/tags/${to}" >/dev/null || { echo "release-notes: tag not found: ${to}" >&2; return 1; }
 	if [ -n "$from" ]; then
-		git rev-parse -q --verify "refs/tags/${from}" >/dev/null \
-			|| { echo "release-notes: tag not found: ${from}" >&2; return 1; }
+		git rev-parse -q --verify "refs/tags/${from}" >/dev/null || { echo "release-notes: tag not found: ${from}" >&2; return 1; }
 	fi
 
-	# Primary: GitHub's generated notes. A single call over the whole range is
-	# inherently one deduped list — no per-version merging needed.
+	# Primary: GitHub's generated notes. A single call over the whole range is inherently one deduped list — no per-version merging needed.
 	if [ -n "$from" ]; then
-		body="$(gh api "repos/${repo}/releases/generate-notes" \
-			-f tag_name="${to}" -f previous_tag_name="${from}" --jq '.body' 2>/dev/null || true)"
+		body="$(gh api "repos/${repo}/releases/generate-notes" -f tag_name="${to}" -f previous_tag_name="${from}" --jq '.body' 2>/dev/null || true)"
 	else
-		body="$(gh api "repos/${repo}/releases/generate-notes" \
-			-f tag_name="${to}" --jq '.body' 2>/dev/null || true)"
+		body="$(gh api "repos/${repo}/releases/generate-notes" -f tag_name="${to}" --jq '.body' 2>/dev/null || true)"
 	fi
+
 	notes="$(printf '%s' "$body" | clean_notes)"
 
 	# Fallback: commit subjects in range, minus version bumps.
@@ -53,11 +46,13 @@ release_notes() {
 		else
 			prev="$(git describe --tags --abbrev=0 "${to}^" 2>/dev/null || true)"
 		fi
+
 		if [ -n "$prev" ]; then
 			range="${prev}..${to}"
 		else
 			range="${to}"
 		fi
+
 		notes="$(git log "$range" --pretty='- %s' | grep -v '^- chore: bump version' || true)"
 	fi
 

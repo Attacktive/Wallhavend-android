@@ -30,15 +30,11 @@ github_body="## What's Changed
 
 **Full Changelog**: https://github.com/a/b/compare/1.0.0...1.1.2"
 
-assert_eq "cleans header, author/PR suffix, full-changelog, blanks" \
-	"* Fix crash on startup
-* Optimize image loading" \
-	"$(printf '%s\n' "$github_body" | clean_notes)"
+assert_eq "cleans header, author/PR suffix, full-changelog, blanks" "* Fix crash on startup
+* Optimize image loading" "$(printf '%s\n' "$github_body" | clean_notes)"
 
-assert_eq "passes already-clean input through unchanged" \
-	"- a
-- b" \
-	"$(printf '%s\n' "- a
+assert_eq "passes already-clean input through unchanged" "- a
+- b" "$(printf '%s\n' "- a
 - b" | clean_notes)"
 
 assert_eq "empty input stays empty" "" "$(printf '' | clean_notes)"
