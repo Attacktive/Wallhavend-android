@@ -254,53 +254,22 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_categories))
 
-	Row {
-		Category.entries.forEach { category ->
-			val isSelected = category in settings.categories
-			FilterChip(
-				selected = isSelected,
-				onClick = {
-					val newSet = if (isSelected && settings.categories.size > 1) {
-						settings.categories - category
-					} else if (!isSelected) {
-						settings.categories + category
-					} else {
-						settings.categories
-					}
-
-					onSave(settings.copy(categories = newSet))
-				},
-				label = { Text(stringResource(category.nameRes)) },
-				modifier = Modifier.padding(end = 8.dp)
-			)
-		}
-	}
+	MultiSelectChips(
+		entries = Category.entries,
+		selected = settings.categories,
+		nameRes = { it.nameRes },
+		onSelectionChange = { onSave(settings.copy(categories = it)) }
+	)
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_content_rating))
 
-	Row {
-		Purity.entries.forEach { purity ->
-			val isSelected = purity in settings.purity
-
-			FilterChip(
-				selected = isSelected,
-				onClick = {
-					val newSet = if (isSelected && settings.purity.size > 1) {
-						settings.purity - purity
-					} else if (!isSelected) {
-						settings.purity + purity
-					} else {
-						settings.purity
-					}
-
-					onSave(settings.copy(purity = newSet))
-				},
-				label = { Text(stringResource(purity.nameRes)) },
-				modifier = Modifier.padding(end = 8.dp)
-			)
-		}
-	}
+	MultiSelectChips(
+		entries = Purity.entries,
+		selected = settings.purity,
+		nameRes = { it.nameRes },
+		onSelectionChange = { onSave(settings.copy(purity = it)) }
+	)
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_filter_color))
@@ -609,6 +578,27 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
 		modifier = Modifier.fillMaxWidth()
 	)
+}
+
+@Composable
+private fun <T> MultiSelectChips(entries: List<T>, selected: Set<T>, nameRes: (T) -> Int, onSelectionChange: (Set<T>) -> Unit) {
+	Row {
+		entries.forEach { entry ->
+			FilterChip(
+				selected = entry in selected,
+				onClick = { onSelectionChange(selected.toggleKeepingOne(entry)) },
+				label = { Text(stringResource(nameRes(entry))) },
+				modifier = Modifier.padding(end = 8.dp)
+			)
+		}
+	}
+}
+
+/** Toggles [item] in the set, but never lets it empty out — the final remaining selection can't be removed. */
+internal fun <T> Set<T>.toggleKeepingOne(item: T) = when {
+	item !in this -> this + item
+	size > 1 -> this - item
+	else -> this
 }
 
 @Composable
