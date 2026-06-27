@@ -92,7 +92,6 @@
 	<string name="settings_unit_min">%d分</string>
 	<string name="settings_unit_hr_single">1時間</string>
 	<string name="settings_unit_hr_plural">%d時間</string>
-	<string name="settings_toast_update_delay">次回の更新から適用されます</string>
 	<string name="settings_error_save_failed">設定の保存に失敗しました: %s</string>
 	<string name="home_msg_saved_to_pictures">Pictures/Wallhavendに保存しました</string>
 	<string name="home_msg_save_failed">保存に失敗しました: %s</string>

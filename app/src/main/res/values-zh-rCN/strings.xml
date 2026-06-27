@@ -92,7 +92,6 @@
 	<string name="settings_unit_min">%d 分钟</string>
 	<string name="settings_unit_hr_single">1 小时</string>
 	<string name="settings_unit_hr_plural">%d 小时</string>
-	<string name="settings_toast_update_delay">将在下次更新时生效</string>
 	<string name="settings_error_save_failed">保存设置失败: %s</string>
 	<string name="home_msg_saved_to_pictures">已保存至 Pictures/Wallhavend</string>
 	<string name="home_msg_save_failed">保存失败: %s</string>

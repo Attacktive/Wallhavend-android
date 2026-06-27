@@ -92,7 +92,6 @@
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 h</string>
 	<string name="settings_unit_hr_plural">%d h</string>
-	<string name="settings_toast_update_delay">Surte efecto en la próxima actualización</string>
 	<string name="settings_error_save_failed">Error al guardar los ajustes: %s</string>
 	<string name="home_msg_saved_to_pictures">Guardado en Pictures/Wallhavend</string>
 	<string name="home_msg_save_failed">Error al guardar: %s</string>

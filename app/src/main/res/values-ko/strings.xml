@@ -92,7 +92,6 @@
 	<string name="settings_unit_min">%d분</string>
 	<string name="settings_unit_hr_single">1시간</string>
 	<string name="settings_unit_hr_plural">%d시간</string>
-	<string name="settings_toast_update_delay">다음 업데이트부터 적용됩니다</string>
 	<string name="settings_error_save_failed">설정 저장 실패: %s</string>
 	<string name="home_msg_saved_to_pictures">Pictures/Wallhavend에 저장됨</string>
 	<string name="home_msg_save_failed">저장 실패: %s</string>

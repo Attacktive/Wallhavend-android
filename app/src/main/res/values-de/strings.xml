@@ -92,7 +92,6 @@
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 Std.</string>
 	<string name="settings_unit_hr_plural">%d Std.</string>
-	<string name="settings_toast_update_delay">Wird beim nächsten Update wirksam</string>
 	<string name="settings_error_save_failed">Einstellungen konnten nicht gespeichert werden: %s</string>
 	<string name="home_msg_saved_to_pictures">Unter Pictures/Wallhavend gespeichert</string>
 	<string name="home_msg_save_failed">Speichern fehlgeschlagen: %s</string>

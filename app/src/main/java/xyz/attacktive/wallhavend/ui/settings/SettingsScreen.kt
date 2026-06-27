@@ -2,7 +2,6 @@ package xyz.attacktive.wallhavend.ui.settings
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -63,7 +62,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -413,7 +411,6 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
-	val context = LocalContext.current
 	var intervalExpanded by remember { mutableStateOf(false) }
 
 	SectionLabel(stringResource(R.string.settings_label_update_interval))
@@ -436,7 +433,6 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 					onClick = {
 						if (minutes != settings.updateIntervalMinutes) {
 							onSave(settings.copy(updateIntervalMinutes = minutes))
-							Toast.makeText(context, R.string.settings_toast_update_delay, Toast.LENGTH_SHORT).show()
 						}
 
 						intervalExpanded = false

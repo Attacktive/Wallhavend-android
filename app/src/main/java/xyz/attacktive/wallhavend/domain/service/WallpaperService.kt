@@ -8,11 +8,17 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import android.app.Notification
 import android.app.NotificationManager
@@ -101,11 +107,8 @@ class WallpaperService: Service() {
 			settingsRepository.setAutoUpdateEnabled(true)
 			runCatching { performUpdate() }
 
-			while (true) {
-				val intervalMs = settingsRepository.settings.first().updateIntervalMinutes * 60_000L
-				delay(intervalMs.milliseconds)
-				runCatching { performUpdate() }
-			}
+			intervalTicks(settingsRepository.settings.map { it.updateIntervalMinutes })
+				.collect { runCatching { performUpdate() } }
 		}
 	}
 
@@ -405,3 +408,24 @@ class WallpaperService: Service() {
 		}
 	}
 }
+
+/**
+ * Emits a tick each time the active interval elapses, reflecting changes to [intervalsMinutes] live.
+ *
+ * A new interval cancels the in-flight wait and restarts it at the new length, so shortening the
+ * interval takes effect promptly instead of after the previous (possibly hours-long) delay finishes.
+ * [distinctUntilChanged] stops unrelated settings writes, which re-emit the same interval, from
+ * needlessly restarting the countdown.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal fun intervalTicks(intervalsMinutes: Flow<Int>): Flow<Unit> = intervalsMinutes
+	.distinctUntilChanged()
+	.flatMapLatest { intervalMinutes ->
+		flow {
+			while (true) {
+				delay((intervalMinutes * 60_000L).milliseconds)
+				emit(Unit)
+			}
+		}
+	}
