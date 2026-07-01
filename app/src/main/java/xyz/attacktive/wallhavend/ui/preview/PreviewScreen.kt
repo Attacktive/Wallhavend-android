@@ -2,6 +2,7 @@ package xyz.attacktive.wallhavend.ui.preview
 
 import java.io.File
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.Manifest
 import android.content.Context
@@ -50,6 +51,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -144,6 +146,28 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 		currentId
 	}
 
+	val scope = rememberCoroutineScope()
+
+	/** Slides to a neighbor before evicting so the removed wallpaper animates away instead of popping. */
+	fun evictAndAdvance(evict: () -> Unit) {
+		if (state.poolPaths.size == 1) {
+			evict()
+			onNavigateBack()
+			return
+		}
+
+		val target = if (currentPage < state.poolPaths.lastIndex) {
+			currentPage + 1
+		} else {
+			currentPage - 1
+		}
+
+		scope.launch {
+			pagerState.animateScrollToPage(target)
+			evict()
+		}
+	}
+
 	Box(
 		modifier = Modifier
 			.fillMaxSize()
@@ -152,7 +176,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 				controlsVisible = !controlsVisible
 			}
 	) {
-		HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+		HorizontalPager(state = pagerState, key = { state.poolPaths[it] }, modifier = Modifier.fillMaxSize()) { page ->
 			val pagePath = state.poolPaths.getOrNull(page) ?: return@HorizontalPager
 
 			AsyncImage(
@@ -241,27 +265,13 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 				PreviewAction(
 					icon = Icons.Default.Delete,
 					label = stringResource(R.string.preview_action_remove),
-					onClick = {
-						val isLastRemaining = state.poolPaths.size == 1
-						viewModel.deleteFromPool(currentPath)
-
-						if (isLastRemaining) {
-							onNavigateBack()
-						}
-					}
+					onClick = { evictAndAdvance { viewModel.deleteFromPool(currentPath) } }
 				)
 
 				PreviewAction(
 					icon = Icons.Default.Block,
 					label = stringResource(R.string.preview_action_block),
-					onClick = {
-						val isLastRemaining = state.poolPaths.size == 1
-						viewModel.blockFromPool(currentId, currentPath)
-
-						if (isLastRemaining) {
-							onNavigateBack()
-						}
-					}
+					onClick = { evictAndAdvance { viewModel.blockFromPool(currentId, currentPath) } }
 				)
 
 				PreviewAction(
