@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Block
@@ -70,19 +72,30 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
 	val pinnedIds by viewModel.pinnedIds.collectAsStateWithLifecycle()
 	val context = LocalContext.current
-	val path = remember(state.poolPaths, id) {
-		state.poolPaths.firstOrNull { File(it).nameWithoutExtension == id }
-	}
 
 	/*
-	 * A null path means either the pool is still loading (empty on the first frame) or the
-	 * wallpaper was just removed. Only leave once the pool is loaded and the id is truly gone,
-	 * otherwise the screen would bounce straight back before the state arrives.
+	 * An empty pool means either it is still loading (empty on the first frame) or the last
+	 * wallpaper was just deleted. Show black and wait; a destructive action navigates back itself
+	 * when it empties the pool, so we never bounce out before the state arrives.
 	 */
-	if (path == null) {
-		if (state.poolPaths.isNotEmpty()) {
-			LaunchedEffect(Unit) { onNavigateBack() }
-		}
+	if (state.poolPaths.isEmpty()) {
+		Box(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(Color.Black)
+		)
+
+		return
+	}
+
+	// Seed the pager at the tapped wallpaper once, when the pool is first available.
+	val initialPage = remember {
+		state.poolPaths.indexOfFirst { File(it).nameWithoutExtension == id }
+	}
+
+	// The tapped id is gone from a loaded pool (e.g. a stale deep-link); leave for the grid.
+	if (initialPage < 0) {
+		LaunchedEffect(Unit) { onNavigateBack() }
 
 		Box(
 			modifier = Modifier
@@ -93,9 +106,14 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 		return
 	}
 
+	val pagerState = rememberPagerState(initialPage = initialPage) { state.poolPaths.size }
+	val currentPage = pagerState.currentPage.coerceIn(0, state.poolPaths.lastIndex)
+	val currentPath = state.poolPaths[currentPage]
+	val currentId = File(currentPath).nameWithoutExtension
+
 	val writePermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
 		if (granted) {
-			viewModel.saveToPictures(path)
+			viewModel.saveToPictures(currentPath)
 		}
 	}
 
@@ -107,10 +125,10 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 
 	var controlsVisible by remember { mutableStateOf(true) }
 
-	val resolution by produceState<String?>(initialValue = null, path) {
+	val resolution by produceState<String?>(initialValue = null, currentPath) {
 		value = withContext(Dispatchers.IO) {
 			val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-			BitmapFactory.decodeFile(path, options)
+			BitmapFactory.decodeFile(currentPath, options)
 
 			if (options.outWidth > 0 && options.outHeight > 0) {
 				"${options.outWidth}×${options.outHeight}"
@@ -121,9 +139,9 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 	}
 
 	val caption = if (resolution != null) {
-		"$id ($resolution)"
+		"$currentId ($resolution)"
 	} else {
-		id
+		currentId
 	}
 
 	Box(
@@ -134,12 +152,16 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 				controlsVisible = !controlsVisible
 			}
 	) {
-		AsyncImage(
-			model = File(path),
-			contentDescription = null,
-			contentScale = ContentScale.Fit,
-			modifier = Modifier.fillMaxSize()
-		)
+		HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+			val pagePath = state.poolPaths.getOrNull(page) ?: return@HorizontalPager
+
+			AsyncImage(
+				model = File(pagePath),
+				contentDescription = null,
+				contentScale = ContentScale.Fit,
+				modifier = Modifier.fillMaxSize()
+			)
+		}
 
 		AnimatedVisibility(
 			visible = controlsVisible,
@@ -187,12 +209,12 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					icon = Icons.Default.Wallpaper,
 					label = stringResource(R.string.preview_action_apply),
 					onClick = {
-						viewModel.applyFromPool(path)
+						viewModel.applyFromPool(currentPath)
 						goHome(context)
 					}
 				)
 
-				val isPinned = id in pinnedIds
+				val isPinned = currentId in pinnedIds
 
 				PreviewAction(
 					icon = if (isPinned) {
@@ -201,7 +223,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 						Icons.Outlined.PushPinOutlined
 					},
 					label = stringResource(if (isPinned) { R.string.preview_action_unpin } else { R.string.preview_action_pin }),
-					onClick = { viewModel.togglePin(id) }
+					onClick = { viewModel.togglePin(currentId) }
 				)
 
 				PreviewAction(
@@ -209,7 +231,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					label = stringResource(R.string.preview_action_save),
 					onClick = {
 						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-							viewModel.saveToPictures(path)
+							viewModel.saveToPictures(currentPath)
 						} else {
 							writePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 						}
@@ -220,8 +242,12 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					icon = Icons.Default.Delete,
 					label = stringResource(R.string.preview_action_remove),
 					onClick = {
-						viewModel.deleteFromPool(path)
-						onNavigateBack()
+						val isLastRemaining = state.poolPaths.size == 1
+						viewModel.deleteFromPool(currentPath)
+
+						if (isLastRemaining) {
+							onNavigateBack()
+						}
 					}
 				)
 
@@ -229,8 +255,12 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					icon = Icons.Default.Block,
 					label = stringResource(R.string.preview_action_block),
 					onClick = {
-						viewModel.blockFromPool(id, path)
-						onNavigateBack()
+						val isLastRemaining = state.poolPaths.size == 1
+						viewModel.blockFromPool(currentId, currentPath)
+
+						if (isLastRemaining) {
+							onNavigateBack()
+						}
 					}
 				)
 
@@ -238,7 +268,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					icon = Icons.Default.OpenInBrowser,
 					label = stringResource(R.string.preview_action_open_in_browser),
 					onClick = {
-						val intent = Intent(Intent.ACTION_VIEW, "https://wallhaven.cc/w/$id".toUri())
+						val intent = Intent(Intent.ACTION_VIEW, "https://wallhaven.cc/w/$currentId".toUri())
 						context.startActivity(intent)
 					}
 				)
