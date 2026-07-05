@@ -9,6 +9,7 @@
 	<string name="home_action_download_now">지금 다운로드</string>
 	<string name="home_recent_wallpapers">최근 배경화면</string>
 	<string name="home_offline_banner">오프라인 — 업데이트 일시 중지됨</string>
+	<string name="home_pinned_idle_banner">고정된 배경화면이 없습니다 — 배경화면을 고정하거나 설정에서 다른 모드를 선택하세요</string>
 	<string name="settings_title">설정</string>
 	<string name="settings_tab_content">콘텐츠</string>
 	<string name="settings_tab_schedule">일정</string>

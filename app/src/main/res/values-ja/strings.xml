@@ -9,6 +9,7 @@
 	<string name="home_action_download_now">今すぐダウンロード</string>
 	<string name="home_recent_wallpapers">最近の壁紙</string>
 	<string name="home_offline_banner">オフライン — 更新を一時停止しました</string>
+	<string name="home_pinned_idle_banner">ピン留めされた壁紙がありません — 壁紙をピン留めするか、設定で別のモードを選択してください</string>
 	<string name="settings_title">設定</string>
 	<string name="settings_tab_content">コンテンツ</string>
 	<string name="settings_tab_schedule">スケジュール</string>

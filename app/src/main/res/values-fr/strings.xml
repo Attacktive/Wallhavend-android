@@ -9,6 +9,7 @@
 	<string name="home_action_download_now">Télécharger</string>
 	<string name="home_recent_wallpapers">FONDS D\'ÉCRAN RÉCENTS</string>
 	<string name="home_offline_banner">Hors ligne — mises à jour suspendues</string>
+	<string name="home_pinned_idle_banner">La rotation en mode épinglés uniquement est inactive — épinglez un fond d\'écran ou choisissez un autre mode dans les Paramètres.</string>
 	<string name="settings_title">Paramètres</string>
 	<string name="settings_tab_content">Contenu</string>
 	<string name="settings_tab_schedule">Plannification</string>

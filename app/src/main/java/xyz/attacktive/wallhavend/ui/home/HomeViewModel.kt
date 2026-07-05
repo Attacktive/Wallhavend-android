@@ -20,6 +20,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import xyz.attacktive.wallhavend.R
+import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
@@ -39,6 +40,10 @@ class HomeViewModel @Inject constructor(
 	val pinnedIds = settingsRepository.settings
 		.map { it.pinnedIds }
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+
+	val rotationMode = settingsRepository.settings
+		.map { it.rotationMode }
+		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RotationMode.FRESH_WIFI)
 
 	private val _saveMessage = MutableSharedFlow<String>(extraBufferCapacity = 1)
 	val saveMessage = _saveMessage.asSharedFlow()

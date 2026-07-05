@@ -9,6 +9,7 @@
 	<string name="home_action_download_now">Descargar ahora</string>
 	<string name="home_recent_wallpapers">FONDOS DE PANTALLA RECIENTES</string>
 	<string name="home_offline_banner">Sin conexión — actualizaciones en pausa</string>
+	<string name="home_pinned_idle_banner">La rotación de solo fijados está inactiva — fija un fondo de pantalla o elige otro modo en Ajustes.</string>
 	<string name="settings_title">Ajustes</string>
 	<string name="settings_tab_content">Contenido</string>
 	<string name="settings_tab_schedule">Programación</string>

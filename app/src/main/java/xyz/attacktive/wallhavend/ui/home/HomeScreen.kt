@@ -56,6 +56,7 @@ import coil.compose.AsyncImage
 import xyz.attacktive.wallhavend.BuildConfig
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppError
+import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +64,7 @@ import xyz.attacktive.wallhavend.domain.model.ServiceState
 fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
 	val pinnedIds by viewModel.pinnedIds.collectAsStateWithLifecycle()
+	val rotationMode by viewModel.rotationMode.collectAsStateWithLifecycle()
 
 	Scaffold(
 		topBar = {
@@ -105,6 +107,13 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 			if (!state.isOnline) {
 				Spacer(modifier = Modifier.height(8.dp))
 				OfflineBanner()
+			}
+
+			val pinnedRotationIdle = state.isRunning && rotationMode == RotationMode.PINNED_ONLY && pinnedIds.isEmpty()
+
+			if (pinnedRotationIdle) {
+				Spacer(modifier = Modifier.height(8.dp))
+				PinnedIdleBanner()
 			}
 
 			Spacer(modifier = Modifier.height(16.dp))
@@ -262,6 +271,17 @@ private fun OfflineBanner() {
 	Card(modifier = Modifier.fillMaxWidth()) {
 		Text(
 			text = stringResource(R.string.home_offline_banner),
+			modifier = Modifier.padding(12.dp),
+			style = MaterialTheme.typography.bodySmall
+		)
+	}
+}
+
+@Composable
+private fun PinnedIdleBanner() {
+	Card(modifier = Modifier.fillMaxWidth()) {
+		Text(
+			text = stringResource(R.string.home_pinned_idle_banner),
 			modifier = Modifier.padding(12.dp),
 			style = MaterialTheme.typography.bodySmall
 		)

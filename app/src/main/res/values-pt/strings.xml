@@ -9,6 +9,7 @@
 	<string name="home_action_download_now">Baixar agora</string>
 	<string name="home_recent_wallpapers">PAPÉIS DE PAREDE RECENTES</string>
 	<string name="home_offline_banner">Offline — atualizações pausadas</string>
+	<string name="home_pinned_idle_banner">A rotação somente de fixados está inativa — fixe um papel de parede ou escolha outro modo em Configurações.</string>
 	<string name="settings_title">Configurações</string>
 	<string name="settings_tab_content">Conteúdo</string>
 	<string name="settings_tab_schedule">Agendamento</string>

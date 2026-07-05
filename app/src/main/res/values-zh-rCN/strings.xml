@@ -9,6 +9,7 @@
 	<string name="home_action_download_now">立即下载</string>
 	<string name="home_recent_wallpapers">最近壁纸</string>
 	<string name="home_offline_banner">离线 — 更新已暂停</string>
+	<string name="home_pinned_idle_banner">没有已置顶的壁纸 — 请置顶一张壁纸，或在设置中选择其他模式</string>
 	<string name="settings_title">设置</string>
 	<string name="settings_tab_content">内容</string>
 	<string name="settings_tab_schedule">计划</string>
