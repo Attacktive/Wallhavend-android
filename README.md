@@ -14,6 +14,10 @@ Supports filtering by category, purity, and aspect ratio. Runs as a foreground s
 	<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="200">
 </a>
 
+## Sister project
+
+[Weatherd](https://github.com/Attacktive/weatherd) paints a live, procedurally animated weather scene as your wallpaper — same bones, opposite art department.
+
 ## Building from source
 
 Requires JDK 17 and the Android SDK ([Android Studio](https://developer.android.com/studio) bundles both).
