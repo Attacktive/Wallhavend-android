@@ -38,7 +38,7 @@ jobs:
           mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab
 
       - name: 'Upload APK to GitHub Releases'
-        uses: 'softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b'
+        uses: 'softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228'
         with:
           files: |
             app/build/outputs/apk/release/Wallhavend-${{ github.ref_name }}.apk
