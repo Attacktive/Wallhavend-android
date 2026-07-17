@@ -119,7 +119,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 			Spacer(modifier = Modifier.height(16.dp))
 
 			if (state.poolPaths.isNotEmpty()) {
-				Text(stringResource(R.string.home_recent_wallpapers), style = MaterialTheme.typography.labelSmall)
+				Text(stringResource(R.string.home_recent_wallpapers), style = MaterialTheme.typography.labelMedium)
 				Spacer(modifier = Modifier.height(8.dp))
 
 				WallpaperGrid(

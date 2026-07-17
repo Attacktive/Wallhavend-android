@@ -641,7 +641,7 @@ private fun PersistOnChange(value: String, upstream: String, onPersist: (String)
 private fun SectionLabel(text: String) {
 	Text(
 		text = text,
-		style = MaterialTheme.typography.labelSmall,
+		style = MaterialTheme.typography.labelLarge,
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(bottom = 4.dp)
 	)
