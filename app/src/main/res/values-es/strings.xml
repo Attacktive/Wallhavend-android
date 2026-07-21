@@ -15,7 +15,7 @@
 	<string name="settings_tab_schedule">Programación</string>
 	<string name="settings_tab_advanced">Avanzado</string>
 	<string name="settings_label_search_query">CONSULTA DE BÚSQUEDA (OPCIONAL)</string>
-	<string name="settings_placeholder_search_query">ej. landscape mountains</string>
+	<string name="settings_placeholder_search_query">ej. milky way, mountains</string>
 	<string name="settings_label_categories">CATEGORÍAS</string>
 	<string name="settings_label_content_rating">CLASIFICACIÓN DE CONTENIDO</string>
 	<string name="settings_label_filter_color">FILTRO DE COLOR (OPCIONAL)</string>

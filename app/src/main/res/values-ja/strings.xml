@@ -15,7 +15,7 @@
 	<string name="settings_tab_schedule">スケジュール</string>
 	<string name="settings_tab_advanced">詳細</string>
 	<string name="settings_label_search_query">検索クエリ (任意)</string>
-	<string name="settings_placeholder_search_query">例: landscape mountains</string>
+	<string name="settings_placeholder_search_query">例: milky way, mountains</string>
 	<string name="settings_label_categories">カテゴリ</string>
 	<string name="settings_label_content_rating">コンテンツ評価</string>
 	<string name="settings_label_filter_color">カラーフィルター (任意)</string>

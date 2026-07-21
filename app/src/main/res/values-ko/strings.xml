@@ -15,7 +15,7 @@
 	<string name="settings_tab_schedule">일정</string>
 	<string name="settings_tab_advanced">고급</string>
 	<string name="settings_label_search_query">검색어 (선택 사항)</string>
-	<string name="settings_placeholder_search_query">예: landscape mountains</string>
+	<string name="settings_placeholder_search_query">예: milky way, mountains</string>
 	<string name="settings_label_categories">카테고리</string>
 	<string name="settings_label_content_rating">콘텐츠 등급</string>
 	<string name="settings_label_filter_color">색상 필터 (선택 사항)</string>

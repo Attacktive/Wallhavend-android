@@ -15,7 +15,7 @@
 	<string name="settings_tab_schedule">Agendamento</string>
 	<string name="settings_tab_advanced">Avançado</string>
 	<string name="settings_label_search_query">TERMO DE BUSCA (OPCIONAL)</string>
-	<string name="settings_placeholder_search_query">ex: landscape mountains</string>
+	<string name="settings_placeholder_search_query">ex: milky way, mountains</string>
 	<string name="settings_label_categories">CATEGORIAS</string>
 	<string name="settings_label_content_rating">CLASSIFICAÇÃO DE CONTEÚDO</string>
 	<string name="settings_label_filter_color">FILTRO DE COR (OPCIONAL)</string>

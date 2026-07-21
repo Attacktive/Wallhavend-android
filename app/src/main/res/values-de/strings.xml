@@ -15,7 +15,7 @@
 	<string name="settings_tab_schedule">Zeitplan</string>
 	<string name="settings_tab_advanced">Erweitert</string>
 	<string name="settings_label_search_query">SUCHANFRAGE (OPTIONAL)</string>
-	<string name="settings_placeholder_search_query">z.B. landscape mountains</string>
+	<string name="settings_placeholder_search_query">z.B. milky way, mountains</string>
 	<string name="settings_label_categories">KATEGORIEN</string>
 	<string name="settings_label_content_rating">CONTENT-RATING</string>
 	<string name="settings_label_filter_color">FARBFILTER (OPTIONAL)</string>

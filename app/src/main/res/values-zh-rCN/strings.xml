@@ -15,7 +15,7 @@
 	<string name="settings_tab_schedule">计划</string>
 	<string name="settings_tab_advanced">高级</string>
 	<string name="settings_label_search_query">搜索内容 (可选)</string>
-	<string name="settings_placeholder_search_query">例如：landscape mountains</string>
+	<string name="settings_placeholder_search_query">例如：milky way, mountains</string>
 	<string name="settings_label_categories">分类</string>
 	<string name="settings_label_content_rating">内容分级</string>
 	<string name="settings_label_filter_color">颜色筛选（可选）</string>
