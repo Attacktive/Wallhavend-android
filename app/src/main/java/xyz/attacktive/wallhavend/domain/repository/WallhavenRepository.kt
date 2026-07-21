@@ -39,25 +39,36 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		val toplistRange: String?
 	)
 
-	private fun AppSettings.toSearchKey(screenInfo: ScreenInfo) = SearchKey(
-		keywords = searchQuery.trim().split(Regex("[,;|\\s]+")).filter { it.isNotBlank() },
-		categories = categories.toBitString(),
-		purity = purity.toBitString(),
-		ratios = screenInfo.aspectRatio,
-		atleast = if (avoidBlurryWallpapers) {
-			"${screenInfo.width}x${screenInfo.height}"
-		} else {
-			null
-		},
-		colors = filterColor.ifBlank { null },
-		apiKey = apiKey.ifBlank { null },
-		sorting = sorting,
-		toplistRange = if (sorting == Sorting.TOPLIST) {
-			toplistRange.apiValue
-		} else {
-			null
-		}
-	)
+	private fun AppSettings.toSearchKey(screenInfo: ScreenInfo): SearchKey {
+		/*
+		 * Only explicit delimiters split the query, never whitespace.
+		 * Splitting on whitespace turned a phrase into unrelated searches that were then merged: "red car" became "red" (1690 portrait results) plus "car" (508) instead of the 76 that actually match both.
+		 * Trimming each keyword is what the delimiter class used to do for free, back when it also absorbed the spaces around a comma.
+		 */
+		val keywords = searchQuery.split(Regex("[,;|]+"))
+			.map { it.trim() }
+			.filter { it.isNotBlank() }
+
+		return SearchKey(
+			keywords = keywords,
+			categories = categories.toBitString(),
+			purity = purity.toBitString(),
+			ratios = screenInfo.aspectRatio,
+			atleast = if (avoidBlurryWallpapers) {
+				"${screenInfo.width}x${screenInfo.height}"
+			} else {
+				null
+			},
+			colors = filterColor.ifBlank { null },
+			apiKey = apiKey.ifBlank { null },
+			sorting = sorting,
+			toplistRange = if (sorting == Sorting.TOPLIST) {
+				toplistRange.apiValue
+			} else {
+				null
+			}
+		)
+	}
 
 	suspend fun next(settings: AppSettings, screenInfo: ScreenInfo): Result<Pair<Wallpaper, File>> = mutex.withLock {
 		val key = settings.toSearchKey(screenInfo)

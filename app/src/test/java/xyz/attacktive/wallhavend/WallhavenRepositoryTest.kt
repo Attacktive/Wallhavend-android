@@ -272,7 +272,7 @@ class WallhavenRepositoryTest {
 			Result.success(makeFile(firstArg<Wallpaper>().id))
 		}
 
-		val result = repository.next(AppSettings(searchQuery = "ocean mountains"), portraitScreen)
+		val result = repository.next(AppSettings(searchQuery = "ocean,mountains"), portraitScreen)
 		assertTrue(result.isSuccess)
 
 		coVerify(exactly = 1) {
@@ -312,7 +312,7 @@ class WallhavenRepositoryTest {
 
 		val ids = mutableListOf<String>()
 		repeat(5) {
-			val result = repository.next(AppSettings(searchQuery = "ocean mountains"), portraitScreen)
+			val result = repository.next(AppSettings(searchQuery = "ocean,mountains"), portraitScreen)
 			ids.add(result.getOrNull()!!.first.id)
 		}
 
@@ -369,6 +369,47 @@ class WallhavenRepositoryTest {
 			wallhavenApiService.search(
 				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
 				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+			)
+		}
+	}
+
+	@Test
+	fun `a multi-word query stays one phrase instead of splitting on whitespace`() = runTest {
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(1)
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		repository.next(AppSettings(searchQuery = "milky way"), portraitScreen)
+
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				query = "milky way", categories = any(), purity = any(), ratios = any(), atleast = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+			)
+		}
+	}
+
+	@Test
+	fun `whitespace around an explicit delimiter is trimmed off each keyword`() = runTest {
+		coEvery { wallhavenApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns makePage(1)
+		coEvery { fileManager.download(any()) } answers {
+			Result.success(makeFile(firstArg<Wallpaper>().id))
+		}
+
+		repository.next(AppSettings(searchQuery = "milky way, deep space"), portraitScreen)
+
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				query = "milky way", categories = any(), purity = any(), ratios = any(), atleast = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+			)
+		}
+
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				query = "deep space", categories = any(), purity = any(), ratios = any(), atleast = any(),
+				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
 			)
 		}
 	}
