@@ -74,7 +74,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				toplistRange = ToplistRange.fromApiValue(preferences[Keys.TOPLIST_RANGE] ?: "1M"),
 				avoidBlurryWallpapers = preferences[Keys.AVOID_BLURRY_WALLPAPERS] ?: false,
 				blockedIds = preferences[Keys.BLOCKED_IDS] ?: emptySet(),
-				pinnedIds = preferences[Keys.PINNED_IDS] ?: emptySet()
+				pinnedIds = preferences[Keys.PINNED_IDS] ?: emptySet(),
+				autoUpdateEnabled = preferences[Keys.AUTO_UPDATE_ENABLED] ?: false
 			)
 			.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 		}
@@ -167,9 +168,8 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 	/**
 	 * Whether the user wants auto-update running. Persisted so the toggle survives process death:
 	 * the in-memory ServiceState.isRunning resets to false whenever the OS reclaims the process.
+	 * Isolated the same way as [block]/[pin]: read via [settings], written only through this mutator.
 	 */
-	suspend fun loadAutoUpdateEnabled() = dataStore.data.first()[Keys.AUTO_UPDATE_ENABLED] ?: false
-
 	suspend fun setAutoUpdateEnabled(enabled: Boolean) {
 		dataStore.edit { preferences -> preferences[Keys.AUTO_UPDATE_ENABLED] = enabled }
 	}

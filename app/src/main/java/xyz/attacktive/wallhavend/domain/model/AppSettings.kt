@@ -21,7 +21,8 @@ data class AppSettings(
 	val toplistRange: ToplistRange = ToplistRange.ONE_MONTH,
 	val avoidBlurryWallpapers: Boolean = false,
 	val blockedIds: Set<String> = emptySet(),
-	val pinnedIds: Set<String> = emptySet()
+	val pinnedIds: Set<String> = emptySet(),
+	val autoUpdateEnabled: Boolean = false
 )
 
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)

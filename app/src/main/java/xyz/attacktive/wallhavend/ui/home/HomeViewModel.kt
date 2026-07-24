@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -76,7 +77,7 @@ class HomeViewModel @Inject constructor(
 	 * this runs, so launching the foreground service is permitted.
 	 */
 	private suspend fun reconcileAutoUpdate() {
-		val enabled = settingsRepository.loadAutoUpdateEnabled()
+		val enabled = settingsRepository.settings.first().autoUpdateEnabled
 		val alreadyRunning = stateRepository.state.value.isRunning
 		if (enabled && !alreadyRunning) {
 			stateRepository.update { it.copy(isRunning = true) }

@@ -214,7 +214,7 @@ class SettingsRepositoryTest {
 	@Test
 	fun `auto-update enabled defaults to false`() = runTest {
 		val repository = createRepository()
-		assertFalse(repository.loadAutoUpdateEnabled())
+		assertFalse(repository.settings.first().autoUpdateEnabled)
 	}
 
 	@Test
@@ -236,6 +236,6 @@ class SettingsRepositoryTest {
 			FakeAppLogger()
 		)
 
-		assertTrue(secondProcess.loadAutoUpdateEnabled())
+		assertTrue(secondProcess.settings.first().autoUpdateEnabled)
 	}
 }

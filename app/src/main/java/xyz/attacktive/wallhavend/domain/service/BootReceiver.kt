@@ -26,7 +26,7 @@ class BootReceiver: BroadcastReceiver() {
 		scope.launch {
 			try {
 				val settings = settingsRepository.settings.first()
-				if (settings.autoStartOnBoot) {
+				if (settings.autoStartOnBoot && settings.autoUpdateEnabled) {
 					WallpaperService.start(context)
 				}
 			} finally {
