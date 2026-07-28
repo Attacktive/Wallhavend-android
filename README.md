@@ -17,6 +17,7 @@ Supports filtering by category, purity, and aspect ratio. Runs as a foreground s
 ## Sister project
 
 [Weatherd](https://github.com/Attacktive/weatherd) paints a live, procedurally animated weather scene as your wallpaper — same bones, opposite art department.
+[Get it on Google Play](https://play.google.com/store/apps/details?id=xyz.attacktive.weatherd).
 
 ## Building from source
 
