@@ -124,24 +124,36 @@ class HomeViewModel @Inject constructor(
 		}
 	}
 
+	/**
+	 * Everything the wallpaper occupies on disk goes, not just the path the caller happened to hold.
+	 * An install that predates source-qualified filenames can carry the same wallpaper twice, and the local pool is cycled by listing files rather than by consulting the blocklist, so leaving a copy behind would keep serving a wallpaper the user just blocked.
+	 */
 	private suspend fun evictFromPool(path: String) {
-		val file = File(path)
-		settingsRepository.unpin(WallpaperIdentity.parse(file.nameWithoutExtension))
-		file.delete()
+		val identity = WallpaperIdentity.parse(File(path).nameWithoutExtension)
+		settingsRepository.unpin(identity)
+
+		val evicted = fileManager.listAll()
+			.filter { WallpaperIdentity.parse(it.nameWithoutExtension) == identity }
+			.map { it.absolutePath }
+			.toSet() + path
+
+		evicted.forEach { File(it).delete() }
 
 		val state = stateRepository.state.value
-		val newPaths = state.poolPaths - path
+		val newPaths = state.poolPaths - evicted
 
-		val newCurrent = if (state.currentWallpaperPath == path) {
+		val currentPath = state.currentWallpaperPath
+		val newCurrent = if (currentPath != null && currentPath in evicted) {
 			newPaths.firstOrNull()
 		} else {
-			state.currentWallpaperPath
+			currentPath
 		}
 
-		val newPrev = if (state.previousWallpaperPath == path) {
+		val previousPath = state.previousWallpaperPath
+		val newPrev = if (previousPath != null && previousPath in evicted) {
 			newPaths.getOrNull(1)
 		} else {
-			state.previousWallpaperPath
+			previousPath
 		}
 
 		stateRepository.update {
