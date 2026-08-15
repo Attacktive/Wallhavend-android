@@ -74,10 +74,34 @@ class WallpaperIdentityTest {
 	}
 
 	@Test
+	fun `an Openverse identity qualifies and round-trips through parse`() {
+		val identity = WallpaperIdentity(WallpaperSource.OPENVERSE, "422cc250-88fb-4696-81fc-477237e355bd")
+
+		assertEquals("openverse_422cc250-88fb-4696-81fc-477237e355bd", identity.qualified)
+		assertEquals(identity, WallpaperIdentity.parse(identity.qualified))
+	}
+
+	@Test
+	fun `an Openverse id has only the one spelling, since none of them predate qualification`() {
+		val identity = WallpaperIdentity(WallpaperSource.OPENVERSE, "abc-123")
+
+		assertEquals(setOf("openverse_abc-123"), identity.persistedForms)
+		assertFalse(identity.matches(setOf("abc-123")))
+	}
+
+	@Test
 	fun `a Wallhaven identity points at its own page and thumbnail`() {
 		val identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, "abc123")
 
 		assertEquals("https://wallhaven.cc/w/abc123", identity.pageUrl)
 		assertEquals("https://th.wallhaven.cc/lg/ab/abc123.jpg", identity.thumbnailUrl)
+	}
+
+	@Test
+	fun `an Openverse identity points at its Openverse entry and its proxied thumbnail`() {
+		val identity = WallpaperIdentity(WallpaperSource.OPENVERSE, "abc-123")
+
+		assertEquals("https://openverse.org/image/abc-123", identity.pageUrl)
+		assertEquals("https://api.openverse.org/v1/images/abc-123/thumb/", identity.thumbnailUrl)
 	}
 }

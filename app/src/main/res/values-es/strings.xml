@@ -14,10 +14,13 @@
 	<string name="settings_tab_content">Contenido</string>
 	<string name="settings_tab_schedule">Programación</string>
 	<string name="settings_tab_advanced">Avanzado</string>
+	<string name="settings_label_sources">FUENTES</string>
 	<string name="settings_label_search_query">CONSULTA DE BÚSQUEDA (OPCIONAL)</string>
 	<string name="settings_placeholder_search_query">ej. milky way, mountains</string>
 	<string name="settings_label_categories">CATEGORÍAS</string>
 	<string name="settings_label_content_rating">CLASIFICACIÓN DE CONTENIDO</string>
+	<string name="settings_label_license">LICENCIA</string>
+	<string name="settings_hint_license">Openverse indexa imágenes alojadas en otros sitios; esto limita las licencias aceptadas</string>
 	<string name="settings_label_filter_color">FILTRO DE COLOR (OPCIONAL)</string>
 	<string name="settings_hint_filter_color">Dejar en blanco para omitir el filtrado por color</string>
 	<string name="settings_placeholder_filter_color">ej. ff0000 o ff0000,0066cc</string>
@@ -57,7 +60,8 @@
 	<string name="settings_subtitle_pool_size">Fondos de pantalla guardados en el dispositivo y mostrados en la galería (excluyendo fijados)</string>
 	<string name="settings_label_api_key">CLAVE API (OPCIONAL, REQUERIDA PARA NSFW)</string>
 	<string name="settings_placeholder_api_key">Tu clave API de Wallhaven</string>
-	<string name="settings_powered_by">Desarrollado por wallhaven.cc</string>
+	<string name="settings_powered_by_wallhaven">Desarrollado por wallhaven.cc</string>
+	<string name="settings_powered_by_openverse">Creado con Openverse — sin respaldo ni certificación de Openverse</string>
 	<string name="settings_report_bug">Informar de un error</string>
 	<string name="category_general">General</string>
 	<string name="category_anime">Anime</string>
@@ -65,6 +69,11 @@
 	<string name="purity_sfw">SFW</string>
 	<string name="purity_sketchy">Sketchy</string>
 	<string name="purity_nsfw">NSFW</string>
+	<string name="source_wallhaven">Wallhaven</string>
+	<string name="source_openverse">Openverse</string>
+	<string name="license_public_domain">Dominio público</string>
+	<string name="license_permissive">Permisiva</string>
+	<string name="license_any_commercial">Cualquier uso comercial</string>
 	<string name="error_no_results">⚠ Sin resultados — intenta relajar tus filtros</string>
 	<string name="error_no_results_hint">⚠ Sin resultados — intenta relajar tus filtros o quita la clave API si no necesitas fondos NSFW</string>
 	<string name="error_api_error">⚠ Error de API %d</string>
@@ -89,7 +98,7 @@
 	<string name="blocklist_empty">Nada bloqueado todavía. Bloquea un fondo desde su vista previa para ocultarlo de futuras rotaciones.</string>
 	<string name="blocklist_unblock">Desbloquear</string>
 	<string name="blocklist_reveal">Mostrar miniatura</string>
-	<string name="blocklist_open_hint">Toca el ID para verlo en wallhaven.cc</string>
+	<string name="blocklist_open_hint">Toca el ID para ver su página</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 h</string>
 	<string name="settings_unit_hr_plural">%d h</string>

@@ -6,6 +6,7 @@ import kotlinx.coroutines.test.runTest
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import xyz.attacktive.wallhavend.domain.model.AppSettings
@@ -31,7 +32,6 @@ class WallpaperRepositoryTest {
 
 	private fun makeWallpaper(id: String) = Wallpaper(
 		identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id),
-		pageUrl = "https://wallhaven.cc/w/$id",
 		directUrl = "https://cdn/w/$id.jpg",
 		resolution = "1920x1080"
 	)
@@ -109,6 +109,32 @@ class WallpaperRepositoryTest {
 	}
 
 	@Test
+	fun `a source the user has not enabled is never consulted`() = runTest {
+		val wallhaven = FakeWallpaperProvider(Result.failure(NoResultsException()), WallpaperSource.WALLHAVEN)
+		val openverse = FakeWallpaperProvider(Result.failure(NoResultsException()), WallpaperSource.OPENVERSE)
+
+		createRepository(wallhaven, openverse).next(AppSettings(enabledSources = setOf(WallpaperSource.WALLHAVEN)), screen)
+
+		assertTrue(wallhaven.consulted)
+		assertFalse(openverse.consulted)
+	}
+
+	@Test
+	fun `enabling a second source brings it into the rotation`() = runTest {
+		val wallpaper = makeWallpaper("abc123")
+		coEvery { fileManager.download(wallpaper) } returns Result.success(File("/tmp/wallhaven_abc123.jpg"))
+
+		val openverse = FakeWallpaperProvider(Result.success(wallpaper), WallpaperSource.OPENVERSE)
+		val repository = createRepository(FakeWallpaperProvider(Result.failure(NoResultsException())), openverse)
+
+		repeat(shuffleAttempts) {
+			repository.next(AppSettings(enabledSources = setOf(WallpaperSource.WALLHAVEN, WallpaperSource.OPENVERSE)), screen)
+		}
+
+		assertTrue(openverse.consulted)
+	}
+
+	@Test
 	fun `blocked ids reach a source stripped of the qualifying prefix`() = runTest {
 		val provider = FakeWallpaperProvider(Result.failure(NoResultsException()))
 		val blockedIds = setOf("wallhaven_abc123", "def456")
@@ -119,14 +145,16 @@ class WallpaperRepositoryTest {
 	}
 }
 
-/** Stands in for a source: hands back a fixed outcome and records the blocked ids it was given. */
-private class FakeWallpaperProvider(private val result: Result<Wallpaper>): WallpaperProvider {
-	override val source = WallpaperSource.WALLHAVEN
-
+/** Stands in for a source: hands back a fixed outcome and records whether — and with which blocked ids — it was consulted. */
+private class FakeWallpaperProvider(private val result: Result<Wallpaper>, override val source: WallpaperSource = WallpaperSource.WALLHAVEN): WallpaperProvider {
 	var receivedBlockedIds: Set<String>? = null
 		private set
 
+	var consulted = false
+		private set
+
 	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>): Result<Wallpaper> {
+		consulted = true
 		receivedBlockedIds = blockedIds
 
 		return result

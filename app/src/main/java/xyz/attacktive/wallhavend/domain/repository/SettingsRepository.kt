@@ -15,8 +15,10 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
+import xyz.attacktive.wallhavend.domain.model.query.LicenseFilter
 import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
@@ -25,9 +27,11 @@ import xyz.attacktive.wallhavend.util.AppLogger
 @Singleton
 class SettingsRepository @Inject constructor(private val dataStore: DataStore<Preferences>, private val logger: AppLogger) {
 	private object Keys {
+		val ENABLED_SOURCES = stringSetPreferencesKey("enabled_sources")
 		val SEARCH_QUERY = stringPreferencesKey("search_query")
 		val CATEGORIES = stringSetPreferencesKey("categories")
 		val PURITY = stringSetPreferencesKey("purity")
+		val LICENSE_FILTER = stringPreferencesKey("license_filter")
 		val UPDATE_INTERVAL_MINUTES = intPreferencesKey("update_interval_minutes")
 		val WALLPAPER_TARGET = stringPreferencesKey("wallpaper_target")
 
@@ -51,6 +55,10 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 
 	val settings = dataStore.data
 		.map { preferences -> AppSettings(
+				enabledSources = (preferences[Keys.ENABLED_SOURCES] ?: setOf(WallpaperSource.WALLHAVEN.key))
+					.mapNotNull { WallpaperSource.fromKey(it) }
+					.toSet()
+					.ifEmpty { setOf(WallpaperSource.WALLHAVEN) },
 				searchQuery = preferences[Keys.SEARCH_QUERY] ?: "",
 				categories = (preferences[Keys.CATEGORIES] ?: setOf("GENERAL"))
 					.mapNotNull { runCatching { Category.valueOf(it) }.getOrNull() }
@@ -60,6 +68,9 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 					.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
 					.toSet()
 					.ifEmpty { setOf(Purity.SFW) },
+				licenseFilter = preferences[Keys.LICENSE_FILTER]
+					?.let { runCatching { LicenseFilter.valueOf(it) }.getOrNull() }
+					?: LicenseFilter.PUBLIC_DOMAIN,
 				updateIntervalMinutes = preferences[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
 				wallpaperTarget = preferences[Keys.WALLPAPER_TARGET]
 					?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
@@ -85,6 +96,11 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		logger.debug(TAG, "save: ${settings.redactedForLog()}")
 
 		dataStore.edit { preferences ->
+			// Sources persist by their stable key rather than their enum name, for the same reason wallpaper ids do: the stored value has to outlive any renaming in the code.
+			preferences[Keys.ENABLED_SOURCES] = settings.enabledSources
+				.map { it.key }
+				.toSet()
+
 			preferences[Keys.SEARCH_QUERY] = settings.searchQuery
 
 			preferences[Keys.CATEGORIES] = settings.categories
@@ -95,6 +111,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				.map { it.name }
 				.toSet()
 
+			preferences[Keys.LICENSE_FILTER] = settings.licenseFilter.name
 			preferences[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
 			preferences[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
 			preferences[Keys.ROTATION_MODE] = settings.rotationMode.name

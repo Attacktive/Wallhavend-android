@@ -39,7 +39,6 @@ class WallpaperFileManagerTest {
 
 	private fun makeWallpaper(id: String, path: String) = Wallpaper(
 		identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id),
-		pageUrl = "https://wallhaven.cc/w/$id",
 		directUrl = server.url(path).toString(),
 		resolution = "1920x1080"
 	)

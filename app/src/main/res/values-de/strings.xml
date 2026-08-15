@@ -14,10 +14,13 @@
 	<string name="settings_tab_content">Inhalt</string>
 	<string name="settings_tab_schedule">Zeitplan</string>
 	<string name="settings_tab_advanced">Erweitert</string>
+	<string name="settings_label_sources">QUELLEN</string>
 	<string name="settings_label_search_query">SUCHANFRAGE (OPTIONAL)</string>
 	<string name="settings_placeholder_search_query">z.B. milky way, mountains</string>
 	<string name="settings_label_categories">KATEGORIEN</string>
 	<string name="settings_label_content_rating">CONTENT-RATING</string>
+	<string name="settings_label_license">LIZENZ</string>
+	<string name="settings_hint_license">Openverse indexiert Bilder, die anderswo liegen; dies begrenzt die akzeptierten Lizenzen</string>
 	<string name="settings_label_filter_color">FARBFILTER (OPTIONAL)</string>
 	<string name="settings_hint_filter_color">Leer lassen, um das Filtern nach Farbe zu überspringen</string>
 	<string name="settings_placeholder_filter_color">z.B. ff0000 oder ff0000,0066cc</string>
@@ -57,7 +60,8 @@
 	<string name="settings_subtitle_pool_size">Hintergrundbilder, die auf dem Gerät behalten und in der Galerie angezeigt werden (ohne angeheftete)</string>
 	<string name="settings_label_api_key">API-KEY (OPTIONAL, FÜR NSFW ERFORDERLICH)</string>
 	<string name="settings_placeholder_api_key">Dein Wallhaven API-Key</string>
-	<string name="settings_powered_by">Unterstützt von wallhaven.cc</string>
+	<string name="settings_powered_by_wallhaven">Unterstützt von wallhaven.cc</string>
+	<string name="settings_powered_by_openverse">Erstellt mit Openverse — nicht von Openverse unterstützt oder zertifiziert</string>
 	<string name="settings_report_bug">Einen Fehler melden</string>
 	<string name="category_general">Allgemein</string>
 	<string name="category_anime">Anime</string>
@@ -65,6 +69,11 @@
 	<string name="purity_sfw">SFW</string>
 	<string name="purity_sketchy">Sketchy</string>
 	<string name="purity_nsfw">NSFW</string>
+	<string name="source_wallhaven">Wallhaven</string>
+	<string name="source_openverse">Openverse</string>
+	<string name="license_public_domain">Gemeinfrei</string>
+	<string name="license_permissive">Freizügig</string>
+	<string name="license_any_commercial">Jede kommerzielle Nutzung</string>
 	<string name="error_no_results">⚠ Keine Ergebnisse — versuchen Sie, Ihre Filter zu lockern</string>
 	<string name="error_no_results_hint">⚠ Keine Ergebnisse — versuchen Sie, Ihre Filter zu lockern oder den API-Key zu entfernen, wenn Sie keine NSFW-Hintergründe benötigen</string>
 	<string name="error_api_error">⚠ API-Fehler %d</string>
@@ -89,7 +98,7 @@
 	<string name="blocklist_empty">Noch nichts blockiert. Blockiere ein Hintergrundbild in der Vorschau, um es aus zukünftigen Rotationen auszublenden.</string>
 	<string name="blocklist_unblock">Freigeben</string>
 	<string name="blocklist_reveal">Vorschaubild anzeigen</string>
-	<string name="blocklist_open_hint">Auf ID tippen, um es auf wallhaven.cc anzusehen</string>
+	<string name="blocklist_open_hint">Auf ID tippen, um ihre Seite anzusehen</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 Std.</string>
 	<string name="settings_unit_hr_plural">%d Std.</string>

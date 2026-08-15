@@ -2,14 +2,18 @@ package xyz.attacktive.wallhavend.domain.model
 
 import kotlin.math.abs
 import xyz.attacktive.wallhavend.domain.model.query.Category
+import xyz.attacktive.wallhavend.domain.model.query.LicenseFilter
 import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
 
 data class AppSettings(
+	/** Wallhaven alone by default, so an install that predates a second source keeps rotating exactly what it always did until the user opts in. */
+	val enabledSources: Set<WallpaperSource> = setOf(WallpaperSource.WALLHAVEN),
 	val searchQuery: String = "",
 	val categories: Set<Category> = setOf(Category.GENERAL),
 	val purity: Set<Purity> = setOf(Purity.SFW),
+	val licenseFilter: LicenseFilter = LicenseFilter.PUBLIC_DOMAIN,
 	val updateIntervalMinutes: Int = 60,
 	val wallpaperTarget: WallpaperTarget = WallpaperTarget.HOME,
 	val rotationMode: RotationMode = RotationMode.FRESH_WIFI,
@@ -27,6 +31,18 @@ data class AppSettings(
 
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)
 val POOL_SIZE_OPTIONS = listOf(1, 5, 10, 25, 50)
+
+private val KEYWORD_DELIMITERS = Regex("[,;|]+")
+
+/**
+ * The search query as the separate searches every provider fans out over.
+ * Only explicit delimiters split it, never whitespace.
+ * Splitting on whitespace turned a phrase into unrelated searches that were then merged: "red car" became "red" (1690 portrait results) plus "car" (508) instead of the 76 that actually match both.
+ * Trimming each keyword is what the delimiter class used to do for free, back when it also absorbed the spaces around a comma.
+ */
+val AppSettings.keywords get() = searchQuery.split(KEYWORD_DELIMITERS)
+	.map { it.trim() }
+	.filter { it.isNotBlank() }
 
 /**
  * Ratios with meaningful content on Wallhaven (verified by querying meta.total per ratio).

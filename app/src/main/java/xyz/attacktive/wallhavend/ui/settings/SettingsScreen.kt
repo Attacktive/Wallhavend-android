@@ -77,8 +77,10 @@ import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
+import xyz.attacktive.wallhavend.domain.model.query.LicenseFilter
 import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
@@ -180,17 +182,22 @@ fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit
 					.fillMaxWidth()
 					.padding(horizontal = 16.dp, vertical = 8.dp)
 			) {
-				Text(
-					text = stringResource(R.string.settings_powered_by),
-					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onSurfaceVariant,
-					textDecoration = TextDecoration.Underline,
-					textAlign = TextAlign.Center,
-					modifier = Modifier
-						.fillMaxWidth()
-						.clickable { uriHandler.openUri("https://wallhaven.cc") }
-						.padding(vertical = 8.dp)
-				)
+				// Credit only what is actually being searched, and in a fixed order so turning a source on and off doesn't shuffle the footer.
+				settings.enabledSources
+					.sorted()
+					.forEach { source ->
+						Text(
+							text = stringResource(source.attributionRes),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							textDecoration = TextDecoration.Underline,
+							textAlign = TextAlign.Center,
+							modifier = Modifier
+								.fillMaxWidth()
+								.clickable { uriHandler.openUri(source.homeUrl) }
+								.padding(vertical = 8.dp)
+						)
+					}
 
 				Text(
 					text = stringResource(R.string.settings_report_bug),
@@ -238,6 +245,16 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		onPersist = { onSave(settings.copy(filterColor = it)) }
 	)
 
+	SectionLabel(stringResource(R.string.settings_label_sources))
+
+	MultiSelectChips(
+		entries = WallpaperSource.entries,
+		selected = settings.enabledSources,
+		nameRes = { it.nameRes },
+		onSelectionChange = { onSave(settings.copy(enabledSources = it)) }
+	)
+
+	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_search_query))
 
 	OutlinedTextField(
@@ -249,15 +266,20 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		modifier = Modifier.fillMaxWidth()
 	)
 
-	Spacer(Modifier.height(16.dp))
-	SectionLabel(stringResource(R.string.settings_label_categories))
+	val wallhavenEnabled = WallpaperSource.WALLHAVEN in settings.enabledSources
+	AnimatedVisibility(visible = wallhavenEnabled) {
+		Column {
+			Spacer(Modifier.height(16.dp))
+			SectionLabel(stringResource(R.string.settings_label_categories))
 
-	MultiSelectChips(
-		entries = Category.entries,
-		selected = settings.categories,
-		nameRes = { it.nameRes },
-		onSelectionChange = { onSave(settings.copy(categories = it)) }
-	)
+			MultiSelectChips(
+				entries = Category.entries,
+				selected = settings.categories,
+				nameRes = { it.nameRes },
+				onSelectionChange = { onSave(settings.copy(categories = it)) }
+			)
+		}
+	}
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_content_rating))
@@ -269,104 +291,152 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		onSelectionChange = { onSave(settings.copy(purity = it)) }
 	)
 
-	Spacer(Modifier.height(16.dp))
-	SectionLabel(stringResource(R.string.settings_label_filter_color))
-
-	ColorSwatchPicker(
-		selected = filterColor,
-		onSelect = { newColor ->
-			filterColor = newColor
-			onSave(settings.copy(filterColor = newColor))
-		}
-	)
-
-	OutlinedTextField(
-		value = filterColor,
-		onValueChange = { filterColor = it.replace("#", "").lowercase() },
-		placeholder = { Text(stringResource(R.string.settings_placeholder_filter_color)) },
-		trailingIcon = {
-			if (filterColor.isNotEmpty()) {
-				IconButton(onClick = {
-					filterColor = ""
-					onSave(settings.copy(filterColor = ""))
-				}) {
-					Icon(Icons.Filled.Clear, contentDescription = null)
-				}
-			}
-		},
-		singleLine = true,
-		modifier = Modifier.fillMaxWidth()
-	)
-
-	Text(
-		text = stringResource(R.string.settings_hint_filter_color),
-		style = MaterialTheme.typography.bodySmall,
-		color = MaterialTheme.colorScheme.onSurfaceVariant,
-		modifier = Modifier.padding(top = 4.dp)
-	)
-
-	var sortingExpanded by remember { mutableStateOf(false) }
-
-	Spacer(Modifier.height(16.dp))
-	SectionLabel(stringResource(R.string.settings_label_sorting))
-
-	ExposedDropdownMenuBox(expanded = sortingExpanded, onExpandedChange = { sortingExpanded = it }) {
-		OutlinedTextField(
-			value = stringResource(settings.sorting.nameRes),
-			onValueChange = {},
-			readOnly = true,
-			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortingExpanded) },
-			modifier = Modifier
-				.fillMaxWidth()
-				.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-		)
-
-		ExposedDropdownMenu(expanded = sortingExpanded, onDismissRequest = { sortingExpanded = false }) {
-			Sorting.entries.forEach { option ->
-				DropdownMenuItem(
-					text = { Text(stringResource(option.nameRes)) },
-					onClick = {
-						if (option != settings.sorting) {
-							onSave(settings.copy(sorting = option))
-						}
-
-						sortingExpanded = false
-					}
-				)
-			}
-		}
-	}
-
-	AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST) {
-		var toplistRangeExpanded by remember { mutableStateOf(false) }
+	val openverseEnabled = WallpaperSource.OPENVERSE in settings.enabledSources
+	AnimatedVisibility(visible = openverseEnabled) {
+		var licenseExpanded by remember { mutableStateOf(false) }
 
 		Column {
 			Spacer(Modifier.height(16.dp))
-			SectionLabel(stringResource(R.string.settings_label_toplist_range))
+			SectionLabel(stringResource(R.string.settings_label_license))
 
-			ExposedDropdownMenuBox(expanded = toplistRangeExpanded, onExpandedChange = { toplistRangeExpanded = it }) {
+			ExposedDropdownMenuBox(expanded = licenseExpanded, onExpandedChange = { licenseExpanded = it }) {
 				OutlinedTextField(
-					value = stringResource(settings.toplistRange.nameRes),
+					value = stringResource(settings.licenseFilter.nameRes),
 					onValueChange = {},
 					readOnly = true,
-					trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toplistRangeExpanded) },
+					trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = licenseExpanded) },
 					modifier = Modifier
 						.fillMaxWidth()
 						.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
 				)
 
-				ExposedDropdownMenu(expanded = toplistRangeExpanded, onDismissRequest = { toplistRangeExpanded = false }) {
-					ToplistRange.entries.forEach { range ->
+				ExposedDropdownMenu(expanded = licenseExpanded, onDismissRequest = { licenseExpanded = false }) {
+					LicenseFilter.entries.forEach { option ->
 						DropdownMenuItem(
-							text = { Text(stringResource(range.nameRes)) },
+							text = { Text(stringResource(option.nameRes)) },
 							onClick = {
-								if (range != settings.toplistRange) {
-									onSave(settings.copy(toplistRange = range))
+								if (option != settings.licenseFilter) {
+									onSave(settings.copy(licenseFilter = option))
 								}
 
-								toplistRangeExpanded = false
+								licenseExpanded = false
 							}
 						)
+					}
+				}
+			}
+
+			Text(
+				text = stringResource(R.string.settings_hint_license),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant,
+				modifier = Modifier.padding(top = 4.dp)
+			)
+		}
+	}
+
+	AnimatedVisibility(visible = wallhavenEnabled) {
+		var sortingExpanded by remember { mutableStateOf(false) }
+
+		Column {
+			Spacer(Modifier.height(16.dp))
+			SectionLabel(stringResource(R.string.settings_label_filter_color))
+
+			ColorSwatchPicker(
+				selected = filterColor,
+				onSelect = { newColor ->
+					filterColor = newColor
+					onSave(settings.copy(filterColor = newColor))
+				}
+			)
+
+			OutlinedTextField(
+				value = filterColor,
+				onValueChange = { filterColor = it.replace("#", "").lowercase() },
+				placeholder = { Text(stringResource(R.string.settings_placeholder_filter_color)) },
+				trailingIcon = {
+					if (filterColor.isNotEmpty()) {
+						IconButton(onClick = {
+							filterColor = ""
+							onSave(settings.copy(filterColor = ""))
+						}) {
+							Icon(Icons.Filled.Clear, contentDescription = null)
+						}
+					}
+				},
+				singleLine = true,
+				modifier = Modifier.fillMaxWidth()
+			)
+
+			Text(
+				text = stringResource(R.string.settings_hint_filter_color),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant,
+				modifier = Modifier.padding(top = 4.dp)
+			)
+
+			Spacer(Modifier.height(16.dp))
+			SectionLabel(stringResource(R.string.settings_label_sorting))
+
+			ExposedDropdownMenuBox(expanded = sortingExpanded, onExpandedChange = { sortingExpanded = it }) {
+				OutlinedTextField(
+					value = stringResource(settings.sorting.nameRes),
+					onValueChange = {},
+					readOnly = true,
+					trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortingExpanded) },
+					modifier = Modifier
+						.fillMaxWidth()
+						.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+				)
+
+				ExposedDropdownMenu(expanded = sortingExpanded, onDismissRequest = { sortingExpanded = false }) {
+					Sorting.entries.forEach { option ->
+						DropdownMenuItem(
+							text = { Text(stringResource(option.nameRes)) },
+							onClick = {
+								if (option != settings.sorting) {
+									onSave(settings.copy(sorting = option))
+								}
+
+								sortingExpanded = false
+							}
+						)
+					}
+				}
+			}
+
+			AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST) {
+				var toplistRangeExpanded by remember { mutableStateOf(false) }
+
+				Column {
+					Spacer(Modifier.height(16.dp))
+					SectionLabel(stringResource(R.string.settings_label_toplist_range))
+
+					ExposedDropdownMenuBox(expanded = toplistRangeExpanded, onExpandedChange = { toplistRangeExpanded = it }) {
+						OutlinedTextField(
+							value = stringResource(settings.toplistRange.nameRes),
+							onValueChange = {},
+							readOnly = true,
+							trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toplistRangeExpanded) },
+							modifier = Modifier
+								.fillMaxWidth()
+								.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+						)
+
+						ExposedDropdownMenu(expanded = toplistRangeExpanded, onDismissRequest = { toplistRangeExpanded = false }) {
+							ToplistRange.entries.forEach { range ->
+								DropdownMenuItem(
+									text = { Text(stringResource(range.nameRes)) },
+									onClick = {
+										if (range != settings.toplistRange) {
+											onSave(settings.copy(toplistRange = range))
+										}
+
+										toplistRangeExpanded = false
+									}
+								)
+							}
+						}
 					}
 				}
 			}
@@ -563,17 +633,21 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		}
 	}
 
-	Spacer(Modifier.height(16.dp))
-	SectionLabel(stringResource(R.string.settings_label_api_key))
+	AnimatedVisibility(visible = WallpaperSource.WALLHAVEN in settings.enabledSources) {
+		Column {
+			Spacer(Modifier.height(16.dp))
+			SectionLabel(stringResource(R.string.settings_label_api_key))
 
-	OutlinedTextField(
-		value = apiKey,
-		onValueChange = { apiKey = it },
-		placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
-		visualTransformation = PasswordVisualTransformation(),
-		keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-		modifier = Modifier.fillMaxWidth()
-	)
+			OutlinedTextField(
+				value = apiKey,
+				onValueChange = { apiKey = it },
+				placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
+				visualTransformation = PasswordVisualTransformation(),
+				keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+				modifier = Modifier.fillMaxWidth()
+			)
+		}
+	}
 }
 
 @Composable

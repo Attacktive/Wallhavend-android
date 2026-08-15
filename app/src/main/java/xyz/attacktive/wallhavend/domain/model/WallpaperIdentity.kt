@@ -10,19 +10,23 @@ data class WallpaperIdentity(val source: WallpaperSource, val id: String) {
 	/** The origin site's page for this wallpaper. */
 	val pageUrl get() = when (source) {
 		WallpaperSource.WALLHAVEN -> "https://wallhaven.cc/w/$id"
+		WallpaperSource.OPENVERSE -> "https://openverse.org/image/$id"
 	}
 
 	/** A remote thumbnail, for wallpapers with no local file left to show — a blocked one, say. */
 	val thumbnailUrl get() = when (source) {
 		WallpaperSource.WALLHAVEN -> "https://th.wallhaven.cc/lg/${id.take(2)}/$id.jpg"
+		WallpaperSource.OPENVERSE -> "https://api.openverse.org/v1/images/$id/thumb/"
 	}
 
 	/**
 	 * Every form this wallpaper can appear as in a persisted id set.
 	 * Installs predating source-qualified ids stored bare Wallhaven ids, so lookups have to accept that form and removals have to clear it.
+	 * Only Wallhaven carries that baggage: every other source arrived after ids were qualified, so it has just the one spelling.
 	 */
 	val persistedForms get() = when (source) {
 		WallpaperSource.WALLHAVEN -> setOf(qualified, id)
+		WallpaperSource.OPENVERSE -> setOf(qualified)
 	}
 
 	fun toFileName(extension: String) = "$qualified.$extension"

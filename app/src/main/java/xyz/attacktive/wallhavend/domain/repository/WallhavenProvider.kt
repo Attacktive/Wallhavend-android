@@ -8,13 +8,14 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import xyz.attacktive.wallhavend.data.api.WallhavenApiService
-import xyz.attacktive.wallhavend.data.api.dto.WallpaperDto
+import xyz.attacktive.wallhavend.data.api.dto.WallhavenWallpaperDto
 import xyz.attacktive.wallhavend.data.api.dto.toDomain
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
+import xyz.attacktive.wallhavend.domain.model.keywords
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.toBitString
 
@@ -23,7 +24,7 @@ class WallhavenProvider @Inject constructor(private val wallhavenApiService: Wal
 	override val source = WallpaperSource.WALLHAVEN
 
 	private val mutex = Mutex()
-	private var cache = ArrayDeque<WallpaperDto>()
+	private var cache = ArrayDeque<WallhavenWallpaperDto>()
 	private var cacheKey: SearchKey? = null
 	private var currentPage = 1
 	private var lastPage = 1
@@ -40,36 +41,25 @@ class WallhavenProvider @Inject constructor(private val wallhavenApiService: Wal
 		val toplistRange: String?
 	)
 
-	private fun AppSettings.toSearchKey(screenInfo: ScreenInfo): SearchKey {
-		/*
-		 * Only explicit delimiters split the query, never whitespace.
-		 * Splitting on whitespace turned a phrase into unrelated searches that were then merged: "red car" became "red" (1690 portrait results) plus "car" (508) instead of the 76 that actually match both.
-		 * Trimming each keyword is what the delimiter class used to do for free, back when it also absorbed the spaces around a comma.
-		 */
-		val keywords = searchQuery.split(Regex("[,;|]+"))
-			.map { it.trim() }
-			.filter { it.isNotBlank() }
-
-		return SearchKey(
-			keywords = keywords,
-			categories = categories.toBitString(),
-			purity = purity.toBitString(),
-			ratios = screenInfo.aspectRatio,
-			atleast = if (avoidBlurryWallpapers) {
-				"${screenInfo.width}x${screenInfo.height}"
-			} else {
-				null
-			},
-			colors = filterColor.ifBlank { null },
-			apiKey = apiKey.ifBlank { null },
-			sorting = sorting,
-			toplistRange = if (sorting == Sorting.TOPLIST) {
-				toplistRange.apiValue
-			} else {
-				null
-			}
-		)
-	}
+	private fun AppSettings.toSearchKey(screenInfo: ScreenInfo) = SearchKey(
+		keywords = keywords,
+		categories = categories.toBitString(),
+		purity = purity.toBitString(),
+		ratios = screenInfo.aspectRatio,
+		atleast = if (avoidBlurryWallpapers) {
+			"${screenInfo.width}x${screenInfo.height}"
+		} else {
+			null
+		},
+		colors = filterColor.ifBlank { null },
+		apiKey = apiKey.ifBlank { null },
+		sorting = sorting,
+		toplistRange = if (sorting == Sorting.TOPLIST) {
+			toplistRange.apiValue
+		} else {
+			null
+		}
+	)
 
 	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>): Result<Wallpaper> = mutex.withLock {
 		val key = settings.toSearchKey(screenInfo)
@@ -93,7 +83,7 @@ class WallhavenProvider @Inject constructor(private val wallhavenApiService: Wal
 	 * than giving up. A genuinely empty page (no results at all) stops immediately, and an all-blocked
 	 * search is bounded so it can't loop forever before falling back to NoResults.
 	 */
-	private suspend fun selectNext(key: SearchKey, blockedIds: Set<String>): WallpaperDto? {
+	private suspend fun selectNext(key: SearchKey, blockedIds: Set<String>): WallhavenWallpaperDto? {
 		val maxBlockedPageRefetches = 5
 		var refetches = 0
 

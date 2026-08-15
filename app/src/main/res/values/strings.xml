@@ -14,10 +14,13 @@
 	<string name="settings_tab_content">Content</string>
 	<string name="settings_tab_schedule">Schedule</string>
 	<string name="settings_tab_advanced">Advanced</string>
+	<string name="settings_label_sources">SOURCES</string>
 	<string name="settings_label_search_query">SEARCH QUERY (OPTIONAL)</string>
 	<string name="settings_placeholder_search_query">e.g. milky way, mountains</string>
 	<string name="settings_label_categories">CATEGORIES</string>
 	<string name="settings_label_content_rating">CONTENT RATING</string>
+	<string name="settings_label_license">LICENSE</string>
+	<string name="settings_hint_license">Openverse indexes images hosted elsewhere; this limits which licenses are accepted</string>
 	<string name="settings_label_filter_color">COLOR FILTER (OPTIONAL)</string>
 	<string name="settings_hint_filter_color">Leave blank to skip color filtering</string>
 	<string name="settings_placeholder_filter_color">e.g. ff0000 or ff0000,0066cc</string>
@@ -57,7 +60,8 @@
 	<string name="settings_subtitle_pool_size">Wallpapers kept on device and shown in gallery (excludes pinned)</string>
 	<string name="settings_label_api_key">API KEY (OPTIONAL, REQUIRED FOR NSFW)</string>
 	<string name="settings_placeholder_api_key">Your Wallhaven API key</string>
-	<string name="settings_powered_by">Powered by wallhaven.cc</string>
+	<string name="settings_powered_by_wallhaven">Powered by wallhaven.cc</string>
+	<string name="settings_powered_by_openverse">Made using Openverse — not endorsed or certified by Openverse</string>
 	<string name="settings_report_bug">Report a bug</string>
 	<string name="category_general">General</string>
 	<string name="category_anime">Anime</string>
@@ -65,6 +69,11 @@
 	<string name="purity_sfw">SFW</string>
 	<string name="purity_sketchy">Sketchy</string>
 	<string name="purity_nsfw">NSFW</string>
+	<string name="source_wallhaven">Wallhaven</string>
+	<string name="source_openverse">Openverse</string>
+	<string name="license_public_domain">Public domain</string>
+	<string name="license_permissive">Permissive</string>
+	<string name="license_any_commercial">Any commercial use</string>
 	<string name="error_no_results">⚠ No results — try relaxing your filters</string>
 	<string name="error_no_results_hint">⚠ No results — try relaxing your filters, or remove the API key if you don\'t need NSFW wallpapers</string>
 	<string name="error_api_error">⚠ API error %d</string>
@@ -89,7 +98,7 @@
 	<string name="blocklist_empty">Nothing blocked yet. Block a wallpaper from its preview to hide it from future rotations.</string>
 	<string name="blocklist_unblock">Unblock</string>
 	<string name="blocklist_reveal">Reveal thumbnail</string>
-	<string name="blocklist_open_hint">Tap ID to view on wallhaven.cc</string>
+	<string name="blocklist_open_hint">Tap an ID to view its page</string>
 	<string name="settings_unit_min">%d min</string>
 	<string name="settings_unit_hr_single">1 hr</string>
 	<string name="settings_unit_hr_plural">%d hr</string>

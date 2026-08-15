@@ -9,9 +9,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import xyz.attacktive.wallhavend.data.api.WallhavenApiService
-import xyz.attacktive.wallhavend.data.api.dto.MetaDto
-import xyz.attacktive.wallhavend.data.api.dto.SearchResponseDto
-import xyz.attacktive.wallhavend.data.api.dto.WallpaperDto
+import xyz.attacktive.wallhavend.data.api.dto.WallhavenMetaDto
+import xyz.attacktive.wallhavend.data.api.dto.WallhavenSearchResponseDto
+import xyz.attacktive.wallhavend.data.api.dto.WallhavenWallpaperDto
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
@@ -27,9 +27,9 @@ class WallhavenProviderTest {
 	private val portraitScreen = ScreenInfo("9x16", 1080, 2400)
 	private val landscapeScreen = ScreenInfo("16x9", 2400, 1080)
 
-	private fun makeDto(id: String) = WallpaperDto(id, "https://wallhaven.cc/$id", "https://cdn/w/$id.jpg", "1920x1080")
+	private fun makeDto(id: String) = WallhavenWallpaperDto(id, "https://cdn/w/$id.jpg", "1920x1080")
 
-	private fun makePage(count: Int, currentPage: Int = 1, lastPage: Int = 1, idPrefix: String = "w"): SearchResponseDto {
+	private fun makePage(count: Int, currentPage: Int = 1, lastPage: Int = 1, idPrefix: String = "w"): WallhavenSearchResponseDto {
 		val data = (1..count)
 			.map {
 				val id = if (currentPage == 1 && lastPage == 1) {
@@ -41,7 +41,7 @@ class WallhavenProviderTest {
 				makeDto(id)
 			}
 
-		return SearchResponseDto(data, MetaDto(currentPage, lastPage, 24, count))
+		return WallhavenSearchResponseDto(data, WallhavenMetaDto(currentPage, lastPage, 24, count))
 	}
 
 	@Before

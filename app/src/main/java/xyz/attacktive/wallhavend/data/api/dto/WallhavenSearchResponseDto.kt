@@ -6,11 +6,11 @@ import android.annotation.SuppressLint
 
 @SuppressLint("UnsafeOptInUsageError")
 @Serializable
-data class SearchResponseDto(val data: List<WallpaperDto>, val meta: MetaDto)
+data class WallhavenSearchResponseDto(val data: List<WallhavenWallpaperDto>, val meta: WallhavenMetaDto)
 
 @SuppressLint("UnsafeOptInUsageError")
 @Serializable
-data class MetaDto(
+data class WallhavenMetaDto(
 	@SerialName("current_page") val currentPage: Int,
 	@SerialName("last_page") val lastPage: Int,
 	@SerialName("per_page") val perPage: Int,

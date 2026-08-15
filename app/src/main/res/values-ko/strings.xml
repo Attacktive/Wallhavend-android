@@ -14,10 +14,13 @@
 	<string name="settings_tab_content">콘텐츠</string>
 	<string name="settings_tab_schedule">일정</string>
 	<string name="settings_tab_advanced">고급</string>
+	<string name="settings_label_sources">소스</string>
 	<string name="settings_label_search_query">검색어 (선택 사항)</string>
 	<string name="settings_placeholder_search_query">예: milky way, mountains</string>
 	<string name="settings_label_categories">카테고리</string>
 	<string name="settings_label_content_rating">콘텐츠 등급</string>
+	<string name="settings_label_license">라이선스</string>
+	<string name="settings_hint_license">Openverse는 다른 사이트에 있는 이미지를 검색합니다. 허용할 라이선스를 제한합니다</string>
 	<string name="settings_label_filter_color">색상 필터 (선택 사항)</string>
 	<string name="settings_hint_filter_color">색상 필터링을 건너뛰려면 비워 두세요</string>
 	<string name="settings_placeholder_filter_color">예: ff0000 또는 ff0000,0066cc</string>
@@ -57,7 +60,8 @@
 	<string name="settings_subtitle_pool_size">기기에 보관되고 갤러리에 표시되는 배경화면 수 (고정된 항목 제외)</string>
 	<string name="settings_label_api_key">API 키 (선택 사항, NSFW 필수)</string>
 	<string name="settings_placeholder_api_key">Wallhaven API 키</string>
-	<string name="settings_powered_by">Powered by wallhaven.cc</string>
+	<string name="settings_powered_by_wallhaven">Powered by wallhaven.cc</string>
+	<string name="settings_powered_by_openverse">Openverse 사용 — Openverse의 보증이나 인증을 받지 않았습니다</string>
 	<string name="settings_report_bug">버그 보고</string>
 	<string name="category_general">일반</string>
 	<string name="category_anime">애니메이션</string>
@@ -65,6 +69,11 @@
 	<string name="purity_sfw">SFW</string>
 	<string name="purity_sketchy">Sketchy</string>
 	<string name="purity_nsfw">NSFW</string>
+	<string name="source_wallhaven">Wallhaven</string>
+	<string name="source_openverse">Openverse</string>
+	<string name="license_public_domain">퍼블릭 도메인</string>
+	<string name="license_permissive">관대한 라이선스</string>
+	<string name="license_any_commercial">상업적 이용 가능</string>
 	<string name="error_no_results">⚠ 결과가 없습니다 — 필터를 완화해 보세요</string>
 	<string name="error_no_results_hint">⚠ 결과가 없습니다 — 필터를 완화하거나, NSFW 배경화면이 필요하지 않은 경우 API 키를 제거해 보세요</string>
 	<string name="error_api_error">⚠ API 오류 %d</string>
@@ -89,7 +98,7 @@
 	<string name="blocklist_empty">아직 차단한 항목이 없습니다. 미리보기에서 배경화면을 차단하면 이후 순환에서 숨겨집니다.</string>
 	<string name="blocklist_unblock">차단 해제</string>
 	<string name="blocklist_reveal">썸네일 표시</string>
-	<string name="blocklist_open_hint">ID를 탭하여 wallhaven.cc에서 보기</string>
+	<string name="blocklist_open_hint">ID를 탭하여 해당 페이지 보기</string>
 	<string name="settings_unit_min">%d분</string>
 	<string name="settings_unit_hr_single">1시간</string>
 	<string name="settings_unit_hr_plural">%d시간</string>

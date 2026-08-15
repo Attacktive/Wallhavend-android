@@ -12,7 +12,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 /**
- * Blends every registered source into one rotation.
+ * Blends every enabled source into one rotation.
  * Sources are tried in random order so none of them dominates, and one that fails to search or to download hands over to the next instead of failing the whole update — only an all-sources-failed run surfaces an error.
  */
 @Singleton
@@ -23,7 +23,10 @@ class WallpaperRepository @Inject constructor(
 	suspend fun next(settings: AppSettings, screenInfo: ScreenInfo): Result<Pair<Wallpaper, File>> {
 		val failures = mutableListOf<Throwable>()
 
-		for (provider in providers.shuffled()) {
+		val enabledProviders = providers.filter { it.source in settings.enabledSources }
+			.shuffled()
+
+		for (provider in enabledProviders) {
 			val blockedIds = blockedIdsFor(provider.source, settings.blockedIds)
 
 			val attempt = provider.next(settings, screenInfo, blockedIds)

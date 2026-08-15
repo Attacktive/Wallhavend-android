@@ -47,6 +47,7 @@ import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
@@ -168,8 +169,8 @@ class WallpaperService: Service() {
 
 	private fun onFetchError(throwable: Throwable, settings: AppSettings) {
 		val error = when (throwable) {
-			// Wallhaven server bug: certain ratios yield zero results when an API key is present
-			is NoResultsException -> if (settings.apiKey.isNotBlank()) {
+			// The hint only makes sense for Wallhaven: it's the Wallhaven server that yields zero results on certain ratios when an API key is present.
+			is NoResultsException -> if (WallpaperSource.WALLHAVEN in settings.enabledSources && settings.apiKey.isNotBlank()) {
 				AppError.NoResultsWithRatioHint
 			} else {
 				AppError.NoResults

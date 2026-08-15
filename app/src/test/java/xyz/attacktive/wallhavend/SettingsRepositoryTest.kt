@@ -25,6 +25,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
+import xyz.attacktive.wallhavend.domain.model.query.LicenseFilter
 import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
@@ -58,6 +59,49 @@ class SettingsRepositoryTest {
 		assertEquals(setOf(Purity.SFW), settings.purity)
 		assertEquals(Sorting.RANDOM, settings.sorting)
 		assertEquals(ToplistRange.ONE_MONTH, settings.toplistRange)
+		assertEquals(setOf(WallpaperSource.WALLHAVEN), settings.enabledSources)
+		assertEquals(LicenseFilter.PUBLIC_DOMAIN, settings.licenseFilter)
+	}
+
+	@Test
+	fun `an install that predates a second source keeps rotating Wallhaven alone`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("legacy_sources.preferences_pb") }
+		)
+
+		dataStore.edit { prefs -> prefs[stringPreferencesKey("search_query")] = "mountains" }
+
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
+
+		assertEquals(setOf(WallpaperSource.WALLHAVEN), repository.settings.first().enabledSources)
+	}
+
+	@Test
+	fun `enabled sources and the licence tier round-trip`() = runTest {
+		val repository = createRepository()
+		val bothSources = setOf(WallpaperSource.WALLHAVEN, WallpaperSource.OPENVERSE)
+
+		repository.save(AppSettings(searchQuery = "marker", enabledSources = bothSources, licenseFilter = LicenseFilter.ANY_COMMERCIAL))
+
+		val loaded = repository.settings.first { it.searchQuery == "marker" }
+
+		assertEquals(bothSources, loaded.enabledSources)
+		assertEquals(LicenseFilter.ANY_COMMERCIAL, loaded.licenseFilter)
+	}
+
+	@Test
+	fun `a stored source that no longer exists falls back rather than emptying the rotation`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("unknown_source.preferences_pb") }
+		)
+
+		dataStore.edit { prefs -> prefs[stringSetPreferencesKey("enabled_sources")] = setOf("someday") }
+
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
+
+		assertEquals(setOf(WallpaperSource.WALLHAVEN), repository.settings.first().enabledSources)
 	}
 
 	@Test

@@ -2,7 +2,7 @@ package xyz.attacktive.wallhavend.data.api
 
 import retrofit2.http.GET
 import retrofit2.http.Query
-import xyz.attacktive.wallhavend.data.api.dto.SearchResponseDto
+import xyz.attacktive.wallhavend.data.api.dto.WallhavenSearchResponseDto
 
 interface WallhavenApiService {
 	@GET("search")
@@ -18,5 +18,5 @@ interface WallhavenApiService {
 		@Query("page") page: Int?,
 		@Query("colors") colors: String?,
 		@Query("apikey") apiKey: String?
-	): SearchResponseDto
+	): WallhavenSearchResponseDto
 }

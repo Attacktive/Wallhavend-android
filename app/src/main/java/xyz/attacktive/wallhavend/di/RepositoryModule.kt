@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import okhttp3.OkHttpClient
+import xyz.attacktive.wallhavend.domain.repository.OpenverseProvider
 import xyz.attacktive.wallhavend.domain.repository.WallhavenProvider
 import xyz.attacktive.wallhavend.domain.repository.WallpaperProvider
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
@@ -38,4 +39,8 @@ object RepositoryModule {
 	@Provides
 	@IntoSet
 	fun provideWallhavenProvider(wallhavenProvider: WallhavenProvider): WallpaperProvider = wallhavenProvider
+
+	@Provides
+	@IntoSet
+	fun provideOpenverseProvider(openverseProvider: OpenverseProvider): WallpaperProvider = openverseProvider
 }
