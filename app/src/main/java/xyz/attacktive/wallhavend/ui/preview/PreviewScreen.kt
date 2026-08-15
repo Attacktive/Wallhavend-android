@@ -67,6 +67,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import xyz.attacktive.wallhavend.R
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.ui.home.HomeViewModel
 
 @Composable
@@ -92,7 +93,13 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 
 	// Seed the pager at the tapped wallpaper once, when the pool is first available.
 	val initialPage = remember {
-		state.poolPaths.indexOfFirst { File(it).nameWithoutExtension == id }
+		val identity = WallpaperIdentity.parse(id)
+
+		state.poolPaths.indexOfFirst { path ->
+			val pathIdentity = WallpaperIdentity.parse(File(path).nameWithoutExtension)
+
+			pathIdentity == identity
+		}
 	}
 
 	// The tapped id is gone from a loaded pool (e.g. a stale deep-link); leave for the grid.
@@ -111,7 +118,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 	val pagerState = rememberPagerState(initialPage = initialPage) { state.poolPaths.size }
 	val currentPage = pagerState.currentPage.coerceIn(0, state.poolPaths.lastIndex)
 	val currentPath = state.poolPaths[currentPage]
-	val currentId = File(currentPath).nameWithoutExtension
+	val currentIdentity = WallpaperIdentity.parse(File(currentPath).nameWithoutExtension)
 
 	val writePermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
 		if (granted) {
@@ -141,9 +148,9 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 	}
 
 	val caption = if (resolution != null) {
-		"$currentId ($resolution)"
+		"${currentIdentity.id} ($resolution)"
 	} else {
-		currentId
+		currentIdentity.id
 	}
 
 	val scope = rememberCoroutineScope()
@@ -238,7 +245,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					}
 				)
 
-				val isPinned = currentId in pinnedIds
+				val isPinned = currentIdentity.matches(pinnedIds)
 
 				PreviewAction(
 					icon = if (isPinned) {
@@ -247,7 +254,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 						Icons.Outlined.PushPinOutlined
 					},
 					label = stringResource(if (isPinned) { R.string.preview_action_unpin } else { R.string.preview_action_pin }),
-					onClick = { viewModel.togglePin(currentId) }
+					onClick = { viewModel.togglePin(currentIdentity) }
 				)
 
 				PreviewAction(
@@ -271,14 +278,14 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 				PreviewAction(
 					icon = Icons.Default.Block,
 					label = stringResource(R.string.preview_action_block),
-					onClick = { evictAndAdvance { viewModel.blockFromPool(currentId, currentPath) } }
+					onClick = { evictAndAdvance { viewModel.blockFromPool(currentIdentity, currentPath) } }
 				)
 
 				PreviewAction(
 					icon = Icons.Default.OpenInBrowser,
 					label = stringResource(R.string.preview_action_open_in_browser),
 					onClick = {
-						val intent = Intent(Intent.ACTION_VIEW, "https://wallhaven.cc/w/$currentId".toUri())
+						val intent = Intent(Intent.ACTION_VIEW, currentIdentity.pageUrl.toUri())
 						context.startActivity(intent)
 					}
 				)

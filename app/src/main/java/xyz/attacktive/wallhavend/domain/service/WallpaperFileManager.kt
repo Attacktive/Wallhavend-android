@@ -5,8 +5,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 
 class WallpaperFileManager(private val wallpaperDir: File, private val okHttpClient: OkHttpClient) {
 	private val dir: File get() = wallpaperDir.also { it.mkdirs() }
@@ -22,12 +24,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 				.use { response ->
 					check(response.isSuccessful) { "HTTP ${response.code}" }
 
-					val contentType = response.body.contentType().toString()
-					if (!contentType.contains("image/jpeg") && !contentType.contains("image/png")) {
-						throw UnsupportedFormatException(contentType)
-					}
-
-					val file = File(dir, "${wallpaper.id}.${wallpaper.fileExtension}")
+					val file = File(dir, wallpaper.identity.toFileName(response.imageExtension()))
 
 					response.body
 						.byteStream()
@@ -43,7 +40,11 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 	fun listAll() = sortedFiles()
 
 	fun trimToSize(maxSize: Int, pinnedIds: Set<String> = emptySet()): List<File> {
-		val (pinned, rotating) = sortedFiles().partition { it.nameWithoutExtension in pinnedIds }
+		val (pinned, rotating) = sortedFiles()
+			.partition {
+				WallpaperIdentity.parse(it.nameWithoutExtension)
+					.matches(pinnedIds)
+			}
 
 		rotating.drop(maxSize)
 			.forEach { it.delete() }
@@ -55,4 +56,18 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 		dir.listFiles()
 			?.sortedByDescending { it.lastModified() }
 			?: emptyList()
+}
+
+/**
+ * The extension names what the server actually sent rather than what the search metadata claimed.
+ * Not every source reports a file type — Openverse leaves it null on most results — and the bytes are the reliable answer regardless.
+ */
+private fun Response.imageExtension(): String {
+	val contentType = body.contentType().toString()
+
+	return when {
+		contentType.contains("image/jpeg") -> "jpg"
+		contentType.contains("image/png") -> "png"
+		else -> throw UnsupportedFormatException(contentType)
+	}
 }

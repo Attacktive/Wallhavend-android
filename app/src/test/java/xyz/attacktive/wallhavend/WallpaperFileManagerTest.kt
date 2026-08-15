@@ -13,7 +13,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 class WallpaperFileManagerTest {
@@ -34,17 +37,43 @@ class WallpaperFileManagerTest {
 		server.shutdown()
 	}
 
+	private fun makeWallpaper(id: String, path: String) = Wallpaper(
+		identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id),
+		pageUrl = "https://wallhaven.cc/w/$id",
+		directUrl = server.url(path).toString(),
+		resolution = "1920x1080"
+	)
+
 	@Test
-	fun `download saves file with correct name`() = runTest {
+	fun `download names the file after the source-qualified id`() = runTest {
 		val body = Buffer().write(ByteArray(100) { it.toByte() })
 		server.enqueue(MockResponse().setBody(body).addHeader("Content-Type", "image/jpeg"))
 
-		val wallpaper = Wallpaper("abc123", "https://example.com", server.url("/abc.jpg").toString(), "1920x1080", "image/jpeg")
-		val result = manager.download(wallpaper)
+		val result = manager.download(makeWallpaper("abc123", "/abc.jpg"))
 
 		assertTrue(result.isSuccess)
-		assertEquals("abc123.jpg", result.getOrNull()?.name)
+		assertEquals("wallhaven_abc123.jpg", result.getOrNull()?.name)
 		assertTrue(result.getOrNull()?.exists() == true)
+	}
+
+	@Test
+	fun `the extension comes from what the server sent, not from the url`() = runTest {
+		val body = Buffer().write(ByteArray(100) { it.toByte() })
+		server.enqueue(MockResponse().setBody(body).addHeader("Content-Type", "image/png"))
+
+		val result = manager.download(makeWallpaper("abc123", "/abc"))
+
+		assertEquals("wallhaven_abc123.png", result.getOrNull()?.name)
+	}
+
+	@Test
+	fun `download rejects a body that is not a jpeg or a png`() = runTest {
+		val body = Buffer().write(ByteArray(100) { it.toByte() })
+		server.enqueue(MockResponse().setBody(body).addHeader("Content-Type", "image/gif"))
+
+		val result = manager.download(makeWallpaper("abc123", "/abc.gif"))
+
+		assertTrue(result.exceptionOrNull() is UnsupportedFormatException)
 	}
 
 	@Test
@@ -132,6 +161,22 @@ class WallpaperFileManagerTest {
 
 		assertEquals(listOf("pin.jpg"), kept.map { it.name })
 		assertTrue(pinned.exists())
+		assertTrue(!rotating.exists())
+	}
+
+	@Test
+	fun `trimToSize keeps a file pinned under either spelling of its id`() {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val legacy = File(wallpapersDir, "legacy.jpg").also { it.writeText("data") }
+		val qualified = File(wallpapersDir, "wallhaven_fresh.jpg").also { it.writeText("data") }
+		val rotating = File(wallpapersDir, "wallhaven_rot.jpg").also { it.writeText("data") }
+
+		// A pin made before wallpapers were qualified is bare; one made after is qualified. Both must hold.
+		val kept = manager.trimToSize(0, setOf("legacy", "wallhaven_fresh"))
+
+		assertEquals(setOf("legacy.jpg", "wallhaven_fresh.jpg"), kept.map { it.name }.toSet())
+		assertTrue(legacy.exists())
+		assertTrue(qualified.exists())
 		assertTrue(!rotating.exists())
 	}
 

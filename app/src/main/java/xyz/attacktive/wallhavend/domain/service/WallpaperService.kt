@@ -46,11 +46,12 @@ import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
-import xyz.attacktive.wallhavend.domain.repository.WallhavenRepository
+import xyz.attacktive.wallhavend.domain.repository.WallpaperRepository
 
 @AndroidEntryPoint
 class WallpaperService: Service() {
@@ -58,7 +59,7 @@ class WallpaperService: Service() {
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var wallhavenRepository: WallhavenRepository
+	lateinit var wallpaperRepository: WallpaperRepository
 
 	@Inject
 	lateinit var fileManager: WallpaperFileManager
@@ -131,7 +132,7 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun handleOnlineUpdate(settings: AppSettings) {
-		wallhavenRepository.next(settings, screenInfo())
+		wallpaperRepository.next(settings, screenInfo())
 			.fold(
 				onSuccess = { (_, file) -> onWallpaperFetched(file, settings) },
 				onFailure = { throwable -> onFetchError(throwable, settings) }
@@ -191,7 +192,10 @@ class WallpaperService: Service() {
 
 	private suspend fun cyclePinnedOnly(settings: AppSettings) {
 		val pool = fileManager.listAll()
-			.filter { it.nameWithoutExtension in settings.pinnedIds }
+			.filter {
+				WallpaperIdentity.parse(it.nameWithoutExtension)
+					.matches(settings.pinnedIds)
+			}
 			.reversed()
 			.map { it.absolutePath }
 

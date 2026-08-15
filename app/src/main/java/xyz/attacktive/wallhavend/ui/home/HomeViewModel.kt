@@ -23,6 +23,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ServiceState
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
@@ -93,12 +94,12 @@ class HomeViewModel @Inject constructor(
 		WallpaperService.applyPath(context, path)
 	}
 
-	fun togglePin(id: String) {
+	fun togglePin(identity: WallpaperIdentity) {
 		viewModelScope.launch(Dispatchers.IO) {
-			if (id in pinnedIds.value) {
-				settingsRepository.unpin(id)
+			if (identity.matches(pinnedIds.value)) {
+				settingsRepository.unpin(identity)
 			} else {
-				settingsRepository.pin(id)
+				settingsRepository.pin(identity)
 			}
 		}
 	}
@@ -109,10 +110,10 @@ class HomeViewModel @Inject constructor(
 		}
 	}
 
-	fun blockFromPool(id: String, path: String) {
+	fun blockFromPool(identity: WallpaperIdentity, path: String) {
 		viewModelScope.launch(Dispatchers.IO) {
 			val currentBeforeBlock = stateRepository.state.value.currentWallpaperPath
-			settingsRepository.block(id)
+			settingsRepository.block(identity)
 			evictFromPool(path)
 
 			when (val replacement = blockReplacement(path, currentBeforeBlock, stateRepository.state.value.poolPaths)) {
@@ -125,7 +126,7 @@ class HomeViewModel @Inject constructor(
 
 	private suspend fun evictFromPool(path: String) {
 		val file = File(path)
-		settingsRepository.unpin(file.nameWithoutExtension)
+		settingsRepository.unpin(WallpaperIdentity.parse(file.nameWithoutExtension))
 		file.delete()
 
 		val state = stateRepository.state.value

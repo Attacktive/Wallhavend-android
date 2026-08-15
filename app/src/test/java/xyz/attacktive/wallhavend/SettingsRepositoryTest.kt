@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -20,6 +21,8 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.Purity
@@ -30,6 +33,8 @@ import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 class SettingsRepositoryTest {
 	@get:Rule
 	val tmpFolder = TemporaryFolder()
+
+	private fun wallhaven(id: String) = WallpaperIdentity(WallpaperSource.WALLHAVEN, id)
 
 	private fun TestScope.createRepository(): SettingsRepository {
 		val dataStore = PreferenceDataStoreFactory.create(
@@ -169,17 +174,17 @@ class SettingsRepositoryTest {
 		val repository = createRepository()
 		assertTrue(repository.settings.first().pinnedIds.isEmpty())
 
-		repository.pin("abc123")
-		repository.pin("def456")
-		assertEquals(setOf("abc123", "def456"), repository.settings.first { it.pinnedIds.size == 2 }.pinnedIds)
+		repository.pin(wallhaven("abc123"))
+		repository.pin(wallhaven("def456"))
+		assertEquals(setOf("wallhaven_abc123", "wallhaven_def456"), repository.settings.first { it.pinnedIds.size == 2 }.pinnedIds)
 
 		repository.save(AppSettings(searchQuery = "marker"))
 
 		val afterSave = repository.settings.first { it.searchQuery == "marker" }
-		assertEquals(setOf("abc123", "def456"), afterSave.pinnedIds)
+		assertEquals(setOf("wallhaven_abc123", "wallhaven_def456"), afterSave.pinnedIds)
 
-		repository.unpin("abc123")
-		assertEquals(setOf("def456"), repository.settings.first { it.pinnedIds == setOf("def456") }.pinnedIds)
+		repository.unpin(wallhaven("abc123"))
+		assertEquals(setOf("wallhaven_def456"), repository.settings.first { it.pinnedIds == setOf("wallhaven_def456") }.pinnedIds)
 	}
 
 	@Test
@@ -187,17 +192,47 @@ class SettingsRepositoryTest {
 		val repository = createRepository()
 		assertTrue(repository.settings.first().blockedIds.isEmpty())
 
-		repository.block("abc123")
-		repository.block("def456")
-		assertEquals(setOf("abc123", "def456"), repository.settings.first { it.blockedIds.size == 2 }.blockedIds)
+		repository.block(wallhaven("abc123"))
+		repository.block(wallhaven("def456"))
+		assertEquals(setOf("wallhaven_abc123", "wallhaven_def456"), repository.settings.first { it.blockedIds.size == 2 }.blockedIds)
 
 		repository.save(AppSettings(searchQuery = "marker"))
 
 		val afterSave = repository.settings.first { it.searchQuery == "marker" }
-		assertEquals(setOf("abc123", "def456"), afterSave.blockedIds)
+		assertEquals(setOf("wallhaven_abc123", "wallhaven_def456"), afterSave.blockedIds)
 
-		repository.unblock("abc123")
-		assertEquals(setOf("def456"), repository.settings.first { it.blockedIds == setOf("def456") }.blockedIds)
+		repository.unblock(wallhaven("abc123"))
+		assertEquals(setOf("wallhaven_def456"), repository.settings.first { it.blockedIds == setOf("wallhaven_def456") }.blockedIds)
+	}
+
+	@Test
+	fun `unpinning clears a pin stored before wallpapers carried a source`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("legacy_pins.preferences_pb") }
+		)
+
+		dataStore.edit { prefs -> prefs[stringSetPreferencesKey("pinned_ids")] = setOf("abc123") }
+
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
+		repository.unpin(wallhaven("abc123"))
+
+		assertTrue(repository.settings.first { it.pinnedIds.isEmpty() }.pinnedIds.isEmpty())
+	}
+
+	@Test
+	fun `unblocking clears a block stored before wallpapers carried a source`() = runTest {
+		val dataStore = PreferenceDataStoreFactory.create(
+			scope = backgroundScope,
+			produceFile = { tmpFolder.newFile("legacy_blocks.preferences_pb") }
+		)
+
+		dataStore.edit { prefs -> prefs[stringSetPreferencesKey("blocked_ids")] = setOf("abc123") }
+
+		val repository = SettingsRepository(dataStore, FakeAppLogger())
+		repository.unblock(wallhaven("abc123"))
+
+		assertTrue(repository.settings.first { it.blockedIds.isEmpty() }.blockedIds.isEmpty())
 	}
 
 	@Test

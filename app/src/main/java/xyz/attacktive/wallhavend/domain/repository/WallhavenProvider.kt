@@ -1,6 +1,5 @@
 package xyz.attacktive.wallhavend.domain.repository
 
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.async
@@ -15,12 +14,14 @@ import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.toBitString
-import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 @Singleton
-class WallhavenRepository @Inject constructor(private val wallhavenApiService: WallhavenApiService, private val fileManager: WallpaperFileManager) {
+class WallhavenProvider @Inject constructor(private val wallhavenApiService: WallhavenApiService): WallpaperProvider {
+	override val source = WallpaperSource.WALLHAVEN
+
 	private val mutex = Mutex()
 	private var cache = ArrayDeque<WallpaperDto>()
 	private var cacheKey: SearchKey? = null
@@ -70,7 +71,7 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 		)
 	}
 
-	suspend fun next(settings: AppSettings, screenInfo: ScreenInfo): Result<Pair<Wallpaper, File>> = mutex.withLock {
+	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>): Result<Wallpaper> = mutex.withLock {
 		val key = settings.toSearchKey(screenInfo)
 		if (key != cacheKey) {
 			cache.clear()
@@ -79,14 +80,11 @@ class WallhavenRepository @Inject constructor(private val wallhavenApiService: W
 			lastPage = 1
 		}
 
-		val selection = runCatching { selectNext(key, settings.blockedIds) }
+		val selection = runCatching { selectNext(key, blockedIds) }
 		val dto = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
 			?: return@withLock Result.failure(NoResultsException())
 
-		val wallpaper = dto.toDomain()
-
-		fileManager.download(wallpaper)
-			.map { file -> Pair(wallpaper, file) }
+		Result.success(dto.toDomain())
 	}
 
 	/*

@@ -40,11 +40,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import xyz.attacktive.wallhavend.R
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = hiltViewModel()) {
-	val blockedIds by viewModel.blockedIds.collectAsStateWithLifecycle()
+	val blockedWallpapers by viewModel.blockedWallpapers.collectAsStateWithLifecycle()
 
 	Scaffold(
 		topBar = {
@@ -58,7 +59,7 @@ fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = 
 			)
 		}
 	) { padding ->
-		if (blockedIds.isEmpty()) {
+		if (blockedWallpapers.isEmpty()) {
 			Box(
 				contentAlignment = Alignment.Center,
 				modifier = Modifier
@@ -80,15 +81,15 @@ fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = 
 			.fillMaxSize()
 			.padding(padding)
 		) {
-			items(blockedIds, key = { it }) { id ->
-				BlockedRow(id = id, onUnblock = { viewModel.unblock(id) })
+			items(blockedWallpapers, key = { it.qualified }) { identity ->
+				BlockedRow(identity = identity, onUnblock = { viewModel.unblock(identity) })
 			}
 		}
 	}
 }
 
 @Composable
-private fun BlockedRow(id: String, onUnblock: () -> Unit) {
+private fun BlockedRow(identity: WallpaperIdentity, onUnblock: () -> Unit) {
 	val uriHandler = LocalUriHandler.current
 
 	Row(
@@ -97,7 +98,7 @@ private fun BlockedRow(id: String, onUnblock: () -> Unit) {
 			.fillMaxWidth()
 			.padding(horizontal = 16.dp, vertical = 8.dp)
 	) {
-		RevealableThumbnail(id = id)
+		RevealableThumbnail(identity = identity)
 
 		Column(
 			modifier = Modifier
@@ -105,11 +106,11 @@ private fun BlockedRow(id: String, onUnblock: () -> Unit) {
 				.padding(start = 16.dp)
 		) {
 			Text(
-				text = id,
+				text = identity.id,
 				style = MaterialTheme.typography.bodyLarge,
 				color = MaterialTheme.colorScheme.primary,
 				textDecoration = TextDecoration.Underline,
-				modifier = Modifier.clickable { uriHandler.openUri("https://wallhaven.cc/w/$id") }
+				modifier = Modifier.clickable { uriHandler.openUri(identity.pageUrl) }
 			)
 
 			Text(
@@ -130,8 +131,8 @@ private fun BlockedRow(id: String, onUnblock: () -> Unit) {
  * user chose to be rid of. The thumbnail loads from the network only after an explicit tap.
  */
 @Composable
-private fun RevealableThumbnail(id: String) {
-	var revealed by remember(id) { mutableStateOf(false) }
+private fun RevealableThumbnail(identity: WallpaperIdentity) {
+	var revealed by remember(identity) { mutableStateOf(false) }
 
 	Box(
 		contentAlignment = Alignment.Center,
@@ -143,7 +144,7 @@ private fun RevealableThumbnail(id: String) {
 	) {
 		if (revealed) {
 			AsyncImage(
-				model = "https://th.wallhaven.cc/lg/${id.take(2)}/$id.jpg",
+				model = identity.thumbnailUrl,
 				contentDescription = null,
 				contentScale = ContentScale.Crop,
 				modifier = Modifier.fillMaxSize()

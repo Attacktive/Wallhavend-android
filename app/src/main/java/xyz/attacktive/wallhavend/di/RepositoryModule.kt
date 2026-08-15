@@ -11,7 +11,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
 import okhttp3.OkHttpClient
+import xyz.attacktive.wallhavend.domain.repository.WallhavenProvider
+import xyz.attacktive.wallhavend.domain.repository.WallpaperProvider
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 private val Context.dataStore by preferencesDataStore(name = "wallhavend_settings")
@@ -30,4 +33,9 @@ object RepositoryModule {
 
 		return WallpaperFileManager(dir, okHttpClient)
 	}
+
+	/** Every source binds itself into this set, so WallpaperRepository blends whatever is registered without naming any of them. */
+	@Provides
+	@IntoSet
+	fun provideWallhavenProvider(wallhavenProvider: WallhavenProvider): WallpaperProvider = wallhavenProvider
 }

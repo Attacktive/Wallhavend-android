@@ -14,6 +14,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.Purity
@@ -113,29 +114,32 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 	 * The blocklist grows from the preview screen while the settings screen edits its own AppSettings
 	 * copy, so routing it through the whole-object save() would let one path clobber the other's writes.
 	 * These mutators touch only the blocked-ids key, and save() intentionally leaves that key alone.
+	 *
+	 * Ids go in qualified and come out by every form they could have been stored as, so a pin or block
+	 * made before wallpapers carried a source still gets cleared.
 	 */
-	suspend fun block(id: String) {
+	suspend fun block(identity: WallpaperIdentity) {
 		dataStore.edit { preferences ->
-			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) + id
+			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) + identity.qualified
 		}
 	}
 
-	suspend fun unblock(id: String) {
+	suspend fun unblock(identity: WallpaperIdentity) {
 		dataStore.edit { preferences ->
-			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) - id
+			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) - identity.persistedForms
 		}
 	}
 
 	/* Same isolation rationale as block/unblock: the pin set grows from the preview screen, so it gets its own key that save() leaves untouched. */
-	suspend fun pin(id: String) {
+	suspend fun pin(identity: WallpaperIdentity) {
 		dataStore.edit { preferences ->
-			preferences[Keys.PINNED_IDS] = (preferences[Keys.PINNED_IDS] ?: emptySet()) + id
+			preferences[Keys.PINNED_IDS] = (preferences[Keys.PINNED_IDS] ?: emptySet()) + identity.qualified
 		}
 	}
 
-	suspend fun unpin(id: String) {
+	suspend fun unpin(identity: WallpaperIdentity) {
 		dataStore.edit { preferences ->
-			preferences[Keys.PINNED_IDS] = (preferences[Keys.PINNED_IDS] ?: emptySet()) - id
+			preferences[Keys.PINNED_IDS] = (preferences[Keys.PINNED_IDS] ?: emptySet()) - identity.persistedForms
 		}
 	}
 

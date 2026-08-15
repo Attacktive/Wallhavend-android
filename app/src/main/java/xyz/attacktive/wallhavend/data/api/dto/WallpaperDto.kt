@@ -1,24 +1,18 @@
 package xyz.attacktive.wallhavend.data.api.dto
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import android.annotation.SuppressLint
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 
 @SuppressLint("UnsafeOptInUsageError")
 @Serializable
-data class WallpaperDto(
-	val id: String,
-	val url: String,
-	val path: String,
-	val resolution: String,
-	@SerialName("file_type") val fileType: String
-)
+data class WallpaperDto(val id: String, val url: String, val path: String, val resolution: String)
 
 fun WallpaperDto.toDomain() = Wallpaper(
-	id = id,
+	identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id),
 	pageUrl = url,
 	directUrl = path,
-	resolution = resolution,
-	mimeType = fileType
+	resolution = resolution
 )

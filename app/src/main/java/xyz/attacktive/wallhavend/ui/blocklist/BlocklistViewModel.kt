@@ -8,17 +8,22 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 
 @HiltViewModel
 class BlocklistViewModel @Inject constructor(private val settingsRepository: SettingsRepository): ViewModel() {
-	val blockedIds = settingsRepository.settings
-		.map { settings -> settings.blockedIds.sorted() }
+	val blockedWallpapers = settingsRepository.settings
+		.map { settings ->
+			settings.blockedIds
+				.map { WallpaperIdentity.parse(it) }
+				.sortedBy { it.id }
+		}
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-	fun unblock(id: String) {
+	fun unblock(identity: WallpaperIdentity) {
 		viewModelScope.launch {
-			settingsRepository.unblock(id)
+			settingsRepository.unblock(identity)
 		}
 	}
 }

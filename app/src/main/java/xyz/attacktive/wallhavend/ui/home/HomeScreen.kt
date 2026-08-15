@@ -58,6 +58,7 @@ import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ServiceState
+import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -197,7 +198,8 @@ private fun WallpaperGrid(paths: List<String>, currentPath: String?, pinnedIds: 
 	) {
 		items(paths) { path ->
 			val isCurrent = path == currentPath
-			val isPinned = File(path).nameWithoutExtension in pinnedIds
+			val isPinned = WallpaperIdentity.parse(File(path).nameWithoutExtension)
+				.matches(pinnedIds)
 
 			Box(
 				modifier = Modifier
