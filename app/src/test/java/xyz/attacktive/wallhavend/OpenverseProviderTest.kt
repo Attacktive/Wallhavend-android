@@ -61,13 +61,25 @@ class OpenverseProviderTest {
 	}
 
 	@Test
-	fun `an empty result set gives up without another page`() = runTest {
+	fun `a search with nothing anywhere gives up once every source is struck off`() = runTest {
 		everySearch() returns makePage()
 
 		val result = provider.next(AppSettings(), portraitScreen, emptySet())
 
 		assertTrue(result.exceptionOrNull() is NoResultsException)
-		coVerify(exactly = 1) { openverseApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+		coVerify(exactly = SOURCE_COUNT) { openverseApiService.search(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `a source with nothing to offer is struck off rather than ending the search`() = runTest {
+		everySearch() returns makePage()
+		coEvery {
+			openverseApiService.search(any(), any(), "stocksnap", any(), any(), any(), any(), any(), any())
+		} returns makePage(makeImage("survivor"))
+
+		val result = provider.next(AppSettings(), portraitScreen, emptySet())
+
+		assertEquals("survivor", result.getOrNull()?.identity?.id)
 	}
 
 	@Test
@@ -170,12 +182,25 @@ class OpenverseProviderTest {
 	}
 
 	@Test
-	fun `only JPEG and PNG are asked for, and only from the curated sources`() = runTest {
+	fun `only JPEG and PNG are asked for`() = runTest {
 		everySearch() returns makePage(makeImage("w1"))
 
 		provider.next(AppSettings(), portraitScreen, emptySet())
 
-		coVerify { openverseApiService.search(any(), any(), "flickr,wikimedia,nasa,spacex,rawpixel,stocksnap", "jpg,png", any(), any(), any(), any(), any()) }
+		coVerify { openverseApiService.search(any(), any(), any(), "jpg,png", any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `each fetch names a single curated source, and the rotation reaches more than one`() = runTest {
+		val requestedSources = mutableListOf<String>()
+		coEvery {
+			openverseApiService.search(any(), any(), capture(requestedSources), any(), any(), any(), any(), any(), any())
+		} returns makePage(makeImage("w1"))
+
+		repeat(30) { provider.next(AppSettings(), portraitScreen, emptySet()) }
+
+		assertTrue(requestedSources.all { it in CURATED_SOURCES })
+		assertTrue("asking one source at a time is what makes the others reachable", requestedSources.distinct().size > 1)
 	}
 
 	@Test
@@ -268,18 +293,44 @@ class OpenverseProviderTest {
 	}
 
 	@Test
-	fun `the narrowest keyword decides how deep the shared page number may go`() = runTest {
+	fun `a keyword with nothing behind it no longer pins the others to the first page`() = runTest {
 		val requestedPages = mutableListOf<Int>()
 		coEvery {
-			openverseApiService.search("wide", any(), any(), any(), any(), any(), any(), any(), any())
-		} returns makePage(makeImage("w1"), pageCount = 500)
+			openverseApiService.search("barren", any(), any(), any(), any(), any(), any(), any(), any())
+		} returns makePage(pageCount = 0)
 
 		coEvery {
-			openverseApiService.search("narrow", any(), any(), any(), any(), any(), any(), capture(requestedPages), any())
+			openverseApiService.search("plentiful", any(), any(), any(), any(), any(), any(), capture(requestedPages), any())
+		} returns makePage(makeImage("w1"), pageCount = 500)
+
+		repeat(20) { provider.next(AppSettings(searchQuery = "barren, plentiful"), portraitScreen, emptySet()) }
+
+		assertTrue(requestedPages.all { it in 1..12 })
+		assertFalse("a keyword that matches nothing should not bound one that matches plenty", requestedPages.all { it == 1 })
+	}
+
+	@Test
+	fun `a shallow source does not bound how deep a richer one is paged`() = runTest {
+		val shallowPages = mutableListOf<Int>()
+		val deepPages = mutableListOf<Int>()
+		everySearch() returns makePage(makeImage("w1"), pageCount = 500)
+		coEvery {
+			openverseApiService.search(any(), any(), "nasa", any(), any(), any(), any(), capture(shallowPages), any())
 		} returns makePage(makeImage("n1"), pageCount = 2)
 
-		repeat(20) { provider.next(AppSettings(searchQuery = "wide, narrow"), portraitScreen, emptySet()) }
+		coEvery {
+			openverseApiService.search(any(), any(), "stocksnap", any(), any(), any(), any(), capture(deepPages), any())
+		} returns makePage(makeImage("s1"), pageCount = 500)
 
-		assertTrue(requestedPages.all { it in 1..2 })
+		/* Enough draws that the rotation is overwhelmingly likely to have visited both sources several times. */
+		repeat(120) { provider.next(AppSettings(), portraitScreen, emptySet()) }
+
+		assertTrue(shallowPages.all { it in 1..2 })
+		assertFalse("each source's own depth is what bounds it", deepPages.all { it in 1..2 })
+	}
+
+	companion object {
+		private val CURATED_SOURCES = setOf("flickr", "wikimedia", "nasa", "spacex", "rawpixel", "stocksnap")
+		private val SOURCE_COUNT = CURATED_SOURCES.size
 	}
 }

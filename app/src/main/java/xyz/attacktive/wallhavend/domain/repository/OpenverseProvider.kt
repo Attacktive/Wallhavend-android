@@ -25,7 +25,11 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 	private val mutex = Mutex()
 	private var cache = ArrayDeque<OpenverseImageDto>()
 	private var cacheKey: SearchKey? = null
-	private var pageCount: Int? = null
+
+	/** Sources still worth asking for the current search; one that answers with nothing is struck off rather than asked again. */
+	private var liveSources = SOURCES.toMutableSet()
+
+	private var pageCounts = mutableMapOf<PageWindow, Int>()
 
 	private data class SearchKey(
 		val keywords: List<String>,
@@ -36,6 +40,12 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 		val minimumWidth: Int?,
 		val minimumHeight: Int?
 	)
+
+	/**
+	 * The depth cap applies per query, so each keyword and source pairing is its own result window with its own depth.
+	 * Tracking the page count per pairing is what keeps a shallow window from deciding how deep a deep one may go.
+	 */
+	private data class PageWindow(val keyword: String?, val source: String)
 
 	private fun AppSettings.toSearchKey(screenInfo: ScreenInfo) = SearchKey(
 		keywords = keywords,
@@ -65,7 +75,8 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 		if (key != cacheKey) {
 			cache.clear()
 			cacheKey = key
-			pageCount = null
+			liveSources = SOURCES.toMutableSet()
+			pageCounts.clear()
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds) }
@@ -77,10 +88,9 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 
 	/**
 	 * Blocked wallpapers, records without a downloadable URL, and results too small for the screen are dropped after the fetch, so a page can arrive full and still leave nothing to pick.
-	 * That earns another page rather than a "no results"; only a page the API returned empty — or too many fruitless tries — gives up.
+	 * That earns another page rather than a "no results"; only running out of sources — or too many fruitless tries — gives up.
 	 */
 	private suspend fun selectNext(key: SearchKey, blockedIds: Set<String>): OpenverseImageDto? {
-		val maxRefetches = 5
 		var refetches = 0
 
 		while (true) {
@@ -92,35 +102,42 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 				return cache.removeFirst()
 			}
 
-			if (refetches >= maxRefetches) {
+			if (refetches >= MAX_REFETCHES) {
 				return null
 			}
 
-			refetches++
-			val fetchedCount = refetch(key).getOrThrow()
-			if (fetchedCount == 0) {
-				return null
+			val source = liveSources.randomOrNull() ?: return null
+
+			/* An empty answer means this source holds nothing for the search at all, so striking it off costs a try that a source with results shouldn't have to pay for. */
+			if (refetch(key, source).getOrThrow() == 0) {
+				liveSources.remove(source)
+			} else {
+				refetches++
 			}
 		}
 	}
 
-	private suspend fun refetch(key: SearchKey) = runCatching {
+	/**
+	 * One source per fetch, rather than the whole allowlist at once.
+	 * Ranking decides what fits inside a single query's 240, and it favours whichever source indexes the most, so asking for all of them at once buries the rest — a source only becomes reachable by being asked for on its own.
+	 */
+	private suspend fun refetch(key: SearchKey, source: String) = runCatching {
 		val effectiveKeywords: List<String?> = key.keywords.ifEmpty { listOf(null) }
-		val page = pageToFetch()
+		val windows = effectiveKeywords.map { PageWindow(it, source) }
 
 		val responses = coroutineScope {
-			effectiveKeywords
-				.map { keyword ->
+			windows
+				.map { window ->
 					async {
 						openverseApiService.search(
-							query = keyword,
+							query = window.keyword,
 							license = key.license,
-							source = SOURCE_ALLOWLIST,
+							source = window.source,
 							extension = EXTENSIONS,
 							aspectRatio = key.aspectRatio,
 							size = key.size,
 							mature = key.mature,
-							page = page,
+							page = pageToFetch(window),
 							pageSize = PAGE_SIZE
 						)
 					}
@@ -128,8 +145,8 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 				.awaitAll()
 		}
 
-		// The narrowest keyword decides how deep the next page may go, since one page number is shared by the whole fan-out.
-		pageCount = responses.minOf { it.pageCount }
+		windows.zip(responses)
+			.forEach { (window, response) -> pageCounts[window] = response.pageCount }
 
 		val results = responses.flatMap { it.results }
 
@@ -143,11 +160,11 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 
 	/**
 	 * Openverse has no random sort, so variety comes from where in the result set the fetch lands.
-	 * The first fetch has to be page 1 — nothing yet says how many pages there are — and every one after it picks at random within reach.
+	 * The first fetch of a window has to be page 1 — nothing yet says how deep that window goes — and every one after it picks at random within reach.
 	 */
-	private fun pageToFetch(): Int {
-		val knownPageCount = pageCount ?: return 1
-		val reachablePages = minOf(knownPageCount, MAX_DEPTH / PAGE_SIZE)
+	private fun pageToFetch(window: PageWindow): Int {
+		val knownPageCount = pageCounts[window] ?: return 1
+		val reachablePages = minOf(knownPageCount, MAX_PAGES)
 
 		return (1..reachablePages.coerceAtLeast(1)).random()
 	}
@@ -165,18 +182,23 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 	}
 
 	companion object {
-		/** Openverse indexes 52 sources and most are archival — herbarium sheets and scanned postcards make poor wallpapers — so the query names the ones that don't. */
-		private const val SOURCE_ALLOWLIST = "flickr,wikimedia,nasa,spacex,rawpixel,stocksnap"
+		/** Openverse indexes 52 sources and most are archival — herbarium sheets and scanned postcards make poor wallpapers — so the search only ever names one of these. */
+		private val SOURCES = listOf("flickr", "wikimedia", "nasa", "spacex", "rawpixel", "stocksnap")
 
 		/** WallpaperFileManager only accepts JPEG and PNG, so anything else is ruled out server-side instead of downloaded and thrown away. */
 		private const val EXTENSIONS = "jpg,png"
 
 		/**
 		 * Anonymous requests may ask for 20 results at a time and reach 240 results deep.
-		 * An API key would lift both; the app deliberately doesn't carry one.
+		 * An API key lifts only the first: authenticated callers face the same ceiling on total works per query and merely reach it in fewer round trips, so carrying one would buy no extra wallpapers.
+		 * Going deeper needs expanded access, which Openverse grants case by case and can revoke, so the 240 is treated here as a fact about each query rather than a limit to negotiate around.
 		 */
 		private const val PAGE_SIZE = 20
 		private const val MAX_DEPTH = 240
+		private const val MAX_PAGES = MAX_DEPTH / PAGE_SIZE
+
+		/** A page can come back full and still filter down to nothing, so those fetches get a bounded number of retries before the search gives up. */
+		private const val MAX_REFETCHES = 5
 	}
 }
 
