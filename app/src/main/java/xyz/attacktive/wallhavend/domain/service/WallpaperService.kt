@@ -27,10 +27,12 @@ import android.app.Service
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
+import android.hardware.display.DisplayManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.DisplayMetrics
+import android.view.Display
 import android.view.WindowManager
 import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationCompat
@@ -50,6 +52,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
+import xyz.attacktive.wallhavend.domain.model.naturalDimensions
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.repository.WallpaperRepository
@@ -284,12 +287,19 @@ class WallpaperService: Service() {
 	private fun screenInfo(): ScreenInfo {
 		val windowManager = getSystemService(WindowManager::class.java)
 
-		val (width, height) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+		val (measuredWidth, measuredHeight) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 			val bounds = windowManager.currentWindowMetrics.bounds
 			bounds.width() to bounds.height()
 		} else {
 			legacyScreenDimensions(windowManager)
 		}
+
+		// DisplayManager is the one rotation source that works from a service context on every supported API level; Context.getDisplay() rejects non-visual contexts like this one and WindowManager.defaultDisplay is deprecated.
+		val rotation = getSystemService(DisplayManager::class.java)
+			.getDisplay(Display.DEFAULT_DISPLAY)
+			.rotation
+
+		val (width, height) = naturalDimensions(measuredWidth, measuredHeight, rotation)
 
 		return ScreenInfo(closestAspectRatio(width, height), width, height)
 	}
