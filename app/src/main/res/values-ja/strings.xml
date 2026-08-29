@@ -19,6 +19,7 @@
 	<string name="settings_placeholder_search_query">例: milky way, mountains</string>
 	<string name="settings_label_categories">カテゴリ</string>
 	<string name="settings_label_content_rating">コンテンツ評価</string>
+	<string name="settings_hint_content_rating">Openverse は NSFW のみを参照します。SFW と Sketchy は Wallhaven に適用されます</string>
 	<string name="settings_label_license">ライセンス</string>
 	<string name="settings_hint_license">Openverse は他サイトにある画像を検索します。ここで許可するライセンスを絞り込めます</string>
 	<string name="settings_label_filter_color">カラーフィルター (任意)</string>

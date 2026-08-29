@@ -19,6 +19,7 @@
 	<string name="settings_placeholder_search_query">z.B. milky way, mountains</string>
 	<string name="settings_label_categories">KATEGORIEN</string>
 	<string name="settings_label_content_rating">CONTENT-RATING</string>
+	<string name="settings_hint_content_rating">Openverse liest nur NSFW; SFW und Sketchy gelten für Wallhaven</string>
 	<string name="settings_label_license">LIZENZ</string>
 	<string name="settings_hint_license">Openverse indexiert Bilder, die anderswo liegen; dies begrenzt die akzeptierten Lizenzen</string>
 	<string name="settings_label_filter_color">FARBFILTER (OPTIONAL)</string>

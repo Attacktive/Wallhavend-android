@@ -293,6 +293,15 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 
 	val openverseEnabled = WallpaperSource.OPENVERSE in settings.enabledSources
 	AnimatedVisibility(visible = openverseEnabled) {
+		Text(
+			text = stringResource(R.string.settings_hint_content_rating),
+			style = MaterialTheme.typography.bodySmall,
+			color = MaterialTheme.colorScheme.onSurfaceVariant,
+			modifier = Modifier.padding(top = 4.dp)
+		)
+	}
+
+	AnimatedVisibility(visible = openverseEnabled) {
 		var licenseExpanded by remember { mutableStateOf(false) }
 
 		Column {

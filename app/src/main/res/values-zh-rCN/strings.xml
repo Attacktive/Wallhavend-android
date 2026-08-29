@@ -19,6 +19,7 @@
 	<string name="settings_placeholder_search_query">例如：milky way, mountains</string>
 	<string name="settings_label_categories">分类</string>
 	<string name="settings_label_content_rating">内容分级</string>
+	<string name="settings_hint_content_rating">Openverse 仅读取 NSFW；SFW 与 Sketchy 适用于 Wallhaven</string>
 	<string name="settings_label_license">许可协议</string>
 	<string name="settings_hint_license">Openverse 索引的图片托管在其他站点；此项限制可接受的许可协议</string>
 	<string name="settings_label_filter_color">颜色筛选（可选）</string>
