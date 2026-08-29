@@ -330,7 +330,7 @@ class OpenverseProviderTest {
 	}
 
 	companion object {
-		private val CURATED_SOURCES = setOf("flickr", "wikimedia", "nasa", "spacex", "rawpixel", "stocksnap")
+		private val CURATED_SOURCES = setOf("flickr", "wikimedia", "nasa", "rawpixel", "stocksnap")
 		private val SOURCE_COUNT = CURATED_SOURCES.size
 	}
 }

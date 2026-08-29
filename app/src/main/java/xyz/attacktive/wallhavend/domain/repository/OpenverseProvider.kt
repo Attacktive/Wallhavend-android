@@ -51,6 +51,10 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 		keywords = keywords,
 		license = licenseFilter.apiValue,
 		aspectRatio = screenInfo.openverseAspectRatio(),
+		/*
+		 * Openverse buckets by filesize, which flickr's and nasa's index rows don't carry, so asking for a size at all drops those two outright.
+		 * Worth it regardless: both cap their portrait images at 1024px on the long edge and so admit nothing on a modern screen either way, while asking raises wikimedia's admit rate.
+		 */
 		size = if (avoidBlurryWallpapers) {
 			"large"
 		} else {
@@ -182,8 +186,11 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 	}
 
 	companion object {
-		/** Openverse indexes 52 sources and most are archival — herbarium sheets and scanned postcards make poor wallpapers — so the search only ever names one of these. */
-		private val SOURCES = listOf("flickr", "wikimedia", "nasa", "spacex", "rawpixel", "stocksnap")
+		/**
+		 * Openverse indexes 52 sources and most are archival — herbarium sheets and scanned postcards make poor wallpapers — so the search only ever names one of these.
+		 * SpaceX is deliberately absent: its stats endpoint claims 1,360 works, but it answers this query shape with nothing at every license tier and with no filters at all, so naming it only ever spends a request to be struck off.
+		 */
+		private val SOURCES = listOf("flickr", "wikimedia", "nasa", "rawpixel", "stocksnap")
 
 		/** WallpaperFileManager only accepts JPEG and PNG, so anything else is ruled out server-side instead of downloaded and thrown away. */
 		private const val EXTENSIONS = "jpg,png"
