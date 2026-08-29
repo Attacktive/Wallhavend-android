@@ -22,12 +22,4 @@ data class OpenverseImageDto(
 )
 
 /** [WallpaperIdentity.pageUrl] is the Openverse entry for the id; Openverse only indexes what other sites host, so the origin page stays out of the model. */
-fun OpenverseImageDto.toDomain() = Wallpaper(
-	identity = WallpaperIdentity(WallpaperSource.OPENVERSE, id),
-	directUrl = checkNotNull(url),
-	resolution = if (width != null && height != null) {
-		"${width}x$height"
-	} else {
-		""
-	}
-)
+fun OpenverseImageDto.toDomain() = Wallpaper(identity = WallpaperIdentity(WallpaperSource.OPENVERSE, id), directUrl = checkNotNull(url))

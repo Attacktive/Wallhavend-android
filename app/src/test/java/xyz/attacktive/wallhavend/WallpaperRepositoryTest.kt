@@ -30,11 +30,7 @@ class WallpaperRepositoryTest {
 	 */
 	private val shuffleAttempts = 25
 
-	private fun makeWallpaper(id: String) = Wallpaper(
-		identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id),
-		directUrl = "https://cdn/w/$id.jpg",
-		resolution = "1920x1080"
-	)
+	private fun makeWallpaper(id: String) = Wallpaper(identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id), directUrl = "https://cdn/w/$id.jpg")
 
 	private fun createRepository(vararg providers: WallpaperProvider) = WallpaperRepository(providers.toSet(), fileManager)
 

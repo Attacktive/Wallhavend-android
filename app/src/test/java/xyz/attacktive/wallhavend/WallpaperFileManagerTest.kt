@@ -37,11 +37,7 @@ class WallpaperFileManagerTest {
 		server.shutdown()
 	}
 
-	private fun makeWallpaper(id: String, path: String) = Wallpaper(
-		identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id),
-		directUrl = server.url(path).toString(),
-		resolution = "1920x1080"
-	)
+	private fun makeWallpaper(id: String, path: String) = Wallpaper(identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id), directUrl = server.url(path).toString())
 
 	@Test
 	fun `download names the file after the source-qualified id`() = runTest {

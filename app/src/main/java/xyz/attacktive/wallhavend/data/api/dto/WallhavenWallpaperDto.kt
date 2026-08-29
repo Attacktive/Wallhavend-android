@@ -8,10 +8,6 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 
 @SuppressLint("UnsafeOptInUsageError")
 @Serializable
-data class WallhavenWallpaperDto(val id: String, val path: String, val resolution: String)
+data class WallhavenWallpaperDto(val id: String, val path: String)
 
-fun WallhavenWallpaperDto.toDomain() = Wallpaper(
-	identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id),
-	directUrl = path,
-	resolution = resolution
-)
+fun WallhavenWallpaperDto.toDomain() = Wallpaper(identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id), directUrl = path)

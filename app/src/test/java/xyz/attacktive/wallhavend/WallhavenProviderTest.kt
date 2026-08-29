@@ -27,7 +27,7 @@ class WallhavenProviderTest {
 	private val portraitScreen = ScreenInfo("9x16", 1080, 2400)
 	private val landscapeScreen = ScreenInfo("16x9", 2400, 1080)
 
-	private fun makeDto(id: String) = WallhavenWallpaperDto(id, "https://cdn/w/$id.jpg", "1920x1080")
+	private fun makeDto(id: String) = WallhavenWallpaperDto(id, "https://cdn/w/$id.jpg")
 
 	private fun makePage(count: Int, currentPage: Int = 1, lastPage: Int = 1, idPrefix: String = "w"): WallhavenSearchResponseDto {
 		val data = (1..count)
