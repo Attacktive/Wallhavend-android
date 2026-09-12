@@ -24,6 +24,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
+import xyz.attacktive.wallhavend.ui.picker.WallpaperPickerActivity
+import xyz.attacktive.wallhavend.ui.picker.WallpaperPickerViewModel
 
 class WallpaperPickerTest {
 	@get:Rule
