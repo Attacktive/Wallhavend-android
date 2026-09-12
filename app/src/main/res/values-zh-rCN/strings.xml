@@ -114,4 +114,8 @@
 	<string name="picker_empty_desc">Wallhavend 尚未下载任何壁纸。打开 Wallhavend 下载壁纸或开启自动更新。</string>
 	<string name="picker_open_app">打开 Wallhavend</string>
 	<string name="picker_action_select">选择</string>
+	<string name="picker_select_wallpaper">选择壁纸</string>
+	<string name="picker_preview_wallpaper">预览壁纸</string>
+	<string name="picker_wallpaper_description">壁纸 %1$s</string>
+	<string name="picker_file_unavailable">该壁纸已不可用</string>
 </resources>

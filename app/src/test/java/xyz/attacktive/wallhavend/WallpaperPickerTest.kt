@@ -12,27 +12,60 @@ import io.mockk.mockkConstructor
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
-import xyz.attacktive.wallhavend.ui.picker.WallpaperPickerActivity
-import xyz.attacktive.wallhavend.ui.picker.WallpaperPickerViewModel
+import org.junit.rules.TemporaryFolder
 
 class WallpaperPickerTest {
+	@get:Rule
+	val tmpFolder = TemporaryFolder()
+
+	private val mainDispatcher = UnconfinedTestDispatcher()
+
+	@Before
+	fun setUp() {
+		Dispatchers.setMain(mainDispatcher)
+	}
+
 	@After
 	fun tearDown() {
+		Dispatchers.resetMain()
 		unmockkAll()
 	}
 
 	@Test
-	fun `view model loads wallpapers from file manager on creation`() {
+	fun `view model refreshes wallpapers off the main thread`() = runTest {
 		val fileManager = mockk<WallpaperFileManager>()
 		val expectedFiles = listOf(File("/path/to/wallhaven_1.jpg"), File("/path/to/openverse_2.png"))
 		every { fileManager.listAll() } returns expectedFiles
 		val viewModel = WallpaperPickerViewModel(fileManager)
 
-		assertEquals(expectedFiles, viewModel.wallpapers)
+		viewModel.refresh().join()
+
+		assertEquals(expectedFiles, viewModel.wallpapers.value)
+		verify(atLeast = 1) { fileManager.listAll() }
+	}
+
+	@Test
+	fun `createResultIntent rejects a missing wallpaper`() {
+		mockkStatic(FileProvider::class)
+		val context = mockk<Context>()
+		val file = File(tmpFolder.root, "missing.jpg")
+
+		assertThrows(IllegalArgumentException::class.java) {
+			WallpaperPickerActivity.createResultIntent(context, file)
+		}
+
+		verify(exactly = 0) { FileProvider.getUriForFile(any(), any(), file) }
 	}
 
 	@Test
@@ -47,7 +80,7 @@ class WallpaperPickerTest {
 
 		every { mockContext.packageName } returns "xyz.attacktive.wallhavend"
 
-		val file = File("/files/wallpapers/wallhaven_abc.jpg")
+		val file = tmpFolder.newFile("wallhaven_abc.jpg")
 
 		every { FileProvider.getUriForFile(mockContext, "xyz.attacktive.wallhavend.fileprovider", file) } returns mockUri
 		every { ClipData.newRawUri(null, mockUri) } returns mockClipData
@@ -77,7 +110,7 @@ class WallpaperPickerTest {
 
 		every { mockContext.packageName } returns "xyz.attacktive.wallhavend"
 
-		val file = File("/files/wallpapers/openverse_xyz.png")
+		val file = tmpFolder.newFile("openverse_xyz.png")
 
 		every { FileProvider.getUriForFile(mockContext, "xyz.attacktive.wallhavend.fileprovider", file) } returns mockUri
 		every { ClipData.newRawUri(null, mockUri) } returns mockClipData

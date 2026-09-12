@@ -114,4 +114,8 @@
 	<string name="picker_empty_desc">O Wallhavend ainda não baixou nenhum papel de parede. Abra o Wallhavend para baixar papéis de parede ou iniciar a atualização automática.</string>
 	<string name="picker_open_app">Abrir o Wallhavend</string>
 	<string name="picker_action_select">Selecionar</string>
+	<string name="picker_select_wallpaper">Selecionar papel de parede</string>
+	<string name="picker_preview_wallpaper">Visualizar papel de parede</string>
+	<string name="picker_wallpaper_description">Papel de parede %1$s</string>
+	<string name="picker_file_unavailable">Esse papel de parede não está mais disponível</string>
 </resources>

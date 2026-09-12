@@ -114,4 +114,8 @@
 	<string name="picker_empty_desc">Wallhavend n\'a pas encore téléchargé de fond d\'écran. Ouvrez Wallhavend pour en télécharger ou démarrer la mise à jour automatique.</string>
 	<string name="picker_open_app">Ouvrir Wallhavend</string>
 	<string name="picker_action_select">Sélectionner</string>
+	<string name="picker_select_wallpaper">Sélectionner le fond d’écran</string>
+	<string name="picker_preview_wallpaper">Prévisualiser le fond d’écran</string>
+	<string name="picker_wallpaper_description">Fond d’écran %1$s</string>
+	<string name="picker_file_unavailable">Ce fond d’écran n’est plus disponible</string>
 </resources>
