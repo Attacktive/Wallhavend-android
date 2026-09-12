@@ -109,4 +109,9 @@
 	<string name="service_status_never">업데이트 안 됨</string>
 	<string name="notification_channel_name">배경화면 서비스</string>
 	<string name="notification_channel_description">배경화면 자동 업데이트 상태를 표시합니다</string>
+	<string name="picker_title">배경화면 선택</string>
+	<string name="picker_empty_title">다운로드된 배경화면 없음</string>
+	<string name="picker_empty_desc">아직 다운로드된 배경화면이 없습니다. Wallhavend를 열어 배경화면을 다운로드하거나 자동 업데이트를 시작하세요.</string>
+	<string name="picker_open_app">Wallhavend 열기</string>
+	<string name="picker_action_select">선택</string>
 </resources>

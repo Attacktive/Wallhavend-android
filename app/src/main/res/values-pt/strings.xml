@@ -109,4 +109,9 @@
 	<string name="service_status_never">Nunca atualizado</string>
 	<string name="notification_channel_name">Serviço de papel de parede</string>
 	<string name="notification_channel_description">Exibe o status da atualização automática do papel de parede</string>
+	<string name="picker_title">Escolher papel de parede</string>
+	<string name="picker_empty_title">Nenhum papel de parede baixado</string>
+	<string name="picker_empty_desc">O Wallhavend ainda não baixou nenhum papel de parede. Abra o Wallhavend para baixar papéis de parede ou iniciar a atualização automática.</string>
+	<string name="picker_open_app">Abrir o Wallhavend</string>
+	<string name="picker_action_select">Selecionar</string>
 </resources>
