@@ -109,4 +109,9 @@
 	<string name="service_status_never">未更新</string>
 	<string name="notification_channel_name">壁紙サービス</string>
 	<string name="notification_channel_description">壁紙の自動更新ステータスを表示します</string>
+	<string name="picker_title">壁紙を選択</string>
+	<string name="picker_empty_title">ダウンロード済みの壁紙はありません</string>
+	<string name="picker_empty_desc">Wallhavendはまだ壁紙をダウンロードしていません。Wallhavendを開いて壁紙をダウンロードするか、自動更新を開始してください。</string>
+	<string name="picker_open_app">Wallhavendを開く</string>
+	<string name="picker_action_select">選択</string>
 </resources>

@@ -109,4 +109,9 @@
 	<string name="service_status_never">Jamais mis à jour</string>
 	<string name="notification_channel_name">Service de fond d\'écran</string>
 	<string name="notification_channel_description">Affiche l\'état de la mise à jour automatique du fond d\'écran</string>
+	<string name="picker_title">Choisir un fond d\'écran</string>
+	<string name="picker_empty_title">Aucun fond d\'écran téléchargé</string>
+	<string name="picker_empty_desc">Wallhavend n\'a pas encore téléchargé de fond d\'écran. Ouvrez Wallhavend pour en télécharger ou démarrer la mise à jour automatique.</string>
+	<string name="picker_open_app">Ouvrir Wallhavend</string>
+	<string name="picker_action_select">Sélectionner</string>
 </resources>

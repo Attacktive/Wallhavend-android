@@ -109,4 +109,9 @@
 	<string name="service_status_never">Never updated</string>
 	<string name="notification_channel_name">Wallpaper Service</string>
 	<string name="notification_channel_description">Shows wallpaper auto-update status</string>
+	<string name="picker_title">Choose wallpaper</string>
+	<string name="picker_empty_title">No wallpapers downloaded</string>
+	<string name="picker_empty_desc">Wallhavend hasn\'t downloaded any wallpapers yet. Open Wallhavend to download wallpapers or start auto-update.</string>
+	<string name="picker_open_app">Open Wallhavend</string>
+	<string name="picker_action_select">Select</string>
 </resources>

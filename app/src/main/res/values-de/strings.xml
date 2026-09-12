@@ -109,4 +109,9 @@
 	<string name="service_status_never">Nie aktualisiert</string>
 	<string name="notification_channel_name">Hintergrundbild-Service</string>
 	<string name="notification_channel_description">Zeigt den Status der automatischen Hintergrund-Aktualisierung an</string>
+	<string name="picker_title">Hintergrundbild auswählen</string>
+	<string name="picker_empty_title">Keine Hintergrundbilder heruntergeladen</string>
+	<string name="picker_empty_desc">Wallhavend hat noch keine Hintergrundbilder heruntergeladen. Öffnen Sie Wallhavend, um Hintergrundbilder herunterzuladen oder die automatische Aktualisierung zu starten.</string>
+	<string name="picker_open_app">Wallhavend öffnen</string>
+	<string name="picker_action_select">Auswählen</string>
 </resources>

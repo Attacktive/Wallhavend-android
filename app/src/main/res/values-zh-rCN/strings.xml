@@ -109,4 +109,9 @@
 	<string name="service_status_never">从未更新</string>
 	<string name="notification_channel_name">壁纸服务</string>
 	<string name="notification_channel_description">显示壁纸自动更新状态</string>
+	<string name="picker_title">选择壁纸</string>
+	<string name="picker_empty_title">未下载任何壁纸</string>
+	<string name="picker_empty_desc">Wallhavend 尚未下载任何壁纸。打开 Wallhavend 下载壁纸或开启自动更新。</string>
+	<string name="picker_open_app">打开 Wallhavend</string>
+	<string name="picker_action_select">选择</string>
 </resources>
