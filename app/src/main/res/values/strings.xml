@@ -114,4 +114,8 @@
 	<string name="picker_empty_desc">Wallhavend hasn\'t downloaded any wallpapers yet. Open Wallhavend to download wallpapers or start auto-update.</string>
 	<string name="picker_open_app">Open Wallhavend</string>
 	<string name="picker_action_select">Select</string>
+	<string name="picker_select_wallpaper">Select wallpaper</string>
+	<string name="picker_preview_wallpaper">Preview wallpaper</string>
+	<string name="picker_wallpaper_description">Wallpaper %1$s</string>
+	<string name="picker_file_unavailable">That wallpaper is no longer available</string>
 </resources>

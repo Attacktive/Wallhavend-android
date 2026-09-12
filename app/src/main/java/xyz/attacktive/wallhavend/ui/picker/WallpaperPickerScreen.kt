@@ -54,6 +54,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -221,14 +223,22 @@ fun WallpaperPickerScreen(wallpapers: List<File>, onSelect: (File) -> Unit, onCa
 						.padding(padding)
 				) {
 					itemsIndexed(wallpapers) { index, file ->
+						val wallpaperId = WallpaperIdentity.parse(file.nameWithoutExtension).id
+						val wallpaperDescription = stringResource(R.string.picker_wallpaper_description, wallpaperId)
+
 						Box(
 							modifier = Modifier
 								.aspectRatio(9f / 16f)
 								.clip(RoundedCornerShape(4.dp))
 								.combinedClickable(
+									onClickLabel = stringResource(R.string.picker_select_wallpaper),
+									onLongClickLabel = stringResource(R.string.picker_preview_wallpaper),
 									onClick = { onSelect(file) },
 									onLongClick = { previewIndex = index }
 								)
+								.semantics(mergeDescendants = true) {
+									contentDescription = wallpaperDescription
+								}
 						) {
 							AsyncImage(
 								model = file,

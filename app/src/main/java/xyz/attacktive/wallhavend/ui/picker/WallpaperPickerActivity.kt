@@ -5,12 +5,16 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
 import androidx.core.content.FileProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import xyz.attacktive.wallhavend.MainActivity
+import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.ui.theme.WallhavendTheme
 
 @AndroidEntryPoint
@@ -21,9 +25,11 @@ class WallpaperPickerActivity: ComponentActivity() {
 		super.onCreate(savedInstanceState)
 
 		setContent {
+			val wallpapers by viewModel.wallpapers.collectAsStateWithLifecycle()
+
 			WallhavendTheme {
 				WallpaperPickerScreen(
-					wallpapers = viewModel.wallpapers,
+					wallpapers = wallpapers,
 					onSelect = ::returnWallpaper,
 					onCancel = {
 						setResult(RESULT_CANCELED)
@@ -39,13 +45,35 @@ class WallpaperPickerActivity: ComponentActivity() {
 	}
 
 	private fun returnWallpaper(file: File) {
-		val resultIntent = createResultIntent(this, file)
+		if (!file.exists()) {
+			handleUnavailableWallpaper()
+			return
+		}
+
+		val resultIntent = try {
+			createResultIntent(this, file)
+		} catch (exception: IllegalArgumentException) {
+			if (file.exists()) {
+				throw exception
+			}
+
+			handleUnavailableWallpaper()
+			return
+		}
+
 		setResult(RESULT_OK, resultIntent)
 		finish()
 	}
 
+	private fun handleUnavailableWallpaper() {
+		viewModel.refresh()
+		Toast.makeText(this, R.string.picker_file_unavailable, Toast.LENGTH_SHORT).show()
+	}
+
 	companion object {
 		fun createResultIntent(context: Context, file: File): Intent {
+			require(file.exists()) { "Wallpaper file no longer exists" }
+
 			val uri = FileProvider.getUriForFile(
 				context,
 				"${context.packageName}.fileprovider",

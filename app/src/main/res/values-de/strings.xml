@@ -114,4 +114,8 @@
 	<string name="picker_empty_desc">Wallhavend hat noch keine Hintergrundbilder heruntergeladen. Öffnen Sie Wallhavend, um Hintergrundbilder herunterzuladen oder die automatische Aktualisierung zu starten.</string>
 	<string name="picker_open_app">Wallhavend öffnen</string>
 	<string name="picker_action_select">Auswählen</string>
+	<string name="picker_select_wallpaper">Hintergrundbild auswählen</string>
+	<string name="picker_preview_wallpaper">Hintergrundbild in Vorschau anzeigen</string>
+	<string name="picker_wallpaper_description">Hintergrundbild %1$s</string>
+	<string name="picker_file_unavailable">Dieses Hintergrundbild ist nicht mehr verfügbar</string>
 </resources>
