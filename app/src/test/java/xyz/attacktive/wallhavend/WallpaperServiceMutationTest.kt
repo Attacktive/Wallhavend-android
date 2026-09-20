@@ -179,6 +179,7 @@ class WallpaperServiceMutationTest {
 		this.wallpaperMutationCoordinator = wallpaperMutationCoordinator
 		this.wallpaperApplier = wallpaperApplier
 		this.networkCapabilitiesProvider = { null }
+		this.notificationRefresher = {}
 	}
 
 	private fun settingsRepository(): SettingsRepository {
