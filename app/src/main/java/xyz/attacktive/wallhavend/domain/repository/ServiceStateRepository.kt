@@ -30,10 +30,16 @@ class ServiceStateRepository @Inject constructor() {
 		_state.update(transform)
 	}
 
-	fun postError(error: AppError) {
+	fun postError(error: AppError, autoClear: Boolean = true) {
 		update { it.copy(error = error) }
 
 		errorClearJob?.cancel()
+		if (!autoClear) {
+			errorClearJob = null
+
+			return
+		}
+
 		errorClearJob = repositoryScope.launch {
 			delay(10_000.milliseconds)
 			update { it.copy(error = null) }
