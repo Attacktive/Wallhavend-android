@@ -78,9 +78,11 @@
 	<string name="error_no_results">⚠ 結果がありません — フィルターを緩めてみてください</string>
 	<string name="error_no_results_hint">⚠ 結果がありません — フィルターを緩めるか、NSFW壁紙が不要な場合はAPIキーを削除してみてください</string>
 	<string name="error_api_error">⚠ APIエラー %d</string>
+	<string name="error_api_error_source">⚠ %1$s へのリクエストに失敗しました（HTTP %2$d）— 自動的に再試行します</string>
 	<string name="error_unsupported_format">⚠ サポートされていない画像形式です — スキップします</string>
 	<string name="error_apply_failed">⚠ 壁紙の適用に失敗しました: %s</string>
 	<string name="error_network_error">⚠ ネットワークエラー: %s</string>
+	<string name="error_network_error_source">⚠ %1$s に接続できません — 自動的に再試行します</string>
 	<string name="cd_settings">設定</string>
 	<string name="cd_save_to_pictures">ピクチャに保存</string>
 	<string name="cd_delete">削除</string>
@@ -107,6 +109,8 @@
 	<string name="home_msg_saved_to_pictures">Pictures/Wallhavendに保存しました</string>
 	<string name="home_msg_save_failed">保存に失敗しました: %s</string>
 	<string name="service_status_never">未更新</string>
+	<string name="service_status_source_request_failed">%1$s へのリクエストに失敗 · 自動的に再試行します</string>
+	<string name="service_status_request_failed">壁紙ソースへのリクエストに失敗 · 自動的に再試行します</string>
 	<string name="notification_channel_name">壁紙サービス</string>
 	<string name="notification_channel_description">壁紙の自動更新ステータスを表示します</string>
 	<string name="picker_title">壁紙を選択</string>

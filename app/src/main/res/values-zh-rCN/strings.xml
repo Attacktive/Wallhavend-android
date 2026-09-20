@@ -78,9 +78,11 @@
 	<string name="error_no_results">⚠ 无结果 — 请尝试放宽过滤条件</string>
 	<string name="error_no_results_hint">⚠ 无结果 — 请尝试放宽过滤条件，或在不需要 NSFW 壁纸时移除 API 密钥</string>
 	<string name="error_api_error">⚠ API 错误 %d</string>
+	<string name="error_api_error_source">⚠ %1$s 请求失败（HTTP %2$d）— 正在自动重试</string>
 	<string name="error_unsupported_format">⚠ 不支持的图像格式 — 已跳过</string>
 	<string name="error_apply_failed">⚠ 壁纸应用失败: %s</string>
 	<string name="error_network_error">⚠ 网络错误: %s</string>
+	<string name="error_network_error_source">⚠ 无法连接到 %1$s — 正在自动重试</string>
 	<string name="cd_settings">设置</string>
 	<string name="cd_save_to_pictures">保存至相册</string>
 	<string name="cd_delete">删除</string>
@@ -107,6 +109,8 @@
 	<string name="home_msg_saved_to_pictures">已保存至 Pictures/Wallhavend</string>
 	<string name="home_msg_save_failed">保存失败: %s</string>
 	<string name="service_status_never">从未更新</string>
+	<string name="service_status_source_request_failed">%1$s 请求失败 · 正在自动重试</string>
+	<string name="service_status_request_failed">壁纸来源请求失败 · 正在自动重试</string>
 	<string name="notification_channel_name">壁纸服务</string>
 	<string name="notification_channel_description">显示壁纸自动更新状态</string>
 	<string name="picker_title">选择壁纸</string>

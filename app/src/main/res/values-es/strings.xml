@@ -78,9 +78,11 @@
 	<string name="error_no_results">⚠ Sin resultados — intenta relajar tus filtros</string>
 	<string name="error_no_results_hint">⚠ Sin resultados — intenta relajar tus filtros o quita la clave API si no necesitas fondos NSFW</string>
 	<string name="error_api_error">⚠ Error de API %d</string>
+	<string name="error_api_error_source">⚠ Falló la solicitud a %1$s (HTTP %2$d) — reintentando automáticamente</string>
 	<string name="error_unsupported_format">⚠ Formato de imagen no compatible — omitiendo</string>
 	<string name="error_apply_failed">⚠ Error al aplicar el fondo de pantalla: %s</string>
 	<string name="error_network_error">⚠ Error de red: %s</string>
+	<string name="error_network_error_source">⚠ No se puede acceder a %1$s — reintentando automáticamente</string>
 	<string name="cd_settings">Ajustes</string>
 	<string name="cd_save_to_pictures">Guardar en Imágenes</string>
 	<string name="cd_delete">Eliminar</string>
@@ -107,6 +109,8 @@
 	<string name="home_msg_saved_to_pictures">Guardado en Pictures/Wallhavend</string>
 	<string name="home_msg_save_failed">Error al guardar: %s</string>
 	<string name="service_status_never">Nunca actualizado</string>
+	<string name="service_status_source_request_failed">Falló la solicitud a %1$s · reintentando automáticamente</string>
+	<string name="service_status_request_failed">Falló la solicitud a la fuente de fondos · reintentando automáticamente</string>
 	<string name="notification_channel_name">Servicio de fondos de pantalla</string>
 	<string name="notification_channel_description">Muestra el estado de la actualización automática de fondos de pantalla</string>
 	<string name="picker_title">Elegir fondo de pantalla</string>

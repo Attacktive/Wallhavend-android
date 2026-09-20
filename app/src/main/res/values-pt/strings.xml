@@ -78,9 +78,11 @@
 	<string name="error_no_results">⚠ Sem resultados — tente relaxar seus filtros</string>
 	<string name="error_no_results_hint">⚠ Sem resultados — tente relaxar seus filtros ou remova a chave API se não precisar de papéis de parede NSFW</string>
 	<string name="error_api_error">⚠ Erro de API %d</string>
+	<string name="error_api_error_source">⚠ Falha na solicitação para %1$s (HTTP %2$d) — tentando novamente automaticamente</string>
 	<string name="error_unsupported_format">⚠ Formato de imagem não suportado — pulando</string>
 	<string name="error_apply_failed">⚠ Falha ao aplicar papel de parede: %s</string>
 	<string name="error_network_error">⚠ Erro de rede: %s</string>
+	<string name="error_network_error_source">⚠ Não foi possível acessar %1$s — tentando novamente automaticamente</string>
 	<string name="cd_settings">Configurações</string>
 	<string name="cd_save_to_pictures">Salvar em Imagens</string>
 	<string name="cd_delete">Excluir</string>
@@ -107,6 +109,8 @@
 	<string name="home_msg_saved_to_pictures">Salvo em Pictures/Wallhavend</string>
 	<string name="home_msg_save_failed">Falha ao salvar: %s</string>
 	<string name="service_status_never">Nunca atualizado</string>
+	<string name="service_status_source_request_failed">Falha na solicitação para %1$s · tentando novamente automaticamente</string>
+	<string name="service_status_request_failed">Falha na solicitação à fonte de papéis de parede · tentando novamente automaticamente</string>
 	<string name="notification_channel_name">Serviço de papel de parede</string>
 	<string name="notification_channel_description">Exibe o status da atualização automática do papel de parede</string>
 	<string name="picker_title">Escolher papel de parede</string>
