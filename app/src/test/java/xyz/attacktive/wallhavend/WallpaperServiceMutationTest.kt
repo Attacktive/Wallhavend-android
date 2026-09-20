@@ -146,11 +146,16 @@ class WallpaperServiceMutationTest {
 		val apply = async(Dispatchers.Default) { service.applySpecificPath(applying.absolutePath) }
 		assertTrue(firstEntered.await(5, TimeUnit.SECONDS))
 
+		val trimStarted = CountDownLatch(1)
+		val trimCompleted = CountDownLatch(1)
 		val trim = async(Dispatchers.Default) {
+			trimStarted.countDown()
 			coordinator.serialize { fileManager.trimToSize(1) }
+			trimCompleted.countDown()
 		}
 
-		Thread.sleep(100)
+		assertTrue(trimStarted.await(5, TimeUnit.SECONDS))
+		assertFalse(trimCompleted.await(250, TimeUnit.MILLISECONDS))
 		assertTrue(applying.exists())
 
 		releaseFirst.countDown()
