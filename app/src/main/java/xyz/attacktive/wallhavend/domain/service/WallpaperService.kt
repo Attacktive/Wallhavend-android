@@ -75,7 +75,7 @@ class WallpaperService: Service() {
 	internal var serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 	private var timerJob: Job? = null
-	private var errorClearJob: Job? = null
+	private val oneShotTracker = OneShotTracker()
 
 	override fun onBind(intent: Intent?) = null
 
@@ -114,27 +114,22 @@ class WallpaperService: Service() {
 	}
 
 	private fun launchOneShot(startId: Int, block: suspend () -> Unit) {
+		oneShotTracker.start(startId)
 		serviceScope.launch {
 			try {
 				block()
 			} finally {
-				finishOneShot(startId)
+				finishOneShot()
 			}
 		}
 	}
 
-	private suspend fun finishOneShot(startId: Int) {
-		var completion = oneShotCompletion(timerJob?.isActive == true, currentAutoUpdateEnabled())
-
-		if (completion == OneShotCompletion.STOP_SERVICE && stateRepository.state.value.error != null) {
-			errorClearJob?.join()
-			completion = oneShotCompletion(timerJob?.isActive == true, currentAutoUpdateEnabled())
-		}
-
-		when (completion) {
+	private suspend fun finishOneShot() {
+		val stopStartId = oneShotTracker.finish() ?: return
+		when (oneShotCompletion(timerJob?.isActive == true, currentAutoUpdateEnabled())) {
 			OneShotCompletion.KEEP_RUNNING -> Unit
 			OneShotCompletion.RESTORE_TIMER -> startTimerLoop(performImmediately = false)
-			OneShotCompletion.STOP_SERVICE -> stopSelfResult(startId)
+			OneShotCompletion.STOP_SERVICE -> stopSelfResult(stopStartId)
 		}
 	}
 
@@ -207,7 +202,7 @@ class WallpaperService: Service() {
 					updateNotification()
 				},
 				onFailure = { throwable ->
-					postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
+					stateRepository.postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
 				}
 			)
 	}
@@ -225,7 +220,7 @@ class WallpaperService: Service() {
 			else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
 		}
 
-		postError(error)
+		stateRepository.postError(error)
 	}
 
 	private suspend fun cycleFromPool(settings: AppSettings) {
@@ -315,16 +310,6 @@ class WallpaperService: Service() {
 			}
 	}
 
-	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-	internal fun postError(error: AppError) {
-		stateRepository.update { it.copy(error = error) }
-
-		errorClearJob?.cancel()
-		errorClearJob = serviceScope.launch {
-			delay(10_000.milliseconds)
-			stateRepository.update { it.copy(error = null) }
-		}
-	}
 
 	private fun screenInfo(): ScreenInfo {
 		val windowManager = getSystemService(WindowManager::class.java)
@@ -489,6 +474,33 @@ internal fun wallpaperServiceCommand(action: String?) = when (action) {
 	WallpaperService.ACTION_APPLY_PATH -> WallpaperServiceCommand.APPLY_PATH
 	null -> WallpaperServiceCommand.RESTORE
 	else -> WallpaperServiceCommand.UNKNOWN
+}
+
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal class OneShotTracker {
+	private val lock = Any()
+	private var activeCount = 0
+	private var latestStartId = 0
+
+	fun start(startId: Int) {
+		synchronized(lock) {
+			activeCount++
+			latestStartId = maxOf(latestStartId, startId)
+		}
+	}
+
+	fun finish(): Int? = synchronized(lock) {
+		check(activeCount > 0) { "No one-shot command is active" }
+		activeCount--
+		if (activeCount > 0) {
+			return@synchronized null
+		}
+
+		val stopStartId = latestStartId
+		latestStartId = 0
+
+		stopStartId
+	}
 }
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)

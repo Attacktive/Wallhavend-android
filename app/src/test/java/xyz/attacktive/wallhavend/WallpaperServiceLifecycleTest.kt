@@ -1,8 +1,10 @@
 package xyz.attacktive.wallhavend
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import xyz.attacktive.wallhavend.domain.service.OneShotCompletion
+import xyz.attacktive.wallhavend.domain.service.OneShotTracker
 import xyz.attacktive.wallhavend.domain.service.WallpaperService
 import xyz.attacktive.wallhavend.domain.service.WallpaperServiceCommand
 import xyz.attacktive.wallhavend.domain.service.oneShotCompletion
@@ -29,10 +31,18 @@ class WallpaperServiceLifecycleTest {
 	}
 
 	@Test
-	fun `one shot keeps an active timer running`() {
+	fun `one shot keeps an active timer running when automatic rotation is persisted`() {
 		assertEquals(
 			OneShotCompletion.KEEP_RUNNING,
 			oneShotCompletion(timerRunning = true, autoUpdateEnabled = true)
+		)
+	}
+
+	@Test
+	fun `one shot keeps an active timer running while a stop preference write is in flight`() {
+		assertEquals(
+			OneShotCompletion.KEEP_RUNNING,
+			oneShotCompletion(timerRunning = true, autoUpdateEnabled = false)
 		)
 	}
 
@@ -42,5 +52,15 @@ class WallpaperServiceLifecycleTest {
 			OneShotCompletion.RESTORE_TIMER,
 			oneShotCompletion(timerRunning = false, autoUpdateEnabled = true)
 		)
+	}
+
+	@Test
+	fun `one shot tracker waits for every in-flight command before stopping`() {
+		val tracker = OneShotTracker()
+		tracker.start(1)
+		tracker.start(2)
+
+		assertNull(tracker.finish())
+		assertEquals(2, tracker.finish())
 	}
 }
