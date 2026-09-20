@@ -80,7 +80,10 @@ class WallpaperService: Service() {
 	internal var serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-	internal var networkCapabilitiesProvider: () -> NetworkCapabilities? = ::activeNetworkCapabilities
+	internal var networkStateProvider: () -> NetworkState = ::currentNetworkState
+
+	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+	internal var screenInfoProvider: () -> ScreenInfo = ::screenInfo
 
 	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 	internal var notificationRefresher: () -> Unit = ::updateNotification
@@ -170,13 +173,10 @@ class WallpaperService: Service() {
 		wallpaperMutationCoordinator.serialize {
 			val settings = settingsRepository.settings.first()
 
-			val capabilities = networkCapabilitiesProvider()
-			val online = capabilities?.isOnline() == true
-			stateRepository.update { it.copy(isOnline = online) }
+			val networkState = networkStateProvider()
+			stateRepository.update { it.copy(isOnline = networkState.online) }
 
-			val onWifi = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
-
-			if (shouldDownload(settings.rotationMode, online, onWifi, forceDownload)) {
+			if (shouldDownload(settings.rotationMode, networkState.online, networkState.onWifi, forceDownload)) {
 				handleOnlineUpdate(settings)
 			} else if (settings.rotationMode == RotationMode.PINNED_ONLY) {
 				cyclePinnedOnly(settings)
@@ -187,7 +187,7 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun handleOnlineUpdate(settings: AppSettings) {
-		wallpaperRepository.next(settings, screenInfo())
+		wallpaperRepository.next(settings, screenInfoProvider())
 			.fold(
 				onSuccess = { (_, file) -> onWallpaperFetched(file, settings) },
 				onFailure = { throwable -> onFetchError(throwable, settings) }
@@ -343,6 +343,14 @@ class WallpaperService: Service() {
 		return displayMetrics.widthPixels to displayMetrics.heightPixels
 	}
 
+	private fun currentNetworkState(): NetworkState {
+		val capabilities = activeNetworkCapabilities()
+		val online = capabilities?.isOnline() == true
+		val onWifi = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+
+		return NetworkState(online, onWifi)
+	}
+
 	private fun activeNetworkCapabilities(): NetworkCapabilities? {
 		val connectivityManager = getSystemService(ConnectivityManager::class.java)
 
@@ -457,6 +465,9 @@ class WallpaperService: Service() {
 		}
 	}
 }
+
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal data class NetworkState(val online: Boolean, val onWifi: Boolean)
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 internal enum class WallpaperServiceCommand {
