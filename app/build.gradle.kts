@@ -27,8 +27,8 @@ android {
 		applicationId = "xyz.attacktive.wallhavend"
 		minSdk = 26
 		targetSdk = 37
-		versionCode = 51
-		versionName = "2.2.1"
+		versionCode = 52
+		versionName = "2.2.2"
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 	}
 
