@@ -24,7 +24,6 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
 import android.hardware.display.DisplayManager
@@ -74,8 +73,14 @@ class WallpaperService: Service() {
 	@Inject
 	lateinit var wallpaperMutationCoordinator: WallpaperMutationCoordinator
 
+	@Inject
+	lateinit var wallpaperApplier: WallpaperApplier
+
 	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 	internal var serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+	internal var networkCapabilitiesProvider: () -> NetworkCapabilities? = ::activeNetworkCapabilities
 
 	private var timerJob: Job? = null
 	private val oneShotTracker = OneShotTracker()
@@ -157,11 +162,12 @@ class WallpaperService: Service() {
 		}
 	}
 
-	private suspend fun performUpdate(forceDownload: Boolean = false) {
+	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+	internal suspend fun performUpdate(forceDownload: Boolean = false) {
 		wallpaperMutationCoordinator.serialize {
 			val settings = settingsRepository.settings.first()
 
-			val capabilities = activeNetworkCapabilities()
+			val capabilities = networkCapabilitiesProvider()
 			val online = capabilities?.isOnline() == true
 			stateRepository.update { it.copy(isOnline = online) }
 
@@ -186,7 +192,7 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun onWallpaperFetched(file: File, settings: AppSettings) {
-		applyWallpaper(file, settings.wallpaperTarget)
+		wallpaperApplier.apply(file, settings.wallpaperTarget)
 			.fold(
 				onSuccess = {
 					val remaining = fileManager.trimToSize(settings.poolSize, settings.pinnedIds)
@@ -256,7 +262,7 @@ class WallpaperService: Service() {
 			return
 		}
 
-		applyWallpaper(file, settings.wallpaperTarget)
+		wallpaperApplier.apply(file, settings.wallpaperTarget)
 			.onSuccess {
 				val state = stateRepository.state.value
 				stateRepository.update {
@@ -273,7 +279,8 @@ class WallpaperService: Service() {
 			}
 	}
 
-	private suspend fun applySpecificPath(path: String) {
+	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+	internal suspend fun applySpecificPath(path: String) {
 		wallpaperMutationCoordinator.serialize {
 			val file = File(path)
 			if (!file.exists()) {
@@ -282,7 +289,7 @@ class WallpaperService: Service() {
 
 			val settings = settingsRepository.settings.first()
 
-			applyWallpaper(file, settings.wallpaperTarget)
+			wallpaperApplier.apply(file, settings.wallpaperTarget)
 				.onSuccess {
 					val state = stateRepository.state.value
 					val newPreviousPath = if (state.currentWallpaperPath != path) {
@@ -303,19 +310,6 @@ class WallpaperService: Service() {
 		}
 	}
 
-	private fun applyWallpaper(file: File, target: WallpaperTarget) = runCatching {
-		val flags = when (target) {
-			WallpaperTarget.HOME -> WallpaperManager.FLAG_SYSTEM
-			WallpaperTarget.LOCK -> WallpaperManager.FLAG_LOCK
-			WallpaperTarget.BOTH -> WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
-		}
-
-		file.inputStream()
-			.use { input ->
-				getSystemService(WallpaperManager::class.java)
-					.setStream(input, null, true, flags)
-			}
-	}
 
 
 	private fun screenInfo(): ScreenInfo {

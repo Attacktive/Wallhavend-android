@@ -54,19 +54,21 @@ class HomeViewModel @Inject constructor(
 
 	init {
 		viewModelScope.launch(Dispatchers.IO) {
-			if (stateRepository.state.value.poolPaths.isEmpty()) {
-				val (lastUpdatedMs, currentPath, previousPath) = settingsRepository.loadServiceState()
+			wallpaperMutationCoordinator.serialize {
+				if (stateRepository.state.value.poolPaths.isEmpty()) {
+					val (lastUpdatedMs, currentPath, previousPath) = settingsRepository.loadServiceState()
 
-				val paths = fileManager.listAll()
-					.map { it.absolutePath }
+					val paths = fileManager.listAll()
+						.map { it.absolutePath }
 
-				stateRepository.update {
-					it.copy(
-						poolPaths = paths,
-						lastUpdatedMs = lastUpdatedMs,
-						currentWallpaperPath = currentPath,
-						previousWallpaperPath = previousPath
-					)
+					stateRepository.update {
+						it.copy(
+							poolPaths = paths,
+							lastUpdatedMs = lastUpdatedMs,
+							currentWallpaperPath = currentPath,
+							previousWallpaperPath = previousPath
+						)
+					}
 				}
 			}
 
