@@ -82,26 +82,66 @@ class WallpaperService: Service() {
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		startForeground(NOTIFICATION_ID, buildNotification())
 
-		when (intent?.action) {
-			ACTION_STOP -> serviceScope.launch {
+		when (wallpaperServiceCommand(intent?.action)) {
+			WallpaperServiceCommand.START -> startTimerLoop()
+			WallpaperServiceCommand.STOP -> serviceScope.launch {
 				settingsRepository.setAutoUpdateEnabled(false)
 				stopSelf()
 			}
-			ACTION_UPDATE_NOW -> serviceScope.launch { performUpdate(forceDownload = true) }
-			ACTION_ROLL_NOW -> serviceScope.launch { performUpdate() }
-			ACTION_APPLY_PATH -> {
-				val path = intent.getStringExtra(EXTRA_PATH)
-				if (path != null) {
-					serviceScope.launch { applySpecificPath(path) }
-				}
+			WallpaperServiceCommand.UPDATE_NOW -> launchOneShot(startId) { performUpdate(forceDownload = true) }
+			WallpaperServiceCommand.ROLL_NOW -> launchOneShot(startId) { performUpdate() }
+			WallpaperServiceCommand.APPLY_PATH -> launchOneShot(startId) {
+				intent?.getStringExtra(EXTRA_PATH)
+					?.let { applySpecificPath(it) }
 			}
-			else -> startTimerLoop()
+			WallpaperServiceCommand.RESTORE -> restoreTimerLoop(startId)
+			WallpaperServiceCommand.UNKNOWN -> if (timerJob?.isActive != true) {
+				stopSelfResult(startId)
+			}
 		}
 
 		return START_STICKY
 	}
 
-	private fun startTimerLoop() {
+	private fun restoreTimerLoop(startId: Int) {
+		serviceScope.launch {
+			if (currentAutoUpdateEnabled()) {
+				startTimerLoop()
+			} else {
+				stopSelfResult(startId)
+			}
+		}
+	}
+
+	private fun launchOneShot(startId: Int, block: suspend () -> Unit) {
+		serviceScope.launch {
+			try {
+				block()
+			} finally {
+				finishOneShot(startId)
+			}
+		}
+	}
+
+	private suspend fun finishOneShot(startId: Int) {
+		var completion = oneShotCompletion(timerJob?.isActive == true, currentAutoUpdateEnabled())
+
+		if (completion == OneShotCompletion.STOP_SERVICE && stateRepository.state.value.error != null) {
+			errorClearJob?.join()
+			completion = oneShotCompletion(timerJob?.isActive == true, currentAutoUpdateEnabled())
+		}
+
+		when (completion) {
+			OneShotCompletion.KEEP_RUNNING -> Unit
+			OneShotCompletion.RESTORE_TIMER -> startTimerLoop(performImmediately = false)
+			OneShotCompletion.STOP_SERVICE -> stopSelfResult(startId)
+		}
+	}
+
+	private suspend fun currentAutoUpdateEnabled() = runCatching { settingsRepository.settings.first().autoUpdateEnabled }
+		.getOrDefault(false)
+
+	private fun startTimerLoop(performImmediately: Boolean = true) {
 		if (timerJob?.isActive == true) {
 			return
 		}
@@ -110,7 +150,9 @@ class WallpaperService: Service() {
 
 		timerJob = serviceScope.launch {
 			settingsRepository.setAutoUpdateEnabled(true)
-			runCatching { performUpdate() }
+			if (performImmediately) {
+				runCatching { performUpdate() }
+			}
 
 			intervalTicks(settingsRepository.settings.map { it.updateIntervalMinutes })
 				.collect { runCatching { performUpdate() } }
@@ -380,6 +422,7 @@ class WallpaperService: Service() {
 	}
 
 	companion object {
+		const val ACTION_START = "xyz.attacktive.wallhavend.START"
 		const val ACTION_STOP = "xyz.attacktive.wallhavend.STOP"
 		const val ACTION_UPDATE_NOW = "xyz.attacktive.wallhavend.UPDATE_NOW"
 		const val ACTION_ROLL_NOW = "xyz.attacktive.wallhavend.ROLL_NOW"
@@ -388,6 +431,8 @@ class WallpaperService: Service() {
 
 		fun start(context: Context) {
 			val intent = Intent(context, WallpaperService::class.java)
+				.apply { action = ACTION_START }
+
 			context.startForegroundService(intent)
 		}
 
@@ -422,6 +467,42 @@ class WallpaperService: Service() {
 			context.startForegroundService(intent)
 		}
 	}
+}
+
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal enum class WallpaperServiceCommand {
+	START,
+	STOP,
+	UPDATE_NOW,
+	ROLL_NOW,
+	APPLY_PATH,
+	RESTORE,
+	UNKNOWN
+}
+
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal fun wallpaperServiceCommand(action: String?) = when (action) {
+	WallpaperService.ACTION_START -> WallpaperServiceCommand.START
+	WallpaperService.ACTION_STOP -> WallpaperServiceCommand.STOP
+	WallpaperService.ACTION_UPDATE_NOW -> WallpaperServiceCommand.UPDATE_NOW
+	WallpaperService.ACTION_ROLL_NOW -> WallpaperServiceCommand.ROLL_NOW
+	WallpaperService.ACTION_APPLY_PATH -> WallpaperServiceCommand.APPLY_PATH
+	null -> WallpaperServiceCommand.RESTORE
+	else -> WallpaperServiceCommand.UNKNOWN
+}
+
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal enum class OneShotCompletion {
+	KEEP_RUNNING,
+	RESTORE_TIMER,
+	STOP_SERVICE
+}
+
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal fun oneShotCompletion(timerRunning: Boolean, autoUpdateEnabled: Boolean) = when {
+	timerRunning -> OneShotCompletion.KEEP_RUNNING
+	autoUpdateEnabled -> OneShotCompletion.RESTORE_TIMER
+	else -> OneShotCompletion.STOP_SERVICE
 }
 
 /**
