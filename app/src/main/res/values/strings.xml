@@ -78,9 +78,11 @@
 	<string name="error_no_results">⚠ No results — try relaxing your filters</string>
 	<string name="error_no_results_hint">⚠ No results — try relaxing your filters, or remove the API key if you don\'t need NSFW wallpapers</string>
 	<string name="error_api_error">⚠ API error %d</string>
+	<string name="error_api_error_source">⚠ %1$s request failed (HTTP %2$d) — retrying automatically</string>
 	<string name="error_unsupported_format">⚠ Unsupported image format — skipping</string>
 	<string name="error_apply_failed">⚠ Failed to apply wallpaper: %s</string>
 	<string name="error_network_error">⚠ Network error: %s</string>
+	<string name="error_network_error_source">⚠ Can\'t reach %1$s — retrying automatically</string>
 	<string name="cd_settings">Settings</string>
 	<string name="cd_save_to_pictures">Save to Pictures</string>
 	<string name="cd_delete">Delete</string>
@@ -107,6 +109,8 @@
 	<string name="home_msg_saved_to_pictures">Saved to Pictures/Wallhavend</string>
 	<string name="home_msg_save_failed">Failed to save: %s</string>
 	<string name="service_status_never">Never updated</string>
+	<string name="service_status_source_request_failed">%1$s request failed · retrying automatically</string>
+	<string name="service_status_request_failed">Wallpaper source request failed · retrying automatically</string>
 	<string name="notification_channel_name">Wallpaper Service</string>
 	<string name="notification_channel_description">Shows wallpaper auto-update status</string>
 	<string name="picker_title">Choose wallpaper</string>
