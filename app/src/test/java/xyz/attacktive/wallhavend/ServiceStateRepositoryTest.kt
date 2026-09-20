@@ -60,4 +60,32 @@ class ServiceStateRepositoryTest {
 
 		assertNull(repository.state.value.error)
 	}
+
+	@Test
+	fun `a persistent error survives the auto-clear window`() = runTest {
+		val repository = ServiceStateRepository()
+		repository.repositoryScope = CoroutineScope(StandardTestDispatcher(testScheduler))
+		val error = AppError.NetworkError("timeout")
+
+		repository.postError(error, autoClear = false)
+		testScheduler.advanceTimeBy(60_000)
+		testScheduler.runCurrent()
+
+		assertEquals(error, repository.state.value.error)
+	}
+
+	@Test
+	fun `a persistent error cancels an older auto-clear timer`() = runTest {
+		val repository = ServiceStateRepository()
+		repository.repositoryScope = CoroutineScope(StandardTestDispatcher(testScheduler))
+		val error = AppError.ApiError(503)
+
+		repository.postError(AppError.NoResults)
+		testScheduler.advanceTimeBy(5_000)
+		repository.postError(error, autoClear = false)
+		testScheduler.advanceTimeBy(10_000)
+		testScheduler.runCurrent()
+
+		assertEquals(error, repository.state.value.error)
+	}
 }
