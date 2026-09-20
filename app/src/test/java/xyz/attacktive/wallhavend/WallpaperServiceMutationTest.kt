@@ -80,11 +80,11 @@ class WallpaperServiceMutationTest {
 		every { applier.apply(first, WallpaperTarget.HOME) } answers {
 			firstEntered.countDown()
 			check(releaseFirst.await(5, TimeUnit.SECONDS))
-			Result.success(Unit)
+			Result.success(0)
 		}
 		every { applier.apply(second, WallpaperTarget.HOME) } answers {
 			secondApplied.countDown()
-			Result.success(Unit)
+			Result.success(0)
 		}
 
 		val settingsRepository = settingsRepository()
@@ -132,7 +132,7 @@ class WallpaperServiceMutationTest {
 		every { applier.apply(applying, WallpaperTarget.HOME) } answers {
 			firstEntered.countDown()
 			check(releaseFirst.await(5, TimeUnit.SECONDS))
-			Result.success(Unit)
+			Result.success(0)
 		}
 
 		val fileManager = WallpaperFileManager(wallpapersDir, OkHttpClient())
