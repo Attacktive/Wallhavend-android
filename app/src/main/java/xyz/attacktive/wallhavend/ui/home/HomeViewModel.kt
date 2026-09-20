@@ -27,6 +27,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
+import xyz.attacktive.wallhavend.domain.service.WallpaperMutationCoordinator
 import xyz.attacktive.wallhavend.domain.service.WallpaperService
 
 @HiltViewModel
@@ -34,6 +35,7 @@ class HomeViewModel @Inject constructor(
 	private val stateRepository: ServiceStateRepository,
 	private val settingsRepository: SettingsRepository,
 	private val fileManager: WallpaperFileManager,
+	private val wallpaperMutationCoordinator: WallpaperMutationCoordinator,
 	@param:ApplicationContext private val context: Context
 ): ViewModel() {
 	val serviceState = stateRepository.state
@@ -96,27 +98,35 @@ class HomeViewModel @Inject constructor(
 
 	fun togglePin(identity: WallpaperIdentity) {
 		viewModelScope.launch(Dispatchers.IO) {
-			if (identity.matches(pinnedIds.value)) {
-				settingsRepository.unpin(identity)
-			} else {
-				settingsRepository.pin(identity)
+			wallpaperMutationCoordinator.serialize {
+				if (identity.matches(pinnedIds.value)) {
+					settingsRepository.unpin(identity)
+				} else {
+					settingsRepository.pin(identity)
+				}
 			}
 		}
 	}
 
 	fun deleteFromPool(path: String) {
 		viewModelScope.launch(Dispatchers.IO) {
-			evictFromPool(path)
+			wallpaperMutationCoordinator.serialize {
+				evictFromPool(path)
+			}
 		}
 	}
 
 	fun blockFromPool(identity: WallpaperIdentity, path: String) {
 		viewModelScope.launch(Dispatchers.IO) {
-			val currentBeforeBlock = stateRepository.state.value.currentWallpaperPath
-			settingsRepository.block(identity)
-			evictFromPool(path)
+			val replacement = wallpaperMutationCoordinator.serialize {
+				val currentBeforeBlock = stateRepository.state.value.currentWallpaperPath
+				settingsRepository.block(identity)
+				evictFromPool(path)
 
-			when (val replacement = blockReplacement(path, currentBeforeBlock, stateRepository.state.value.poolPaths)) {
+				blockReplacement(path, currentBeforeBlock, stateRepository.state.value.poolPaths)
+			}
+
+			when (replacement) {
 				is BlockReplacement.ApplyFromPool -> WallpaperService.applyPath(context, replacement.path)
 				BlockReplacement.Roll -> WallpaperService.rollNow(context)
 				BlockReplacement.None -> Unit

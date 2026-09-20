@@ -71,6 +71,9 @@ class WallpaperService: Service() {
 	@Inject
 	lateinit var stateRepository: ServiceStateRepository
 
+	@Inject
+	lateinit var wallpaperMutationCoordinator: WallpaperMutationCoordinator
+
 	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 	internal var serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -155,20 +158,22 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun performUpdate(forceDownload: Boolean = false) {
-		val settings = settingsRepository.settings.first()
+		wallpaperMutationCoordinator.serialize {
+			val settings = settingsRepository.settings.first()
 
-		val capabilities = activeNetworkCapabilities()
-		val online = capabilities?.isOnline() == true
-		stateRepository.update { it.copy(isOnline = online) }
+			val capabilities = activeNetworkCapabilities()
+			val online = capabilities?.isOnline() == true
+			stateRepository.update { it.copy(isOnline = online) }
 
-		val onWifi = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+			val onWifi = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
 
-		if (shouldDownload(settings.rotationMode, online, onWifi, forceDownload)) {
-			handleOnlineUpdate(settings)
-		} else if (settings.rotationMode == RotationMode.PINNED_ONLY) {
-			cyclePinnedOnly(settings)
-		} else {
-			cycleFromPool(settings)
+			if (shouldDownload(settings.rotationMode, online, onWifi, forceDownload)) {
+				handleOnlineUpdate(settings)
+			} else if (settings.rotationMode == RotationMode.PINNED_ONLY) {
+				cyclePinnedOnly(settings)
+			} else {
+				cycleFromPool(settings)
+			}
 		}
 	}
 
@@ -269,31 +274,33 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun applySpecificPath(path: String) {
-		val file = File(path)
-		if (!file.exists()) {
-			return
-		}
-
-		val settings = settingsRepository.settings.first()
-
-		applyWallpaper(file, settings.wallpaperTarget)
-			.onSuccess {
-				val state = stateRepository.state.value
-				val newPreviousPath = if (state.currentWallpaperPath != path) {
-					state.currentWallpaperPath
-				} else {
-					state.previousWallpaperPath
-				}
-
-				stateRepository.update {
-					it.copy(currentWallpaperPath = path, previousWallpaperPath = newPreviousPath)
-				}
-
-				val lastUpdatedMs = state.lastUpdatedMs ?: System.currentTimeMillis()
-				settingsRepository.saveServiceState(lastUpdatedMs, path, newPreviousPath)
-
-				updateNotification()
+		wallpaperMutationCoordinator.serialize {
+			val file = File(path)
+			if (!file.exists()) {
+				return@serialize
 			}
+
+			val settings = settingsRepository.settings.first()
+
+			applyWallpaper(file, settings.wallpaperTarget)
+				.onSuccess {
+					val state = stateRepository.state.value
+					val newPreviousPath = if (state.currentWallpaperPath != path) {
+						state.currentWallpaperPath
+					} else {
+						state.previousWallpaperPath
+					}
+
+					stateRepository.update {
+						it.copy(currentWallpaperPath = path, previousWallpaperPath = newPreviousPath)
+					}
+
+					val lastUpdatedMs = state.lastUpdatedMs ?: System.currentTimeMillis()
+					settingsRepository.saveServiceState(lastUpdatedMs, path, newPreviousPath)
+
+					updateNotification()
+				}
+		}
 	}
 
 	private fun applyWallpaper(file: File, target: WallpaperTarget) = runCatching {
