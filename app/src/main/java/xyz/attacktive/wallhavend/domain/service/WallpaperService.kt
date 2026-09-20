@@ -82,6 +82,9 @@ class WallpaperService: Service() {
 	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 	internal var networkCapabilitiesProvider: () -> NetworkCapabilities? = ::activeNetworkCapabilities
 
+	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+	internal var notificationRefresher: () -> Unit = ::updateNotification
+
 	private var timerJob: Job? = null
 	private val oneShotTracker = OneShotTracker()
 
@@ -210,7 +213,7 @@ class WallpaperService: Service() {
 					}
 
 					settingsRepository.saveServiceState(now, paths.firstOrNull(), paths.getOrNull(1))
-					updateNotification()
+					notificationRefresher()
 				},
 				onFailure = { throwable ->
 					stateRepository.postError(AppError.WallpaperApplyFailed(throwable.message ?: "Unknown"))
@@ -275,7 +278,7 @@ class WallpaperService: Service() {
 				val lastUpdatedMs = state.lastUpdatedMs ?: System.currentTimeMillis()
 				settingsRepository.saveServiceState(lastUpdatedMs, next, state.currentWallpaperPath)
 
-				updateNotification()
+				notificationRefresher()
 			}
 	}
 
@@ -305,7 +308,7 @@ class WallpaperService: Service() {
 					val lastUpdatedMs = state.lastUpdatedMs ?: System.currentTimeMillis()
 					settingsRepository.saveServiceState(lastUpdatedMs, path, newPreviousPath)
 
-					updateNotification()
+					notificationRefresher()
 				}
 		}
 	}
