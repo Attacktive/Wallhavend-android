@@ -252,10 +252,14 @@ private fun ErrorBanner(error: AppError) {
 	val text = when (error) {
 		is AppError.NoResults -> stringResource(R.string.error_no_results)
 		is AppError.NoResultsWithRatioHint -> stringResource(R.string.error_no_results_hint)
-		is AppError.ApiError -> stringResource(R.string.error_api_error, error.code)
+		is AppError.ApiError -> error.source
+			?.let { source -> stringResource(R.string.error_api_error_source, stringResource(source.nameRes), error.code) }
+			?: stringResource(R.string.error_api_error, error.code)
 		is AppError.UnsupportedFormat -> stringResource(R.string.error_unsupported_format)
 		is AppError.WallpaperApplyFailed -> stringResource(R.string.error_apply_failed, error.cause)
-		is AppError.NetworkError -> stringResource(R.string.error_network_error, error.cause)
+		is AppError.NetworkError -> error.source
+			?.let { source -> stringResource(R.string.error_network_error_source, stringResource(source.nameRes)) }
+			?: stringResource(R.string.error_network_error, error.cause)
 	}
 
 	Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
