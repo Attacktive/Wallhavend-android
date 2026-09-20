@@ -221,7 +221,8 @@ class WallpaperService: Service() {
 			)
 	}
 
-	private fun onFetchError(throwable: Throwable, settings: AppSettings) {
+	private suspend fun onFetchError(throwable: Throwable, settings: AppSettings) {
+		val source = settings.enabledSources.singleOrNull()
 		val error = when (throwable) {
 			// The hint only makes sense for Wallhaven: it's the Wallhaven server that yields zero results on certain ratios when an API key is present.
 			is NoResultsException -> if (WallpaperSource.WALLHAVEN in settings.enabledSources && settings.apiKey.isNotBlank()) {
@@ -230,11 +231,23 @@ class WallpaperService: Service() {
 				AppError.NoResults
 			}
 			is UnsupportedFormatException -> AppError.UnsupportedFormat
-			is HttpException -> AppError.ApiError(throwable.code())
-			else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName)
+			is HttpException -> AppError.ApiError(throwable.code(), source)
+			else -> AppError.NetworkError(throwable.message ?: throwable.javaClass.simpleName, source)
 		}
 
-		stateRepository.postError(error)
+		val providerFailure = error is AppError.ApiError || error is AppError.NetworkError
+		stateRepository.postError(error, autoClear = !providerFailure)
+		notificationRefresher()
+
+		if (!providerFailure) {
+			return
+		}
+
+		if (settings.rotationMode == RotationMode.PINNED_ONLY) {
+			cyclePinnedOnly(settings)
+		} else {
+			cycleFromPool(settings)
+		}
 	}
 
 	private suspend fun cycleFromPool(settings: AppSettings) {
@@ -361,17 +374,25 @@ class WallpaperService: Service() {
 	private fun NetworkCapabilities.isOnline() =
 		hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 
+	private fun providerFailureText(source: WallpaperSource?) = source
+		?.let { getString(R.string.service_status_source_request_failed, getString(it.nameRes)) }
+		?: getString(R.string.service_status_request_failed)
+
 	private fun buildNotification(): Notification {
 		val state = stateRepository.state.value
 
-		val lastUpdated = state.lastUpdatedMs
-			?.let { timestamp ->
-				val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault())
-					.format(Date(timestamp))
+		val contentText = when (val error = state.error) {
+			is AppError.ApiError -> providerFailureText(error.source)
+			is AppError.NetworkError -> providerFailureText(error.source)
+			else -> state.lastUpdatedMs
+				?.let { timestamp ->
+					val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault())
+						.format(Date(timestamp))
 
-				getString(R.string.home_status_last_updated, formattedTime)
-			}
-			?: getString(R.string.service_status_never)
+					getString(R.string.home_status_last_updated, formattedTime)
+				}
+				?: getString(R.string.service_status_never)
+		}
 
 		val openIntent = PendingIntent.getActivity(
 			this,
@@ -399,7 +420,7 @@ class WallpaperService: Service() {
 		return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
 			.setSmallIcon(R.drawable.ic_wallpaper)
 			.setContentTitle(getString(R.string.app_name))
-			.setContentText(lastUpdated)
+			.setContentText(contentText)
 			.setContentIntent(openIntent)
 			.setOngoing(true)
 			.addAction(0, getString(R.string.home_action_download_now), updateNowIntent)
