@@ -10,12 +10,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import android.content.ContentValues
 import android.content.Context
 import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Environment
-import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -194,18 +192,7 @@ class HomeViewModel @Inject constructor(
 				}
 
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-					val values = ContentValues().apply {
-						put(MediaStore.Images.Media.DISPLAY_NAME, file.name)
-						put(MediaStore.Images.Media.MIME_TYPE, mimeType)
-						put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Wallhavend")
-					}
-
-					val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-						?: error("Failed to create MediaStore entry")
-
-					context.contentResolver.openOutputStream(uri)
-						?.use { outputStream -> file.inputStream().use { inputStream -> inputStream.copyTo(outputStream) } }
-						?: error("Failed to open output stream")
+					MediaStoreExporter(context.contentResolver).save(file, mimeType)
 				} else {
 					val destinationDirectory = File(
 						Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
