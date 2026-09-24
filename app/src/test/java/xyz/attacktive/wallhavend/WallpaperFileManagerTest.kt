@@ -5,8 +5,10 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.SocketPolicy
 import okio.Buffer
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -39,6 +41,12 @@ class WallpaperFileManagerTest {
 
 	private fun makeWallpaper(id: String, path: String) = Wallpaper(identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id), directUrl = server.url(path).toString())
 
+	private fun interruptedJpegResponse(body: ByteArray) =
+		MockResponse()
+			.setBody(Buffer().write(body))
+			.addHeader("Content-Type", "image/jpeg")
+			.setSocketPolicy(SocketPolicy.DISCONNECT_DURING_RESPONSE_BODY)
+
 	@Test
 	fun `download names the file after the source-qualified id`() = runTest {
 		val body = Buffer().write(ByteArray(100) { it.toByte() })
@@ -69,6 +77,56 @@ class WallpaperFileManagerTest {
 		val result = manager.download(makeWallpaper("abc123", "/abc.gif"))
 
 		assertTrue(result.exceptionOrNull() is UnsupportedFormatException)
+	}
+
+	@Test
+	fun `failed new download leaves no final or partial file`() = runTest {
+		server.enqueue(interruptedJpegResponse(ByteArray(10_000) { it.toByte() }))
+
+		val result = manager.download(makeWallpaper("abc123", "/abc.jpg"))
+		val wallpapersDir = File(tmpFolder.root, "wallpapers")
+
+		assertTrue(result.isFailure)
+		assertEquals(emptyList<File>(), manager.listAll())
+		assertTrue(wallpapersDir.listFiles().orEmpty().isEmpty())
+	}
+
+	@Test
+	fun `failed redownload preserves existing wallpaper`() = runTest {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val existing = File(wallpapersDir, "wallhaven_abc123.jpg").also { it.writeText("existing") }
+		server.enqueue(interruptedJpegResponse(ByteArray(10_000) { it.toByte() }))
+
+		val result = manager.download(makeWallpaper("abc123", "/abc.jpg"))
+
+		assertTrue(result.isFailure)
+		assertEquals("existing", existing.readText())
+		assertEquals(listOf(existing), manager.listAll())
+		assertTrue(wallpapersDir.listFiles().orEmpty().none { it.name.endsWith(".part") })
+	}
+
+	@Test
+	fun `successful redownload replaces existing wallpaper`() = runTest {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val existing = File(wallpapersDir, "wallhaven_abc123.jpg").also { it.writeText("existing") }
+		val replacement = ByteArray(100) { (it + 1).toByte() }
+		server.enqueue(MockResponse().setBody(Buffer().write(replacement)).addHeader("Content-Type", "image/jpeg"))
+
+		val result = manager.download(makeWallpaper("abc123", "/abc.jpg"))
+
+		assertTrue(result.isSuccess)
+		assertEquals(existing, result.getOrNull())
+		assertArrayEquals(replacement, existing.readBytes())
+		assertTrue(wallpapersDir.listFiles().orEmpty().none { it.name.endsWith(".part") })
+	}
+
+	@Test
+	fun `listAll ignores partial downloads`() {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val wallpaper = File(wallpapersDir, "wallhaven_abc123.jpg").also { it.writeText("data") }
+		File(wallpapersDir, ".wallhaven_interrupted.jpg.123.part").writeText("partial")
+
+		assertEquals(listOf(wallpaper), manager.listAll())
 	}
 
 	@Test

@@ -1,6 +1,8 @@
 package xyz.attacktive.wallhavend.domain.service
 
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -9,6 +11,8 @@ import okhttp3.Response
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+
+private const val PART_SUFFIX = ".part"
 
 class WallpaperFileManager(private val wallpaperDir: File, private val okHttpClient: OkHttpClient) {
 	private val dir: File get() = wallpaperDir.also { it.mkdirs() }
@@ -25,14 +29,26 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 					check(response.isSuccessful) { "HTTP ${response.code}" }
 
 					val file = File(dir, wallpaper.identity.toFileName(response.imageExtension()))
+					val partialFile = File.createTempFile(".${file.name}.", PART_SUFFIX, dir)
 
-					response.body
-						.byteStream()
-						.use { input ->
-							file.outputStream().use { output -> input.copyTo(output) }
-						}
+					try {
+						response.body
+							.byteStream()
+							.use { input ->
+								partialFile.outputStream().use { output -> input.copyTo(output) }
+							}
 
-					file
+						Files.move(
+							partialFile.toPath(),
+							file.toPath(),
+							StandardCopyOption.ATOMIC_MOVE,
+							StandardCopyOption.REPLACE_EXISTING
+						)
+
+						file
+					} finally {
+						partialFile.delete()
+					}
 				}
 		}
 	}
@@ -54,6 +70,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 
 	private fun sortedFiles() =
 		dir.listFiles()
+			?.filterNot { it.name.endsWith(PART_SUFFIX) }
 			?.sortedByDescending { it.lastModified() }
 			?: emptyList()
 }
