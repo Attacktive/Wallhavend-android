@@ -31,6 +31,7 @@ class MediaStoreExporterTest {
 	@Before
 	fun setUp() {
 		mockkConstructor(ContentValues::class)
+
 		every { anyConstructed<ContentValues>().put(any<String>(), any<String>()) } just Runs
 		every { anyConstructed<ContentValues>().put(any<String>(), any<Int>()) } just Runs
 	}
@@ -55,13 +56,16 @@ class MediaStoreExporterTest {
 		MediaStoreExporter(contentResolver).save(file, "image/jpeg")
 
 		assertArrayEquals(bytes, outputStream.toByteArray())
+
 		verify(exactly = 1) { anyConstructed<ContentValues>().put(MediaStore.MediaColumns.IS_PENDING, 1) }
 		verify(exactly = 1) { anyConstructed<ContentValues>().put(MediaStore.MediaColumns.IS_PENDING, 0) }
+
 		verifyOrder {
 			contentResolver.insert(any(), any())
 			contentResolver.openOutputStream(uri)
 			contentResolver.update(uri, any(), null, null)
 		}
+
 		verify(exactly = 0) { contentResolver.delete(uri, null, null) }
 	}
 
@@ -91,6 +95,7 @@ class MediaStoreExporterTest {
 				throw IOException("copy failed")
 			}
 		}
+
 		val file = tmpFolder.newFile("wallhaven_abc123.jpg").also { it.writeText("wallpaper") }
 
 		every { contentResolver.insert(any(), any()) } returns uri
