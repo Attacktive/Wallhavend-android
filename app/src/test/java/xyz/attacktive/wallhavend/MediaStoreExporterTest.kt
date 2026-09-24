@@ -8,7 +8,6 @@ import android.content.ContentValues
 import android.net.Uri
 import android.provider.MediaStore
 import io.mockk.Runs
-import io.mockk.anyConstructed
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
