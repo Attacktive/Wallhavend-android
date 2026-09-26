@@ -39,6 +39,11 @@
 	<string name="settings_toplist_range_3m">3 meses</string>
 	<string name="settings_toplist_range_6m">6 meses</string>
 	<string name="settings_toplist_range_1y">1 ano</string>
+	<string name="settings_label_wallpaper_orientation">ORIENTAÇÃO DO PAPEL DE PAREDE</string>
+	<string name="settings_hint_wallpaper_orientation">Automático usa a orientação natural do dispositivo; escolha Retrato ou Paisagem para substituí-la</string>
+	<string name="settings_orientation_automatic">Automático</string>
+	<string name="settings_orientation_portrait">Retrato</string>
+	<string name="settings_orientation_landscape">Paisagem</string>
 	<string name="settings_label_avoid_blurry">Evitar papéis de parede desfocados</string>
 	<string name="settings_subtitle_avoid_blurry">Buscar apenas papéis de parede pelo menos do tamanho da sua tela</string>
 	<string name="settings_label_update_interval">INTERVALO DE ATUALIZAÇÃO</string>

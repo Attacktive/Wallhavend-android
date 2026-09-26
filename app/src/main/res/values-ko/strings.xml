@@ -39,6 +39,11 @@
 	<string name="settings_toplist_range_3m">3개월</string>
 	<string name="settings_toplist_range_6m">6개월</string>
 	<string name="settings_toplist_range_1y">1년</string>
+	<string name="settings_label_wallpaper_orientation">배경화면 방향</string>
+	<string name="settings_hint_wallpaper_orientation">자동은 기기의 기본 방향을 사용합니다. 세로 또는 가로를 선택하면 방향을 지정할 수 있습니다</string>
+	<string name="settings_orientation_automatic">자동</string>
+	<string name="settings_orientation_portrait">세로</string>
+	<string name="settings_orientation_landscape">가로</string>
 	<string name="settings_label_avoid_blurry">흐릿한 배경화면 방지</string>
 	<string name="settings_subtitle_avoid_blurry">화면 크기 이상의 배경화면만 가져옵니다</string>
 	<string name="settings_label_update_interval">업데이트 간격</string>

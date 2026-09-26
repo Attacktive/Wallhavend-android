@@ -39,6 +39,11 @@
 	<string name="settings_toplist_range_3m">3 个月</string>
 	<string name="settings_toplist_range_6m">6 个月</string>
 	<string name="settings_toplist_range_1y">1 年</string>
+	<string name="settings_label_wallpaper_orientation">壁纸方向</string>
+	<string name="settings_hint_wallpaper_orientation">自动使用设备的自然方向；选择纵向或横向可覆盖此设置</string>
+	<string name="settings_orientation_automatic">自动</string>
+	<string name="settings_orientation_portrait">纵向</string>
+	<string name="settings_orientation_landscape">横向</string>
 	<string name="settings_label_avoid_blurry">避免模糊壁纸</string>
 	<string name="settings_subtitle_avoid_blurry">仅获取不小于屏幕尺寸的壁纸</string>
 	<string name="settings_label_update_interval">更新间隔</string>
