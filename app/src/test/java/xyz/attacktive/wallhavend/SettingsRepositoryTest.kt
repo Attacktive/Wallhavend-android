@@ -22,6 +22,7 @@ import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperOrientation
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
@@ -55,6 +56,7 @@ class SettingsRepositoryTest {
 		assertEquals(RotationMode.FRESH_WIFI, settings.rotationMode)
 		assertEquals(10, settings.poolSize)
 		assertEquals(WallpaperTarget.HOME, settings.wallpaperTarget)
+		assertEquals(WallpaperOrientation.AUTOMATIC, settings.wallpaperOrientation)
 		assertEquals(setOf(Category.GENERAL), settings.categories)
 		assertEquals(setOf(Purity.SFW), settings.purity)
 		assertEquals(Sorting.RANDOM, settings.sorting)
@@ -143,6 +145,7 @@ class SettingsRepositoryTest {
 			purity = setOf(Purity.SFW, Purity.SKETCHY),
 			updateIntervalMinutes = 30,
 			wallpaperTarget = WallpaperTarget.HOME,
+			wallpaperOrientation = WallpaperOrientation.LANDSCAPE,
 			rotationMode = RotationMode.FRESH_ANY,
 			poolSize = 25,
 			apiKey = "secret",

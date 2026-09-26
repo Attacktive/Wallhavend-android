@@ -15,6 +15,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperOrientation
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
@@ -34,6 +35,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val LICENSE_FILTER = stringPreferencesKey("license_filter")
 		val UPDATE_INTERVAL_MINUTES = intPreferencesKey("update_interval_minutes")
 		val WALLPAPER_TARGET = stringPreferencesKey("wallpaper_target")
+		val WALLPAPER_ORIENTATION = stringPreferencesKey("wallpaper_orientation")
 
 		// Retained read-only so installs predating the rotation-mode picker can migrate; never written anymore.
 		val WIFI_ONLY = booleanPreferencesKey("wifi_only")
@@ -75,6 +77,9 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 				wallpaperTarget = preferences[Keys.WALLPAPER_TARGET]
 					?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
 					?: WallpaperTarget.HOME,
+				wallpaperOrientation = preferences[Keys.WALLPAPER_ORIENTATION]
+					?.let { runCatching { WallpaperOrientation.valueOf(it) }.getOrNull() }
+					?: WallpaperOrientation.AUTOMATIC,
 				rotationMode = preferences[Keys.ROTATION_MODE]
 					?.let { runCatching { RotationMode.valueOf(it) }.getOrNull() }
 					?: migrateRotationMode(preferences[Keys.WIFI_ONLY]),
@@ -114,6 +119,7 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 			preferences[Keys.LICENSE_FILTER] = settings.licenseFilter.name
 			preferences[Keys.UPDATE_INTERVAL_MINUTES] = settings.updateIntervalMinutes
 			preferences[Keys.WALLPAPER_TARGET] = settings.wallpaperTarget.name
+			preferences[Keys.WALLPAPER_ORIENTATION] = settings.wallpaperOrientation.name
 			preferences[Keys.ROTATION_MODE] = settings.rotationMode.name
 			preferences[Keys.POOL_SIZE] = settings.poolSize
 			preferences[Keys.API_KEY] = settings.apiKey

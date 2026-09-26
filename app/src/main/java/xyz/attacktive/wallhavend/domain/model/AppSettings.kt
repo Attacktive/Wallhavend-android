@@ -16,6 +16,7 @@ data class AppSettings(
 	val licenseFilter: LicenseFilter = LicenseFilter.PUBLIC_DOMAIN,
 	val updateIntervalMinutes: Int = 60,
 	val wallpaperTarget: WallpaperTarget = WallpaperTarget.HOME,
+	val wallpaperOrientation: WallpaperOrientation = WallpaperOrientation.AUTOMATIC,
 	val rotationMode: RotationMode = RotationMode.FRESH_WIFI,
 	val poolSize: Int = 10,
 	val apiKey: String = "",

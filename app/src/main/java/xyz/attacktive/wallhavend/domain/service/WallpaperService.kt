@@ -51,6 +51,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
+import xyz.attacktive.wallhavend.domain.model.forWallpaperOrientation
 import xyz.attacktive.wallhavend.domain.model.naturalDimensions
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
@@ -187,7 +188,9 @@ class WallpaperService: Service() {
 	}
 
 	private suspend fun handleOnlineUpdate(settings: AppSettings) {
-		wallpaperRepository.next(settings, screenInfoProvider())
+		val screenInfo = screenInfoProvider().forWallpaperOrientation(settings.wallpaperOrientation)
+
+		wallpaperRepository.next(settings, screenInfo)
 			.fold(
 				onSuccess = { (_, file) -> onWallpaperFetched(file, settings) },
 				onFailure = { throwable -> onFetchError(throwable, settings) }

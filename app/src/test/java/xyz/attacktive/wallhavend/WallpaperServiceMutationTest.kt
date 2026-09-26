@@ -20,10 +20,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.domain.model.AppSettings
+import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperOrientation
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
@@ -193,6 +195,24 @@ class WallpaperServiceMutationTest {
 		coVerify(exactly = 1) { wallpaperRepository.next(any(), any()) }
 	}
 
+	@Test
+	fun `landscape orientation override reaches the wallpaper search`() = runTest {
+		val settings = AppSettings(rotationMode = RotationMode.FRESH_ANY, wallpaperOrientation = WallpaperOrientation.LANDSCAPE)
+		val wallpaperRepository = mockk<WallpaperRepository>()
+		coEvery { wallpaperRepository.next(any(), any()) } returns Result.failure(NoResultsException())
+		val service = service(
+			fileManager = mockk(relaxed = true),
+			settingsRepository = settingsRepository(settings),
+			wallpaperRepository = wallpaperRepository,
+			networkState = NetworkState(online = true, onWifi = true),
+			screenInfo = ScreenInfo("10x16", 1600, 2560)
+		)
+
+		service.performUpdate(forceDownload = true)
+
+		coVerify(exactly = 1) { wallpaperRepository.next(settings, ScreenInfo("16x10", 2560, 1600)) }
+	}
+
 	private fun service(
 		fileManager: WallpaperFileManager,
 		settingsRepository: SettingsRepository = settingsRepository(),
@@ -200,7 +220,8 @@ class WallpaperServiceMutationTest {
 		wallpaperMutationCoordinator: WallpaperMutationCoordinator = WallpaperMutationCoordinator(),
 		wallpaperRepository: WallpaperRepository = mockk(relaxed = true),
 		wallpaperApplier: WallpaperApplier = mockk(relaxed = true),
-		networkState: NetworkState = NetworkState(online = false, onWifi = false)
+		networkState: NetworkState = NetworkState(online = false, onWifi = false),
+		screenInfo: ScreenInfo = ScreenInfo("9x16", 1080, 2400)
 	) = WallpaperService().apply {
 		this.settingsRepository = settingsRepository
 		this.wallpaperRepository = wallpaperRepository
@@ -209,7 +230,7 @@ class WallpaperServiceMutationTest {
 		this.wallpaperMutationCoordinator = wallpaperMutationCoordinator
 		this.wallpaperApplier = wallpaperApplier
 		this.networkStateProvider = { networkState }
-		this.screenInfoProvider = { ScreenInfo("9x16", 1080, 2400) }
+		this.screenInfoProvider = { screenInfo }
 		this.notificationRefresher = {}
 	}
 
