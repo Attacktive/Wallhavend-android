@@ -39,6 +39,11 @@
 	<string name="settings_toplist_range_3m">3 months</string>
 	<string name="settings_toplist_range_6m">6 months</string>
 	<string name="settings_toplist_range_1y">1 year</string>
+	<string name="settings_label_wallpaper_orientation">WALLPAPER ORIENTATION</string>
+	<string name="settings_hint_wallpaper_orientation">Automatic uses the device's natural orientation; choose Portrait or Landscape to override it</string>
+	<string name="settings_orientation_automatic">Automatic</string>
+	<string name="settings_orientation_portrait">Portrait</string>
+	<string name="settings_orientation_landscape">Landscape</string>
 	<string name="settings_label_avoid_blurry">Avoid blurry wallpapers</string>
 	<string name="settings_subtitle_avoid_blurry">Only fetch wallpapers at least as large as your screen</string>
 	<string name="settings_label_update_interval">UPDATE INTERVAL</string>

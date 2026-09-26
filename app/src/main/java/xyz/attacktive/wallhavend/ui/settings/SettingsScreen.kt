@@ -77,6 +77,7 @@ import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
+import xyz.attacktive.wallhavend.domain.model.WallpaperOrientation
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.model.query.Category
@@ -220,6 +221,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit
 private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onNavigateToBlocklist: () -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
 	var filterColor by rememberSaveable { mutableStateOf(settings.filterColor) }
+	var orientationExpanded by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) {
@@ -451,6 +453,55 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 			}
 		}
 	}
+
+	Spacer(Modifier.height(16.dp))
+	SectionLabel(stringResource(R.string.settings_label_wallpaper_orientation))
+
+	ExposedDropdownMenuBox(expanded = orientationExpanded, onExpandedChange = { orientationExpanded = it }) {
+		OutlinedTextField(
+			value = when (settings.wallpaperOrientation) {
+				WallpaperOrientation.AUTOMATIC -> stringResource(R.string.settings_orientation_automatic)
+				WallpaperOrientation.PORTRAIT -> stringResource(R.string.settings_orientation_portrait)
+				WallpaperOrientation.LANDSCAPE -> stringResource(R.string.settings_orientation_landscape)
+			},
+			onValueChange = {},
+			readOnly = true,
+			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = orientationExpanded) },
+			modifier = Modifier
+				.fillMaxWidth()
+				.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+		)
+
+		ExposedDropdownMenu(expanded = orientationExpanded, onDismissRequest = { orientationExpanded = false }) {
+			WallpaperOrientation.entries.forEach { orientation ->
+				DropdownMenuItem(
+					text = {
+						Text(
+							when (orientation) {
+								WallpaperOrientation.AUTOMATIC -> stringResource(R.string.settings_orientation_automatic)
+								WallpaperOrientation.PORTRAIT -> stringResource(R.string.settings_orientation_portrait)
+								WallpaperOrientation.LANDSCAPE -> stringResource(R.string.settings_orientation_landscape)
+							}
+						)
+					},
+					onClick = {
+						if (orientation != settings.wallpaperOrientation) {
+							onSave(settings.copy(wallpaperOrientation = orientation))
+						}
+
+						orientationExpanded = false
+					}
+				)
+			}
+		}
+	}
+
+	Text(
+		text = stringResource(R.string.settings_hint_wallpaper_orientation),
+		style = MaterialTheme.typography.bodySmall,
+		color = MaterialTheme.colorScheme.onSurfaceVariant,
+		modifier = Modifier.padding(top = 4.dp)
+	)
 
 	Spacer(Modifier.height(16.dp))
 
