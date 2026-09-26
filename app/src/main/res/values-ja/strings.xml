@@ -39,6 +39,11 @@
 	<string name="settings_toplist_range_3m">3か月</string>
 	<string name="settings_toplist_range_6m">6か月</string>
 	<string name="settings_toplist_range_1y">1年</string>
+	<string name="settings_label_wallpaper_orientation">壁紙の向き</string>
+	<string name="settings_hint_wallpaper_orientation">自動ではデバイス本来の向きを使用します。縦向きまたは横向きを選択すると上書きできます</string>
+	<string name="settings_orientation_automatic">自動</string>
+	<string name="settings_orientation_portrait">縦向き</string>
+	<string name="settings_orientation_landscape">横向き</string>
 	<string name="settings_label_avoid_blurry">ぼやけた壁紙を避ける</string>
 	<string name="settings_subtitle_avoid_blurry">画面と同じかそれ以上のサイズの壁紙のみ取得します</string>
 	<string name="settings_label_update_interval">更新間隔</string>

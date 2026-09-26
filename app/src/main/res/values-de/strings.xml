@@ -39,6 +39,11 @@
 	<string name="settings_toplist_range_3m">3 Monate</string>
 	<string name="settings_toplist_range_6m">6 Monate</string>
 	<string name="settings_toplist_range_1y">1 Jahr</string>
+	<string name="settings_label_wallpaper_orientation">HINTERGRUNDBILD-AUSRICHTUNG</string>
+	<string name="settings_hint_wallpaper_orientation">Automatisch verwendet die natürliche Ausrichtung des Geräts; wähle Hochformat oder Querformat, um sie zu überschreiben</string>
+	<string name="settings_orientation_automatic">Automatisch</string>
+	<string name="settings_orientation_portrait">Hochformat</string>
+	<string name="settings_orientation_landscape">Querformat</string>
 	<string name="settings_label_avoid_blurry">Unscharfe Hintergrundbilder vermeiden</string>
 	<string name="settings_subtitle_avoid_blurry">Nur Hintergrundbilder laden, die mindestens so groß wie dein Bildschirm sind</string>
 	<string name="settings_label_update_interval">AKTUALISIERUNGSINTERVALL</string>

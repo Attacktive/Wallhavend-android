@@ -39,6 +39,11 @@
 	<string name="settings_toplist_range_3m">3 meses</string>
 	<string name="settings_toplist_range_6m">6 meses</string>
 	<string name="settings_toplist_range_1y">1 año</string>
+	<string name="settings_label_wallpaper_orientation">ORIENTACIÓN DEL FONDO DE PANTALLA</string>
+	<string name="settings_hint_wallpaper_orientation">Automático usa la orientación natural del dispositivo; elige Vertical u Horizontal para cambiarla</string>
+	<string name="settings_orientation_automatic">Automático</string>
+	<string name="settings_orientation_portrait">Vertical</string>
+	<string name="settings_orientation_landscape">Horizontal</string>
 	<string name="settings_label_avoid_blurry">Evitar fondos borrosos</string>
 	<string name="settings_subtitle_avoid_blurry">Solo descargar fondos al menos tan grandes como tu pantalla</string>
 	<string name="settings_label_update_interval">INTERVALO DE ACTUALIZACIÓN</string>

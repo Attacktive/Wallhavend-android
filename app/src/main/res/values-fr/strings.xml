@@ -39,6 +39,11 @@
 	<string name="settings_toplist_range_3m">3 mois</string>
 	<string name="settings_toplist_range_6m">6 mois</string>
 	<string name="settings_toplist_range_1y">1 an</string>
+	<string name="settings_label_wallpaper_orientation">ORIENTATION DU FOND D\'ÉCRAN</string>
+	<string name="settings_hint_wallpaper_orientation">Automatique utilise l\'orientation naturelle de l\'appareil ; choisissez Portrait ou Paysage pour la remplacer</string>
+	<string name="settings_orientation_automatic">Automatique</string>
+	<string name="settings_orientation_portrait">Portrait</string>
+	<string name="settings_orientation_landscape">Paysage</string>
 	<string name="settings_label_avoid_blurry">Éviter les fonds d\'écran flous</string>
 	<string name="settings_subtitle_avoid_blurry">Ne télécharger que des fonds d\'écran au moins aussi grands que votre écran</string>
 	<string name="settings_label_update_interval">INTERVALLE DE MISE À JOUR</string>
