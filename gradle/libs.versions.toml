@@ -1,6 +1,7 @@
 [versions]
 agp = "9.4.1"
 kotlin = "2.4.20"
+detekt = "2.0.0-alpha.6"
 ksp = "2.3.12"
 hilt = "2.60.1"
 hiltNavigationCompose = "1.4.0"
@@ -52,5 +53,6 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

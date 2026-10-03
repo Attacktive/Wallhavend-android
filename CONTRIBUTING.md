@@ -4,10 +4,12 @@ Thanks for taking an interest! This document covers the local setup and the code
 
 ## Development setup
 
-See [Building from source](README.md#building-from-source) in the README for prerequisites and how to build. Run the unit tests with:
+See [Building from source](README.md#building-from-source) in the README for prerequisites and how to build. Run the same quality gates as pull-request CI with:
 
 ```sh
 ./gradlew test
+./gradlew lint
+./gradlew detekt
 ```
 
 An [`.editorconfig`](.editorconfig) is included, so any editor that respects it (Android Studio and VS Code do out of the box) will pick up the indentation automatically.
