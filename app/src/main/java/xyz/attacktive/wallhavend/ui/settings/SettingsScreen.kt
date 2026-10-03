@@ -347,113 +347,13 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 	}
 
 	AnimatedVisibility(visible = wallhavenEnabled) {
-		var sortingExpanded by remember { mutableStateOf(false) }
-
-		Column {
-			Spacer(Modifier.height(16.dp))
-			SectionLabel(stringResource(R.string.settings_label_filter_color))
-
-			ColorSwatchPicker(
-				selected = filterColor,
-				onSelect = { newColor ->
-					filterColor = newColor
-					onSave(settings.copy(filterColor = newColor))
-				}
-			)
-
-			OutlinedTextField(
-				value = filterColor,
-				onValueChange = { filterColor = it.replace("#", "").lowercase() },
-				placeholder = { Text(stringResource(R.string.settings_placeholder_filter_color)) },
-				trailingIcon = {
-					if (filterColor.isNotEmpty()) {
-						IconButton(onClick = {
-							filterColor = ""
-							onSave(settings.copy(filterColor = ""))
-						}) {
-							Icon(Icons.Filled.Clear, contentDescription = null)
-						}
-					}
-				},
-				singleLine = true,
-				modifier = Modifier.fillMaxWidth()
-			)
-
-			Text(
-				text = stringResource(R.string.settings_hint_filter_color),
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-				modifier = Modifier.padding(top = 4.dp)
-			)
-
-			Spacer(Modifier.height(16.dp))
-			SectionLabel(stringResource(R.string.settings_label_sorting))
-
-			ExposedDropdownMenuBox(expanded = sortingExpanded, onExpandedChange = { sortingExpanded = it }) {
-				OutlinedTextField(
-					value = stringResource(settings.sorting.nameRes),
-					onValueChange = {},
-					readOnly = true,
-					trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortingExpanded) },
-					modifier = Modifier
-						.fillMaxWidth()
-						.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-				)
-
-				ExposedDropdownMenu(expanded = sortingExpanded, onDismissRequest = { sortingExpanded = false }) {
-					Sorting.entries.forEach { option ->
-						DropdownMenuItem(
-							text = { Text(stringResource(option.nameRes)) },
-							onClick = {
-								if (option != settings.sorting) {
-									onSave(settings.copy(sorting = option))
-								}
-
-								sortingExpanded = false
-							}
-						)
-					}
-				}
-			}
-
-			AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST) {
-				var toplistRangeExpanded by remember { mutableStateOf(false) }
-
-				Column {
-					Spacer(Modifier.height(16.dp))
-					SectionLabel(stringResource(R.string.settings_label_toplist_range))
-
-					ExposedDropdownMenuBox(expanded = toplistRangeExpanded, onExpandedChange = { toplistRangeExpanded = it }) {
-						OutlinedTextField(
-							value = stringResource(settings.toplistRange.nameRes),
-							onValueChange = {},
-							readOnly = true,
-							trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toplistRangeExpanded) },
-							modifier = Modifier
-								.fillMaxWidth()
-								.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-						)
-
-						ExposedDropdownMenu(expanded = toplistRangeExpanded, onDismissRequest = { toplistRangeExpanded = false }) {
-							ToplistRange.entries.forEach { range ->
-								DropdownMenuItem(
-									text = { Text(stringResource(range.nameRes)) },
-									onClick = {
-										if (range != settings.toplistRange) {
-											onSave(settings.copy(toplistRange = range))
-										}
-
-										toplistRangeExpanded = false
-									}
-								)
-							}
-						}
-					}
-				}
-			}
-		}
+		WallhavenFilterSettings(
+			settings = settings,
+			filterColor = filterColor,
+			onFilterColorChange = { filterColor = it },
+			onSave = onSave
+		)
 	}
-
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_wallpaper_orientation))
 
@@ -535,6 +435,167 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 			contentDescription = null,
 			tint = MaterialTheme.colorScheme.onSurfaceVariant
 		)
+	}
+}
+
+@Composable
+private fun WallhavenFilterSettings(
+	settings: AppSettings,
+	filterColor: String,
+	onFilterColorChange: (String) -> Unit,
+	onSave: (AppSettings) -> Unit
+) {
+	Column {
+		FilterColorSettings(
+			settings = settings,
+			filterColor = filterColor,
+			onFilterColorChange = onFilterColorChange,
+			onSave = onSave
+		)
+
+		SortingSettings(
+			settings = settings,
+			onSave = onSave
+		)
+	}
+}
+
+@Composable
+private fun FilterColorSettings(
+	settings: AppSettings,
+	filterColor: String,
+	onFilterColorChange: (String) -> Unit,
+	onSave: (AppSettings) -> Unit
+) {
+	Spacer(Modifier.height(16.dp))
+	SectionLabel(stringResource(R.string.settings_label_filter_color))
+
+	ColorSwatchPicker(
+		selected = filterColor,
+		onSelect = { newColor ->
+			onFilterColorChange(newColor)
+			onSave(settings.copy(filterColor = newColor))
+		}
+	)
+
+	OutlinedTextField(
+		value = filterColor,
+		onValueChange = { onFilterColorChange(it.replace("#", "").lowercase()) },
+		placeholder = { Text(stringResource(R.string.settings_placeholder_filter_color)) },
+		trailingIcon = {
+			if (filterColor.isNotEmpty()) {
+				IconButton(
+					onClick = {
+						onFilterColorChange("")
+						onSave(settings.copy(filterColor = ""))
+					}
+				) {
+					Icon(Icons.Filled.Clear, contentDescription = null)
+				}
+			}
+		},
+		singleLine = true,
+		modifier = Modifier.fillMaxWidth()
+	)
+
+	Text(
+		text = stringResource(R.string.settings_hint_filter_color),
+		style = MaterialTheme.typography.bodySmall,
+		color = MaterialTheme.colorScheme.onSurfaceVariant,
+		modifier = Modifier.padding(top = 4.dp)
+	)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SortingSettings(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+	var sortingExpanded by remember { mutableStateOf(false) }
+
+	Spacer(Modifier.height(16.dp))
+	SectionLabel(stringResource(R.string.settings_label_sorting))
+
+	ExposedDropdownMenuBox(
+		expanded = sortingExpanded,
+		onExpandedChange = { sortingExpanded = it }
+	) {
+		OutlinedTextField(
+			value = stringResource(settings.sorting.nameRes),
+			onValueChange = {},
+			readOnly = true,
+			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortingExpanded) },
+			modifier = Modifier
+				.fillMaxWidth()
+				.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+		)
+
+		ExposedDropdownMenu(
+			expanded = sortingExpanded,
+			onDismissRequest = { sortingExpanded = false }
+		) {
+			Sorting.entries.forEach { option ->
+				DropdownMenuItem(
+					text = { Text(stringResource(option.nameRes)) },
+					onClick = {
+						if (option != settings.sorting) {
+							onSave(settings.copy(sorting = option))
+						}
+
+						sortingExpanded = false
+					}
+				)
+			}
+		}
+	}
+
+	AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST) {
+		ToplistRangeSetting(
+			settings = settings,
+			onSave = onSave
+		)
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ToplistRangeSetting(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+	var toplistRangeExpanded by remember { mutableStateOf(false) }
+
+	Column {
+		Spacer(Modifier.height(16.dp))
+		SectionLabel(stringResource(R.string.settings_label_toplist_range))
+
+		ExposedDropdownMenuBox(
+			expanded = toplistRangeExpanded,
+			onExpandedChange = { toplistRangeExpanded = it }
+		) {
+			OutlinedTextField(
+				value = stringResource(settings.toplistRange.nameRes),
+				onValueChange = {},
+				readOnly = true,
+				trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toplistRangeExpanded) },
+				modifier = Modifier
+					.fillMaxWidth()
+					.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+			)
+
+			ExposedDropdownMenu(
+				expanded = toplistRangeExpanded,
+				onDismissRequest = { toplistRangeExpanded = false }
+			) {
+				ToplistRange.entries.forEach { range ->
+					DropdownMenuItem(
+						text = { Text(stringResource(range.nameRes)) },
+						onClick = {
+							if (range != settings.toplistRange) {
+								onSave(settings.copy(toplistRange = range))
+							}
+
+							toplistRangeExpanded = false
+						}
+					)
+				}
+			}
+		}
 	}
 }
 

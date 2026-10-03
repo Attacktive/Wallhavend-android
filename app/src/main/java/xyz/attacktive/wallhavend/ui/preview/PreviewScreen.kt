@@ -1,6 +1,7 @@
 package xyz.attacktive.wallhavend.ui.preview
 
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -155,26 +157,6 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 
 	val scope = rememberCoroutineScope()
 
-	/** Slides to a neighbor before evicting so the removed wallpaper animates away instead of popping. */
-	fun evictAndAdvance(evict: () -> Unit) {
-		if (state.poolPaths.size == 1) {
-			evict()
-			onNavigateBack()
-			return
-		}
-
-		val target = if (currentPage < state.poolPaths.lastIndex) {
-			currentPage + 1
-		} else {
-			currentPage - 1
-		}
-
-		scope.launch {
-			pagerState.animateScrollToPage(target)
-			evict()
-		}
-	}
-
 	Box(
 		modifier = Modifier
 			.fillMaxSize()
@@ -272,13 +254,33 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 				PreviewAction(
 					icon = Icons.Default.Delete,
 					label = stringResource(R.string.preview_action_remove),
-					onClick = { evictAndAdvance { viewModel.deleteFromPool(currentPath) } }
+					onClick = {
+						evictAndAdvance(
+							poolSize = state.poolPaths.size,
+							currentPage = currentPage,
+							lastIndex = state.poolPaths.lastIndex,
+							pagerState = pagerState,
+							scope = scope,
+							onNavigateBack = onNavigateBack,
+							evict = { viewModel.deleteFromPool(currentPath) }
+						)
+					}
 				)
 
 				PreviewAction(
 					icon = Icons.Default.Block,
 					label = stringResource(R.string.preview_action_block),
-					onClick = { evictAndAdvance { viewModel.blockFromPool(currentIdentity, currentPath) } }
+					onClick = {
+						evictAndAdvance(
+							poolSize = state.poolPaths.size,
+							currentPage = currentPage,
+							lastIndex = state.poolPaths.lastIndex,
+							pagerState = pagerState,
+							scope = scope,
+							onNavigateBack = onNavigateBack,
+							evict = { viewModel.blockFromPool(currentIdentity, currentPath) }
+						)
+					}
 				)
 
 				PreviewAction(
@@ -291,6 +293,34 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 				)
 			}
 		}
+	}
+}
+
+/** Slides to a neighbor before evicting so the removed wallpaper animates away instead of popping. */
+private fun evictAndAdvance(
+	poolSize: Int,
+	currentPage: Int,
+	lastIndex: Int,
+	pagerState: PagerState,
+	scope: CoroutineScope,
+	onNavigateBack: () -> Unit,
+	evict: () -> Unit
+) {
+	if (poolSize == 1) {
+		evict()
+		onNavigateBack()
+		return
+	}
+
+	val target = if (currentPage < lastIndex) {
+		currentPage + 1
+	} else {
+		currentPage - 1
+	}
+
+	scope.launch {
+		pagerState.animateScrollToPage(target)
+		evict()
 	}
 }
 
