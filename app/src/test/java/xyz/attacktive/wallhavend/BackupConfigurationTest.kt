@@ -14,6 +14,8 @@ class BackupConfigurationTest {
 		val credentialPath = "datastore/wallhavend_credentials.preferences_pb"
 		val exclusion = """<exclude domain="file" path="$credentialPath" />"""
 
+		assertTrue(manifest.contains("""android:backupAgent=".WallhavendBackupAgent"""))
+		assertTrue(manifest.contains("""android:fullBackupOnly="true"""))
 		assertTrue(manifest.contains("""android:fullBackupContent="@xml/backup_rules"""))
 		assertTrue(manifest.contains("""android:dataExtractionRules="@xml/data_extraction_rules"""))
 		assertTrue(backupRules.contains(exclusion))

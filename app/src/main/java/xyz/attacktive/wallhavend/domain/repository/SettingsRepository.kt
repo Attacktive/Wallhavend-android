@@ -259,6 +259,20 @@ class SettingsRepository @Inject constructor(
 	}
 }
 
+internal suspend fun clearRestoredApiKeys(settingsDataStore: DataStore<Preferences>, credentialDataStore: DataStore<Preferences>) {
+	val apiKey = stringPreferencesKey("api_key")
+
+	settingsDataStore.edit { preferences ->
+		preferences.remove(apiKey)
+	}
+
+	if (settingsDataStore !== credentialDataStore) {
+		credentialDataStore.edit { preferences ->
+			preferences.remove(apiKey)
+		}
+	}
+}
+
 /** Maps the pre-rotation-mode `wifi_only` flag onto its equivalent mode for installs that predate the picker. */
 private fun migrateRotationMode(wifiOnly: Boolean?) =
 	if (wifiOnly == false) {

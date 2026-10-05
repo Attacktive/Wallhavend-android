@@ -12,8 +12,10 @@
 	<application
 		android:name=".WallhavendApplication"
 		android:allowBackup="true"
+		android:backupAgent=".WallhavendBackupAgent"
 		android:dataExtractionRules="@xml/data_extraction_rules"
 		android:fullBackupContent="@xml/backup_rules"
+		android:fullBackupOnly="true"
 		android:icon="@mipmap/ic_launcher"
 		android:label="@string/app_name"
 		android:localeConfig="@xml/locales_config"
