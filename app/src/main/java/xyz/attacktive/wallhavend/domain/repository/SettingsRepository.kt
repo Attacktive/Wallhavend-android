@@ -1,9 +1,12 @@
 package xyz.attacktive.wallhavend.domain.repository
 
 import javax.inject.Inject
+import javax.inject.Qualifier
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -25,8 +28,22 @@ import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
 import xyz.attacktive.wallhavend.util.AppLogger
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class SettingsDataStore
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class CredentialDataStore
+
 @Singleton
-class SettingsRepository @Inject constructor(private val dataStore: DataStore<Preferences>, private val logger: AppLogger) {
+class SettingsRepository @Inject constructor(
+	@SettingsDataStore private val dataStore: DataStore<Preferences>,
+	@CredentialDataStore private val credentialDataStore: DataStore<Preferences>,
+	private val logger: AppLogger
+) {
+	internal constructor(dataStore: DataStore<Preferences>, logger: AppLogger) : this(dataStore, dataStore, logger)
+
 	private object Keys {
 		val ENABLED_SOURCES = stringSetPreferencesKey("enabled_sources")
 		val SEARCH_QUERY = stringPreferencesKey("search_query")
@@ -55,50 +72,64 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 		val AUTO_UPDATE_ENABLED = booleanPreferencesKey("auto_update_enabled")
 	}
 
-	val settings = dataStore.data
-		.map { preferences -> AppSettings(
-				enabledSources = (preferences[Keys.ENABLED_SOURCES] ?: setOf(WallpaperSource.WALLHAVEN.key))
-					.mapNotNull { WallpaperSource.fromKey(it) }
-					.toSet()
-					.ifEmpty { setOf(WallpaperSource.WALLHAVEN) },
-				searchQuery = preferences[Keys.SEARCH_QUERY] ?: "",
-				categories = (preferences[Keys.CATEGORIES] ?: setOf("GENERAL"))
-					.mapNotNull { runCatching { Category.valueOf(it) }.getOrNull() }
-					.toSet()
-					.ifEmpty { setOf(Category.GENERAL) },
-				purity = (preferences[Keys.PURITY] ?: setOf("SFW"))
-					.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
-					.toSet()
-					.ifEmpty { setOf(Purity.SFW) },
-				licenseFilter = preferences[Keys.LICENSE_FILTER]
-					?.let { runCatching { LicenseFilter.valueOf(it) }.getOrNull() }
-					?: LicenseFilter.PUBLIC_DOMAIN,
-				updateIntervalMinutes = preferences[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
-				wallpaperTarget = preferences[Keys.WALLPAPER_TARGET]
-					?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
-					?: WallpaperTarget.HOME,
-				wallpaperOrientation = preferences[Keys.WALLPAPER_ORIENTATION]
-					?.let { runCatching { WallpaperOrientation.valueOf(it) }.getOrNull() }
-					?: WallpaperOrientation.AUTOMATIC,
-				rotationMode = preferences[Keys.ROTATION_MODE]
-					?.let { runCatching { RotationMode.valueOf(it) }.getOrNull() }
-					?: migrateRotationMode(preferences[Keys.WIFI_ONLY]),
-				poolSize = (preferences[Keys.POOL_SIZE] ?: 10).coerceAtLeast(1),
-				apiKey = preferences[Keys.API_KEY] ?: "",
-				autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true,
-				filterColor = preferences[Keys.FILTER_COLOR] ?: "",
-				sorting = Sorting.fromApiValue(preferences[Keys.SORTING] ?: "random"),
-				toplistRange = ToplistRange.fromApiValue(preferences[Keys.TOPLIST_RANGE] ?: "1M"),
-				avoidBlurryWallpapers = preferences[Keys.AVOID_BLURRY_WALLPAPERS] ?: false,
-				blockedIds = preferences[Keys.BLOCKED_IDS] ?: emptySet(),
-				pinnedIds = preferences[Keys.PINNED_IDS] ?: emptySet(),
-				autoUpdateEnabled = preferences[Keys.AUTO_UPDATE_ENABLED] ?: false
-			)
-			.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
-		}
+	private object CredentialKeys {
+		val API_KEY = stringPreferencesKey("api_key")
+	}
+
+	val settings = flow {
+		migrateApiKey()
+
+		emitAll(
+			combine(dataStore.data, credentialDataStore.data) { preferences, credentials ->
+				AppSettings(
+					enabledSources = (preferences[Keys.ENABLED_SOURCES] ?: setOf(WallpaperSource.WALLHAVEN.key))
+						.mapNotNull { WallpaperSource.fromKey(it) }
+						.toSet()
+						.ifEmpty { setOf(WallpaperSource.WALLHAVEN) },
+					searchQuery = preferences[Keys.SEARCH_QUERY] ?: "",
+					categories = (preferences[Keys.CATEGORIES] ?: setOf("GENERAL"))
+						.mapNotNull { runCatching { Category.valueOf(it) }.getOrNull() }
+						.toSet()
+						.ifEmpty { setOf(Category.GENERAL) },
+					purity = (preferences[Keys.PURITY] ?: setOf("SFW"))
+						.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
+						.toSet()
+						.ifEmpty { setOf(Purity.SFW) },
+					licenseFilter = preferences[Keys.LICENSE_FILTER]
+						?.let { runCatching { LicenseFilter.valueOf(it) }.getOrNull() }
+						?: LicenseFilter.PUBLIC_DOMAIN,
+					updateIntervalMinutes = preferences[Keys.UPDATE_INTERVAL_MINUTES] ?: 60,
+					wallpaperTarget = preferences[Keys.WALLPAPER_TARGET]
+						?.let { runCatching { WallpaperTarget.valueOf(it) }.getOrNull() }
+						?: WallpaperTarget.HOME,
+					wallpaperOrientation = preferences[Keys.WALLPAPER_ORIENTATION]
+						?.let { runCatching { WallpaperOrientation.valueOf(it) }.getOrNull() }
+						?: WallpaperOrientation.AUTOMATIC,
+					rotationMode = preferences[Keys.ROTATION_MODE]
+						?.let { runCatching { RotationMode.valueOf(it) }.getOrNull() }
+						?: migrateRotationMode(preferences[Keys.WIFI_ONLY]),
+					poolSize = (preferences[Keys.POOL_SIZE] ?: 10).coerceAtLeast(1),
+					apiKey = credentials[CredentialKeys.API_KEY] ?: "",
+					autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true,
+					filterColor = preferences[Keys.FILTER_COLOR] ?: "",
+					sorting = Sorting.fromApiValue(preferences[Keys.SORTING] ?: "random"),
+					toplistRange = ToplistRange.fromApiValue(preferences[Keys.TOPLIST_RANGE] ?: "1M"),
+					avoidBlurryWallpapers = preferences[Keys.AVOID_BLURRY_WALLPAPERS] ?: false,
+					blockedIds = preferences[Keys.BLOCKED_IDS] ?: emptySet(),
+					pinnedIds = preferences[Keys.PINNED_IDS] ?: emptySet(),
+					autoUpdateEnabled = preferences[Keys.AUTO_UPDATE_ENABLED] ?: false
+				)
+					.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
+			}
+		)
+	}
 
 	suspend fun save(settings: AppSettings) {
 		logger.debug(TAG, "save: ${settings.redactedForLog()}")
+
+		credentialDataStore.edit { credentials ->
+			credentials[CredentialKeys.API_KEY] = settings.apiKey
+		}
 
 		dataStore.edit { preferences ->
 			// Sources persist by their stable key rather than their enum name, for the same reason wallpaper ids do: the stored value has to outlive any renaming in the code.
@@ -122,7 +153,11 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 			preferences[Keys.WALLPAPER_ORIENTATION] = settings.wallpaperOrientation.name
 			preferences[Keys.ROTATION_MODE] = settings.rotationMode.name
 			preferences[Keys.POOL_SIZE] = settings.poolSize
-			preferences[Keys.API_KEY] = settings.apiKey
+
+			if (dataStore !== credentialDataStore) {
+				preferences.remove(Keys.API_KEY)
+			}
+
 			preferences[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
 			preferences[Keys.FILTER_COLOR] = settings.filterColor
 			preferences[Keys.SORTING] = settings.sorting.apiValue
@@ -199,6 +234,24 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
 	 */
 	suspend fun setAutoUpdateEnabled(enabled: Boolean) {
 		dataStore.edit { preferences -> preferences[Keys.AUTO_UPDATE_ENABLED] = enabled }
+	}
+
+	private suspend fun migrateApiKey() {
+		if (dataStore === credentialDataStore) {
+			return
+		}
+
+		val legacyApiKey = dataStore.data.first()[Keys.API_KEY] ?: return
+
+		credentialDataStore.edit { credentials ->
+			if (credentials[CredentialKeys.API_KEY] == null) {
+				credentials[CredentialKeys.API_KEY] = legacyApiKey
+			}
+		}
+
+		dataStore.edit { preferences ->
+			preferences.remove(Keys.API_KEY)
+		}
 	}
 
 	companion object {

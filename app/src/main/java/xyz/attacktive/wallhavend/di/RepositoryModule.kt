@@ -13,19 +13,28 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import okhttp3.OkHttpClient
+import xyz.attacktive.wallhavend.domain.repository.CredentialDataStore
 import xyz.attacktive.wallhavend.domain.repository.OpenverseProvider
+import xyz.attacktive.wallhavend.domain.repository.SettingsDataStore
 import xyz.attacktive.wallhavend.domain.repository.WallhavenProvider
 import xyz.attacktive.wallhavend.domain.repository.WallpaperProvider
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
-private val Context.dataStore by preferencesDataStore(name = "wallhavend_settings")
+private val Context.settingsDataStore by preferencesDataStore(name = "wallhavend_settings")
+private val Context.credentialDataStore by preferencesDataStore(name = "wallhavend_credentials")
 
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
 	@Provides
 	@Singleton
-	fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.dataStore
+	@SettingsDataStore
+	fun provideSettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.settingsDataStore
+
+	@Provides
+	@Singleton
+	@CredentialDataStore
+	fun provideCredentialDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.credentialDataStore
 
 	@Provides
 	@Singleton

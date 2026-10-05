@@ -40,12 +40,7 @@ object NetworkModule {
 		.writeTimeout(30, TimeUnit.SECONDS)
 		.apply {
 			if (BuildConfig.DEBUG) {
-				val basicLoggingInterceptor = HttpLoggingInterceptor()
-					.apply {
-						level = HttpLoggingInterceptor.Level.BASIC
-					}
-
-				addInterceptor(basicLoggingInterceptor)
+				addInterceptor(createBasicLoggingInterceptor())
 			}
 		}
 		.build()
@@ -69,6 +64,13 @@ object NetworkModule {
 	@Singleton
 	fun provideOpenverseApiService(@OpenverseRetrofit retrofit: Retrofit): OpenverseApiService = retrofit.create(OpenverseApiService::class.java)
 }
+
+internal fun createBasicLoggingInterceptor(logger: HttpLoggingInterceptor.Logger = HttpLoggingInterceptor.Logger.DEFAULT) =
+	HttpLoggingInterceptor(logger)
+		.apply {
+			redactQueryParams("apikey")
+			level = HttpLoggingInterceptor.Level.BASIC
+		}
 
 private fun retrofitFor(baseUrl: String, okHttpClient: OkHttpClient, json: Json) = Retrofit.Builder()
 	.baseUrl(baseUrl)
