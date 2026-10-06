@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -95,7 +96,9 @@ class WallpaperService: Service() {
 	override fun onBind(intent: Intent?) = null
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-		startForeground(NOTIFICATION_ID, buildNotification())
+		if (!promoteToForeground(startId)) {
+			return wallpaperServiceRestartMode(foregroundStarted = false)
+		}
 
 		when (wallpaperServiceCommand(intent?.action)) {
 			WallpaperServiceCommand.START -> startTimerLoop()
@@ -115,7 +118,25 @@ class WallpaperService: Service() {
 			}
 		}
 
-		return START_STICKY
+		return wallpaperServiceRestartMode(foregroundStarted = true)
+	}
+
+	private fun promoteToForeground(startId: Int): Boolean {
+		try {
+			startForeground(NOTIFICATION_ID, buildNotification())
+		} catch (error: RuntimeException) {
+			if (
+				Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+				error is ForegroundServiceStartNotAllowedException
+			) {
+				stopSelfResult(startId)
+				return false
+			}
+
+			throw error
+		}
+
+		return true
 	}
 
 	private fun restoreTimerLoop(startId: Int) {
@@ -513,6 +534,13 @@ internal fun wallpaperServiceCommand(action: String?) = when (action) {
 	WallpaperService.ACTION_APPLY_PATH -> WallpaperServiceCommand.APPLY_PATH
 	null -> WallpaperServiceCommand.RESTORE
 	else -> WallpaperServiceCommand.UNKNOWN
+}
+
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal fun wallpaperServiceRestartMode(foregroundStarted: Boolean) = if (foregroundStarted) {
+	Service.START_STICKY
+} else {
+	Service.START_NOT_STICKY
 }
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)

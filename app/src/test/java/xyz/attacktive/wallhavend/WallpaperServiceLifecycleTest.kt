@@ -3,12 +3,14 @@ package xyz.attacktive.wallhavend
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import android.app.Service
 import xyz.attacktive.wallhavend.domain.service.OneShotCompletion
 import xyz.attacktive.wallhavend.domain.service.OneShotTracker
 import xyz.attacktive.wallhavend.domain.service.WallpaperService
 import xyz.attacktive.wallhavend.domain.service.WallpaperServiceCommand
 import xyz.attacktive.wallhavend.domain.service.oneShotCompletion
 import xyz.attacktive.wallhavend.domain.service.wallpaperServiceCommand
+import xyz.attacktive.wallhavend.domain.service.wallpaperServiceRestartMode
 
 class WallpaperServiceLifecycleTest {
 	@Test
@@ -20,6 +22,12 @@ class WallpaperServiceLifecycleTest {
 		assertEquals(WallpaperServiceCommand.APPLY_PATH, wallpaperServiceCommand(WallpaperService.ACTION_APPLY_PATH))
 		assertEquals(WallpaperServiceCommand.RESTORE, wallpaperServiceCommand(null))
 		assertEquals(WallpaperServiceCommand.UNKNOWN, wallpaperServiceCommand("xyz.attacktive.wallhavend.UNKNOWN"))
+	}
+
+	@Test
+	fun `service restart mode stops retrying after foreground promotion is denied`() {
+		assertEquals(Service.START_STICKY, wallpaperServiceRestartMode(foregroundStarted = true))
+		assertEquals(Service.START_NOT_STICKY, wallpaperServiceRestartMode(foregroundStarted = false))
 	}
 
 	@Test
