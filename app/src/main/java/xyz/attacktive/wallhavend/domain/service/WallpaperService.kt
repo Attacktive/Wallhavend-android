@@ -125,10 +125,7 @@ class WallpaperService: Service() {
 		try {
 			startForeground(NOTIFICATION_ID, buildNotification())
 		} catch (error: RuntimeException) {
-			if (
-				Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-				error is ForegroundServiceStartNotAllowedException
-			) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && error is ForegroundServiceStartNotAllowedException) {
 				stopSelfResult(startId)
 				return false
 			}
