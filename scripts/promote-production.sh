@@ -206,7 +206,7 @@ payload="$(jq -cn \
 
 play_api PUT "edits/${edit_id}/tracks/production" "${payload}" >/dev/null
 play_api POST "edits/${edit_id}:validate" '{}' >/dev/null
-play_api POST "edits/${edit_id}:commit" '{}' >/dev/null
+play_api POST "edits/${edit_id}:commit?changesInReviewBehavior=ERROR_IF_IN_REVIEW" '{}' >/dev/null
 edit_id=''
 
 summary_file="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
