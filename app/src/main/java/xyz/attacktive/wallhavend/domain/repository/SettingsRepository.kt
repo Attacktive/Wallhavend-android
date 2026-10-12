@@ -228,8 +228,7 @@ class SettingsRepository @Inject constructor(
 	}
 
 	/**
-	 * Whether the user wants auto-update running. Persisted so the toggle survives process death:
-	 * the in-memory ServiceState.isRunning resets to false whenever the OS reclaims the process.
+	 * Whether the user wants automatic rotation enabled. Persisting this separately from runtime work state lets scheduling survive process death.
 	 * Isolated the same way as [block]/[pin]: read via [settings], written only through this mutator.
 	 */
 	suspend fun setAutoUpdateEnabled(enabled: Boolean) {

@@ -6,7 +6,7 @@
 
 Android app that automatically rotates wallpapers from [Wallhaven](https://wallhaven.cc).
 
-Supports filtering by category, purity, and aspect ratio. Runs as a foreground service on a configurable schedule (1 min – 24 hr). Requires an API key for NSFW content only.
+Supports filtering by category, purity, and aspect ratio. Schedules wallpaper rotation across device sleep and performs each update as bounded background work. Android may still delay updates while the device is idle, so configured intervals are approximate. Requires an API key for NSFW content only.
 
 **Min SDK:** Android 8.0 (API 26)
 

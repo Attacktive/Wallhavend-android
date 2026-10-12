@@ -64,6 +64,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 @Composable
 fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
+	val autoUpdateEnabled by viewModel.autoUpdateEnabled.collectAsStateWithLifecycle()
 	val pinnedIds by viewModel.pinnedIds.collectAsStateWithLifecycle()
 	val rotationMode by viewModel.rotationMode.collectAsStateWithLifecycle()
 
@@ -85,13 +86,13 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 				.padding(padding)
 				.padding(16.dp)
 		) {
-			StatusCard(state = state)
+			StatusCard(state = state, autoUpdateEnabled = autoUpdateEnabled)
 			Spacer(modifier = Modifier.height(12.dp))
 
 			QuickActions(
-				state = state,
+				autoUpdateEnabled = autoUpdateEnabled,
 				onStartStop = {
-					if (state.isRunning) {
+					if (autoUpdateEnabled) {
 						viewModel.stopService()
 					} else {
 						viewModel.startService()
@@ -110,7 +111,7 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 				OfflineBanner()
 			}
 
-			val pinnedRotationIdle = state.isRunning && rotationMode == RotationMode.PINNED_ONLY && pinnedIds.isEmpty()
+			val pinnedRotationIdle = autoUpdateEnabled && rotationMode == RotationMode.PINNED_ONLY && pinnedIds.isEmpty()
 
 			if (pinnedRotationIdle) {
 				Spacer(modifier = Modifier.height(8.dp))
@@ -135,14 +136,14 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 }
 
 @Composable
-private fun StatusCard(state: ServiceState) {
+private fun StatusCard(state: ServiceState, autoUpdateEnabled: Boolean) {
 	Card(modifier = Modifier.fillMaxWidth()) {
 		Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
 			Column(modifier = Modifier.weight(1f)) {
 				Text(
-					text = stringResource(if (state.isRunning) R.string.home_status_auto_update_on else R.string.home_status_auto_update_off),
+					text = stringResource(if (autoUpdateEnabled) R.string.home_status_auto_update_on else R.string.home_status_auto_update_off),
 					style = MaterialTheme.typography.labelMedium,
-					color = if (state.isRunning) {
+					color = if (autoUpdateEnabled) {
 						MaterialTheme.colorScheme.primary
 					} else {
 						MaterialTheme.colorScheme.onSurfaceVariant
@@ -164,11 +165,11 @@ private fun StatusCard(state: ServiceState) {
 }
 
 @Composable
-private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateNow: () -> Unit) {
+private fun QuickActions(autoUpdateEnabled: Boolean, onStartStop: () -> Unit, onUpdateNow: () -> Unit) {
 	Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 		Button(onClick = onStartStop) {
 			Icon(
-				imageVector = if (state.isRunning) {
+				imageVector = if (autoUpdateEnabled) {
 					Icons.Default.Stop
 				} else {
 					Icons.Default.PlayArrow
@@ -177,7 +178,7 @@ private fun QuickActions(state: ServiceState, onStartStop: () -> Unit, onUpdateN
 			)
 
 			Spacer(Modifier.width(4.dp))
-			Text(stringResource(if (state.isRunning) R.string.home_action_stop else R.string.home_action_start))
+			Text(stringResource(if (autoUpdateEnabled) R.string.home_action_stop else R.string.home_action_start))
 		}
 
 		OutlinedButton(onClick = onUpdateNow) {

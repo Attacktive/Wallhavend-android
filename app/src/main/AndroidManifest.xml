@@ -50,6 +50,8 @@
 			<property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="wallpaper_updater" />
 		</service>
 
+		<receiver android:name=".domain.service.RotationAlarmReceiver" android:exported="false" />
+
 		<receiver android:name=".domain.service.BootReceiver" android:exported="true">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />

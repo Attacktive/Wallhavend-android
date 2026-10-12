@@ -4,31 +4,29 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
-import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 
 @AndroidEntryPoint
 class BootReceiver: BroadcastReceiver() {
-	@Inject lateinit var settingsRepository: SettingsRepository
+	@Inject
+	lateinit var rotationScheduler: RotationScheduler
 
 	override fun onReceive(context: Context, intent: Intent) {
-		if (intent.action != Intent.ACTION_BOOT_COMPLETED && intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) {
-			return
+		val trigger = when (intent.action) {
+			Intent.ACTION_BOOT_COMPLETED -> RotationReconciliationTrigger.BOOT
+			Intent.ACTION_MY_PACKAGE_REPLACED -> RotationReconciliationTrigger.PACKAGE_REPLACED
+			else -> return
 		}
 
 		val pendingResult = goAsync()
 		val scope = CoroutineScope(Dispatchers.IO)
 		scope.launch {
 			try {
-				val settings = settingsRepository.settings.first()
-				if (settings.autoStartOnBoot && settings.autoUpdateEnabled) {
-					WallpaperService.start(context)
-				}
+				rotationScheduler.reconcile(trigger)
 			} finally {
 				pendingResult.finish()
 				scope.cancel()

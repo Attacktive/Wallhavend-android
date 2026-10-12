@@ -7,21 +7,27 @@ import org.junit.Test
 
 class BackupConfigurationTest {
 	@Test
-	fun `credential DataStore is excluded from backup and device transfer`() {
+	fun `runtime DataStores are excluded from backup and device transfer`() {
 		val manifest = source("AndroidManifest.xml")
 		val backupRules = source("res/xml/backup_rules.xml")
 		val dataExtractionRules = source("res/xml/data_extraction_rules.xml")
-		val credentialPath = "datastore/wallhavend_credentials.preferences_pb"
-		val exclusion = """<exclude domain="file" path="$credentialPath" />"""
+		val excludedPaths = listOf(
+			"datastore/wallhavend_credentials.preferences_pb",
+			"datastore/wallhavend_rotation_schedule.preferences_pb"
+		)
 
 		assertTrue(manifest.contains("""android:backupAgent=".WallhavendBackupAgent"""))
 		assertTrue(manifest.contains("""android:fullBackupOnly="true"""))
 		assertTrue(manifest.contains("""android:fullBackupContent="@xml/backup_rules"""))
 		assertTrue(manifest.contains("""android:dataExtractionRules="@xml/data_extraction_rules"""))
-		assertTrue(backupRules.contains(exclusion))
 		assertTrue(dataExtractionRules.contains("<cloud-backup>"))
 		assertTrue(dataExtractionRules.contains("<device-transfer>"))
-		assertEquals(2, Regex(Regex.escape(exclusion)).findAll(dataExtractionRules).count())
+
+		excludedPaths.forEach { path ->
+			val exclusion = """<exclude domain="file" path="$path" />"""
+			assertTrue(backupRules.contains(exclusion))
+			assertEquals(2, Regex(Regex.escape(exclusion)).findAll(dataExtractionRules).count())
+		}
 	}
 
 	private fun source(path: String): String {

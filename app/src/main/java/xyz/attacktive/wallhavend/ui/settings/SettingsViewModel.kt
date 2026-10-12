@@ -11,9 +11,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
+import xyz.attacktive.wallhavend.domain.service.RotationScheduler
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(private val settingsRepository: SettingsRepository): ViewModel() {
+class SettingsViewModel @Inject constructor(
+	private val settingsRepository: SettingsRepository,
+	private val rotationScheduler: RotationScheduler
+): ViewModel() {
 	val settings = settingsRepository.settings
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
 
@@ -22,8 +26,11 @@ class SettingsViewModel @Inject constructor(private val settingsRepository: Sett
 
 	fun save(settings: AppSettings) {
 		viewModelScope.launch {
-			runCatching { settingsRepository.save(settings) }
-				.onFailure { e -> _saveError.value = e.message ?: "Failed to save settings" }
+			runCatching {
+				settingsRepository.save(settings)
+				rotationScheduler.reconcile()
+			}
+				.onFailure { error -> _saveError.value = error.message ?: "Failed to save settings" }
 		}
 	}
 
