@@ -35,7 +35,7 @@ import xyz.attacktive.wallhavend.domain.service.NetworkState
 import xyz.attacktive.wallhavend.domain.service.WallpaperApplier
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 import xyz.attacktive.wallhavend.domain.service.WallpaperMutationCoordinator
-import xyz.attacktive.wallhavend.domain.service.WallpaperService
+import xyz.attacktive.wallhavend.domain.service.WallpaperRotationExecutor
 
 class WallpaperServiceMutationTest {
 	@get:Rule
@@ -65,17 +65,17 @@ class WallpaperServiceMutationTest {
 		val stateRepository = ServiceStateRepository()
 		val applier = mockk<WallpaperApplier>()
 		every { applier.apply(any(), WallpaperTarget.HOME) } returns Result.success(0)
-		val service = service(
+		val executor = executor(
 			fileManager = fileManager,
 			settingsRepository = settingsRepository,
 			stateRepository = stateRepository,
 			wallpaperApplier = applier
 		)
 
-		val scheduled = async(Dispatchers.Default) { service.performUpdate(forceDownload = false) }
+		val scheduled = async(Dispatchers.Default) { executor.performUpdate(forceDownload = false) }
 		assertTrue(firstEntered.await(5, TimeUnit.SECONDS))
 
-		val manual = async(Dispatchers.Default) { service.performUpdate(forceDownload = true) }
+		val manual = async(Dispatchers.Default) { executor.performUpdate(forceDownload = true) }
 		assertFalse(secondEntered.await(250, TimeUnit.MILLISECONDS))
 
 		releaseFirst.countDown()
@@ -112,17 +112,17 @@ class WallpaperServiceMutationTest {
 
 		val settingsRepository = settingsRepository()
 		val stateRepository = ServiceStateRepository()
-		val service = service(
+		val executor = executor(
 			fileManager = mockk(relaxed = true),
 			settingsRepository = settingsRepository,
 			stateRepository = stateRepository,
 			wallpaperApplier = applier
 		)
 
-		val firstApply = async(Dispatchers.Default) { service.applySpecificPath(first.absolutePath) }
+		val firstApply = async(Dispatchers.Default) { executor.applySpecificPath(first.absolutePath) }
 		assertTrue(firstEntered.await(5, TimeUnit.SECONDS))
 
-		val secondApply = async(Dispatchers.Default) { service.applySpecificPath(second.absolutePath) }
+		val secondApply = async(Dispatchers.Default) { executor.applySpecificPath(second.absolutePath) }
 		assertFalse(secondApplied.await(250, TimeUnit.MILLISECONDS))
 
 		releaseFirst.countDown()
@@ -170,7 +170,7 @@ class WallpaperServiceMutationTest {
 		val wallpaperRepository = mockk<WallpaperRepository>()
 		coEvery { wallpaperRepository.next(any(), any()) } returns Result.success(wallpaper to downloaded)
 
-		val service = service(
+		val executor = executor(
 			fileManager = WallpaperFileManager(wallpapersDir, mockk(relaxed = true)),
 			settingsRepository = settingsRepository(AppSettings(rotationMode = RotationMode.FRESH_ANY, poolSize = 1)),
 			wallpaperRepository = wallpaperRepository,
@@ -178,10 +178,10 @@ class WallpaperServiceMutationTest {
 			networkState = NetworkState(online = true, onWifi = true)
 		)
 
-		val apply = async(Dispatchers.Default) { service.applySpecificPath(applying.absolutePath) }
+		val apply = async(Dispatchers.Default) { executor.applySpecificPath(applying.absolutePath) }
 		assertTrue(firstEntered.await(5, TimeUnit.SECONDS))
 
-		val update = async(Dispatchers.Default) { service.performUpdate(forceDownload = true) }
+		val update = async(Dispatchers.Default) { executor.performUpdate(forceDownload = true) }
 		assertFalse(downloadedApplied.await(250, TimeUnit.MILLISECONDS))
 		coVerify(exactly = 0) { wallpaperRepository.next(any(), any()) }
 		assertTrue(applying.exists())
@@ -200,7 +200,7 @@ class WallpaperServiceMutationTest {
 		val settings = AppSettings(rotationMode = RotationMode.FRESH_ANY, wallpaperOrientation = WallpaperOrientation.LANDSCAPE)
 		val wallpaperRepository = mockk<WallpaperRepository>()
 		coEvery { wallpaperRepository.next(any(), any()) } returns Result.failure(NoResultsException())
-		val service = service(
+		val executor = executor(
 			fileManager = mockk(relaxed = true),
 			settingsRepository = settingsRepository(settings),
 			wallpaperRepository = wallpaperRepository,
@@ -208,12 +208,12 @@ class WallpaperServiceMutationTest {
 			screenInfo = ScreenInfo("10x16", 1600, 2560)
 		)
 
-		service.performUpdate(forceDownload = true)
+		executor.performUpdate(forceDownload = true)
 
 		coVerify(exactly = 1) { wallpaperRepository.next(settings, ScreenInfo("16x10", 2560, 1600)) }
 	}
 
-	private fun service(
+	private fun executor(
 		fileManager: WallpaperFileManager,
 		settingsRepository: SettingsRepository = settingsRepository(),
 		stateRepository: ServiceStateRepository = ServiceStateRepository(),
@@ -222,16 +222,18 @@ class WallpaperServiceMutationTest {
 		wallpaperApplier: WallpaperApplier = mockk(relaxed = true),
 		networkState: NetworkState = NetworkState(online = false, onWifi = false),
 		screenInfo: ScreenInfo = ScreenInfo("9x16", 1080, 2400)
-	) = WallpaperService().apply {
-		this.settingsRepository = settingsRepository
-		this.wallpaperRepository = wallpaperRepository
-		this.fileManager = fileManager
-		this.stateRepository = stateRepository
-		this.wallpaperMutationCoordinator = wallpaperMutationCoordinator
-		this.wallpaperApplier = wallpaperApplier
-		this.networkStateProvider = { networkState }
-		this.screenInfoProvider = { screenInfo }
-		this.notificationRefresher = {}
+	) = WallpaperRotationExecutor(
+		context = mockk(relaxed = true),
+		settingsRepository = settingsRepository,
+		wallpaperRepository = wallpaperRepository,
+		fileManager = fileManager,
+		stateRepository = stateRepository,
+		wallpaperMutationCoordinator = wallpaperMutationCoordinator,
+		wallpaperApplier = wallpaperApplier
+	)
+	.apply {
+		networkStateProvider = { networkState }
+		screenInfoProvider = { screenInfo }
 	}
 
 	private fun settingsRepository(settings: AppSettings = AppSettings(rotationMode = RotationMode.PINNED_ONLY)): SettingsRepository {

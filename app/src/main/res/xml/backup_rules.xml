@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
 	<exclude domain="file" path="datastore/wallhavend_credentials.preferences_pb" />
+	<exclude domain="file" path="datastore/wallhavend_rotation_schedule.preferences_pb" />
 </full-backup-content>

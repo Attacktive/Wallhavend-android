@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -24,8 +23,10 @@ import xyz.attacktive.wallhavend.domain.model.ServiceState
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
+import xyz.attacktive.wallhavend.domain.service.RotationScheduler
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 import xyz.attacktive.wallhavend.domain.service.WallpaperMutationCoordinator
+import xyz.attacktive.wallhavend.domain.service.WallpaperRotationExecutor
 import xyz.attacktive.wallhavend.domain.service.WallpaperService
 
 @HiltViewModel
@@ -34,10 +35,16 @@ class HomeViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val fileManager: WallpaperFileManager,
 	private val wallpaperMutationCoordinator: WallpaperMutationCoordinator,
+	private val wallpaperRotationExecutor: WallpaperRotationExecutor,
+	private val rotationScheduler: RotationScheduler,
 	@param:ApplicationContext private val context: Context
 ): ViewModel() {
 	val serviceState = stateRepository.state
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
+
+	val autoUpdateEnabled = settingsRepository.settings
+		.map { it.autoUpdateEnabled }
+		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
 	val pinnedIds = settingsRepository.settings
 		.map { it.pinnedIds }
@@ -52,44 +59,25 @@ class HomeViewModel @Inject constructor(
 
 	init {
 		viewModelScope.launch(Dispatchers.IO) {
-			wallpaperMutationCoordinator.serialize {
-				if (stateRepository.state.value.poolPaths.isEmpty()) {
-					val (lastUpdatedMs, currentPath, previousPath) = settingsRepository.loadServiceState()
+			wallpaperRotationExecutor.restoreState()
+			rotationScheduler.reconcile()
+		}
+	}
 
-					val paths = fileManager.listAll()
-						.map { it.absolutePath }
-
-					stateRepository.update {
-						it.copy(
-							poolPaths = paths,
-							lastUpdatedMs = lastUpdatedMs,
-							currentWallpaperPath = currentPath,
-							previousWallpaperPath = previousPath
-						)
-					}
-				}
+	fun startService() {
+		viewModelScope.launch(Dispatchers.IO) {
+			if (rotationScheduler.start()) {
+				WallpaperService.rollNow(context)
 			}
-
-			reconcileAutoUpdate()
 		}
 	}
 
-	/**
-	 * A fresh process resets the in-memory running flag to false, so re-derive it from the persisted
-	 * intent and revive the service when the user had auto-update on. The screen is foregrounded when
-	 * this runs, so launching the foreground service is permitted.
-	 */
-	private suspend fun reconcileAutoUpdate() {
-		val enabled = settingsRepository.settings.first().autoUpdateEnabled
-		val alreadyRunning = stateRepository.state.value.isRunning
-		if (enabled && !alreadyRunning) {
-			stateRepository.update { it.copy(isRunning = true) }
-			WallpaperService.start(context)
+	fun stopService() {
+		viewModelScope.launch(Dispatchers.IO) {
+			rotationScheduler.stop()
 		}
 	}
 
-	fun startService() = WallpaperService.start(context)
-	fun stopService() = WallpaperService.stop(context)
 	fun updateNow() = WallpaperService.updateNow(context)
 
 	fun applyFromPool(path: String) {

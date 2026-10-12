@@ -15,6 +15,7 @@ import dagger.multibindings.IntoSet
 import okhttp3.OkHttpClient
 import xyz.attacktive.wallhavend.domain.repository.CredentialDataStore
 import xyz.attacktive.wallhavend.domain.repository.OpenverseProvider
+import xyz.attacktive.wallhavend.domain.repository.RotationScheduleDataStore
 import xyz.attacktive.wallhavend.domain.repository.SettingsDataStore
 import xyz.attacktive.wallhavend.domain.repository.WallhavenProvider
 import xyz.attacktive.wallhavend.domain.repository.WallpaperProvider
@@ -22,6 +23,7 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 private val Context.settingsDataStore by preferencesDataStore(name = "wallhavend_settings")
 private val Context.credentialDataStore by preferencesDataStore(name = "wallhavend_credentials")
+private val Context.rotationScheduleDataStore by preferencesDataStore(name = "wallhavend_rotation_schedule")
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -35,6 +37,11 @@ object RepositoryModule {
 	@Singleton
 	@CredentialDataStore
 	fun provideCredentialDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.credentialDataStore
+
+	@Provides
+	@Singleton
+	@RotationScheduleDataStore
+	fun provideRotationScheduleDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.rotationScheduleDataStore
 
 	@Provides
 	@Singleton

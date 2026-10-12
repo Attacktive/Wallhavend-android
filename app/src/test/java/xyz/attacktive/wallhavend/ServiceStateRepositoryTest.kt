@@ -5,7 +5,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -18,7 +17,6 @@ class ServiceStateRepositoryTest {
 	fun `initial state has sensible defaults`() {
 		val repository = ServiceStateRepository()
 		val state = repository.state.value
-		assertFalse(state.isRunning)
 		assertNull(state.error)
 		assertNull(state.lastUpdatedMs)
 		assertTrue(state.poolPaths.isEmpty())
@@ -27,17 +25,16 @@ class ServiceStateRepositoryTest {
 	@Test
 	fun `update transforms state correctly`() {
 		val repository = ServiceStateRepository()
-		repository.update { it.copy(isRunning = true, lastUpdatedMs = 12345L) }
-		assertTrue(repository.state.value.isRunning)
+		repository.update { it.copy(lastUpdatedMs = 12345L) }
 		assertEquals(12345L, repository.state.value.lastUpdatedMs)
 	}
 
 	@Test
 	fun `update preserves unmodified fields`() {
 		val repository = ServiceStateRepository()
-		repository.update { it.copy(isRunning = true) }
+		repository.update { it.copy(lastUpdatedMs = 12345L) }
 		repository.update { it.copy(error = AppError.NoResults) }
-		assertTrue(repository.state.value.isRunning)
+		assertEquals(12345L, repository.state.value.lastUpdatedMs)
 		assertEquals(AppError.NoResults, repository.state.value.error)
 	}
 
