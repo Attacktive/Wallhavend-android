@@ -50,7 +50,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p whatsnew
-          bash scripts/release-notes.sh '' '${{ github.ref_name }}' | head -c 500 > whatsnew/whatsnew-en-US
+          bash scripts/release-notes.sh '2.3.2' '${{ github.ref_name }}' | head -c 500 > whatsnew/whatsnew-en-US
 
       - name: 'Upload AAB to Google Play'
         uses: 'r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5'
@@ -59,7 +59,6 @@ jobs:
           packageName: 'xyz.attacktive.wallhavend'
           releaseFiles: 'app/build/outputs/bundle/release/Wallhavend-${{ github.ref_name }}.aab'
           mappingFile: 'app/build/outputs/mapping/release/mapping.txt'
-          debugSymbols: 'app/build/outputs/native-debug-symbols/release/native-debug-symbols.zip'
           whatsNewDirectory: 'whatsnew'
           tracks: 'beta'
           status: 'completed'
