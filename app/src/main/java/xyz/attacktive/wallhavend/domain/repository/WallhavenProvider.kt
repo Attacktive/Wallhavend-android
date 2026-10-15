@@ -1,5 +1,7 @@
 package xyz.attacktive.wallhavend.domain.repository
 
+import java.math.BigInteger
+import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.async
@@ -20,14 +22,18 @@ import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.toBitString
 
 @Singleton
-class WallhavenProvider @Inject constructor(private val wallhavenApiService: WallhavenApiService): WallpaperProvider {
+class WallhavenProvider @Inject constructor(
+	private val wallhavenApiService: WallhavenApiService,
+	private val selectionStore: WallhavenSelectionStore
+): WallpaperProvider {
 	override val source = WallpaperSource.WALLHAVEN
 
 	private val mutex = Mutex()
-	private var cache = ArrayDeque<WallhavenWallpaperDto>()
-	private var cacheKey: SearchKey? = null
-	private var currentPage = 1
-	private var lastPage = 1
+
+	internal constructor(wallhavenApiService: WallhavenApiService): this(
+		wallhavenApiService,
+		InMemoryWallhavenSelectionStore()
+	)
 
 	private data class SearchKey(
 		val keywords: List<String>,
@@ -63,14 +69,15 @@ class WallhavenProvider @Inject constructor(private val wallhavenApiService: Wal
 
 	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>): Result<Wallpaper> = mutex.withLock {
 		val key = settings.toSearchKey(screenInfo)
-		if (key != cacheKey) {
-			cache.clear()
-			cacheKey = key
-			currentPage = 1
-			lastPage = 1
+		val fingerprint = key.fingerprint()
+		var state = selectionStore.read()
+
+		if (state.searchKeyFingerprint != fingerprint) {
+			state = WallhavenSelectionState(searchKeyFingerprint = fingerprint)
+			selectionStore.write(state)
 		}
 
-		val selection = runCatching { selectNext(key, blockedIds) }
+		val selection = runCatching { selectNext(key, blockedIds, state) }
 		val dto = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
 			?: return@withLock Result.failure(NoResultsException())
 
@@ -83,17 +90,28 @@ class WallhavenProvider @Inject constructor(private val wallhavenApiService: Wal
 	 * than giving up. A genuinely empty page (no results at all) stops immediately, and an all-blocked
 	 * search is bounded so it can't loop forever before falling back to NoResults.
 	 */
-	private suspend fun selectNext(key: SearchKey, blockedIds: Set<String>): WallhavenWallpaperDto? {
+	private suspend fun selectNext(
+		key: SearchKey,
+		blockedIds: Set<String>,
+		initialState: WallhavenSelectionState
+	): WallhavenWallpaperDto? {
 		val maxBlockedPageRefetches = 5
 		var refetches = 0
+		var state = initialState
 
 		while (true) {
-			while (cache.isNotEmpty() && cache.first().id in blockedIds) {
-				cache.removeFirst()
+			val usableCache = state.cache.dropWhile { it.id in blockedIds }
+			if (usableCache != state.cache) {
+				state = state.copy(cache = usableCache)
+				selectionStore.write(state)
 			}
 
-			if (cache.isNotEmpty()) {
-				return cache.removeFirst()
+			if (state.cache.isNotEmpty()) {
+				val selected = state.cache.first()
+				state = state.copy(cache = state.cache.drop(1))
+				selectionStore.write(state)
+
+				return selected
 			}
 
 			if (refetches >= maxBlockedPageRefetches) {
@@ -101,26 +119,25 @@ class WallhavenProvider @Inject constructor(private val wallhavenApiService: Wal
 			}
 
 			refetches++
-			val fetchedCount = refetch(key).getOrThrow()
-			if (fetchedCount == 0) {
+			state = refetch(key, state).getOrThrow()
+			selectionStore.write(state)
+
+			if (state.cache.isEmpty()) {
 				return null
 			}
 		}
 	}
 
-	private suspend fun refetch(key: SearchKey) = runCatching {
+	private suspend fun refetch(key: SearchKey, state: WallhavenSelectionState) = runCatching {
 		// Random sorting always fetches page 1 with a fresh seed.
 		// Deterministic sorts walk through pages; after the last page, wrap back to 1.
 		// (currentPage is advanced to response.currentPage + 1 after each fetch.)
 		val pageToFetch = if (key.sorting == Sorting.RANDOM) {
 			1
+		} else if (state.currentPage > state.lastPage) {
+			1
 		} else {
-			if (currentPage > lastPage) {
-				currentPage = 1
-				1
-			} else {
-				currentPage
-			}
+			state.currentPage
 		}
 
 		val effectiveKeywords: List<String?> = key.keywords.ifEmpty { listOf(null) }
@@ -152,19 +169,52 @@ class WallhavenProvider @Inject constructor(private val wallhavenApiService: Wal
 		}
 
 		val firstResponse = responses.first()
-		currentPage = firstResponse.meta.currentPage + 1
-		lastPage = firstResponse.meta.lastPage
+		val cache = if (effectiveKeywords.size > 1) {
+			responses.flatMap { it.data }
+				.shuffled()
+		} else {
+			responses.single().data
+		}
 
-		cache = ArrayDeque(
-			if (effectiveKeywords.size > 1) {
-				responses.flatMap { it.data }
-					.shuffled()
-			} else {
-				responses.single().data
-			}
+		state.copy(
+			cache = cache,
+			currentPage = firstResponse.meta.currentPage + 1,
+			lastPage = firstResponse.meta.lastPage
 		)
+	}
 
-		cache.size
+	private fun SearchKey.fingerprint(): String {
+		val input = buildString {
+			appendFingerprintPart(keywords.size.toString())
+			keywords.forEach { appendFingerprintPart(it) }
+			appendFingerprintPart(categories)
+			appendFingerprintPart(purity)
+			appendFingerprintPart(ratios)
+			appendFingerprintPart(atleast)
+			appendFingerprintPart(colors)
+			appendFingerprintPart(apiKey)
+			appendFingerprintPart(sorting.apiValue)
+			appendFingerprintPart(toplistRange)
+		}
+
+		val digest = MessageDigest.getInstance("SHA-256")
+			.digest(input.toByteArray(Charsets.UTF_8))
+
+		return BigInteger(1, digest)
+			.toString(16)
+			.padStart(64, '0')
+	}
+
+	private fun StringBuilder.appendFingerprintPart(value: String?) {
+		if (value == null) {
+			append("-1:")
+		} else {
+			append(value.length)
+				.append(':')
+				.append(value)
+		}
+
+		append('|')
 	}
 
 	private fun randomSeed() = (('a'..'z') + ('A'..'Z') + ('0'..'9'))

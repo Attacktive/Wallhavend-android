@@ -18,12 +18,16 @@ import xyz.attacktive.wallhavend.domain.repository.OpenverseProvider
 import xyz.attacktive.wallhavend.domain.repository.RotationScheduleDataStore
 import xyz.attacktive.wallhavend.domain.repository.SettingsDataStore
 import xyz.attacktive.wallhavend.domain.repository.WallhavenProvider
+import xyz.attacktive.wallhavend.domain.repository.WallhavenSelectionDataStore
+import xyz.attacktive.wallhavend.domain.repository.WallhavenSelectionRepository
+import xyz.attacktive.wallhavend.domain.repository.WallhavenSelectionStore
 import xyz.attacktive.wallhavend.domain.repository.WallpaperProvider
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 private val Context.settingsDataStore by preferencesDataStore(name = "wallhavend_settings")
 private val Context.credentialDataStore by preferencesDataStore(name = "wallhavend_credentials")
 private val Context.rotationScheduleDataStore by preferencesDataStore(name = "wallhavend_rotation_schedule")
+private val Context.wallhavenSelectionDataStore by preferencesDataStore(name = "wallhavend_wallhaven_selection")
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -42,6 +46,15 @@ object RepositoryModule {
 	@Singleton
 	@RotationScheduleDataStore
 	fun provideRotationScheduleDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.rotationScheduleDataStore
+
+	@Provides
+	@Singleton
+	@WallhavenSelectionDataStore
+	fun provideWallhavenSelectionDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.wallhavenSelectionDataStore
+
+	@Provides
+	@Singleton
+	fun provideWallhavenSelectionStore(repository: WallhavenSelectionRepository): WallhavenSelectionStore = repository
 
 	@Provides
 	@Singleton
