@@ -27,7 +27,7 @@ class WallhavenProviderProcessPersistenceTest {
 				val id = if (currentPage == 1 && lastPage == 1) {
 					"$idPrefix$it"
 				} else {
-					"$idPrefix-${currentPage}-${it}"
+					"$idPrefix-$currentPage-$it"
 				}
 
 				WallhavenWallpaperDto(id, "https://cdn/w/$id.jpg")
@@ -57,10 +57,8 @@ class WallhavenProviderProcessPersistenceTest {
 			)
 		} returns makePage(5)
 
-		val first = provider(store)
-			.next(AppSettings(), portraitScreen, emptySet())
-		val second = provider(store)
-			.next(AppSettings(), portraitScreen, emptySet())
+		val first = provider(store).next(AppSettings(), portraitScreen, emptySet())
+		val second = provider(store).next(AppSettings(), portraitScreen, emptySet())
 
 		assertEquals("w1", first.getOrNull()?.identity?.id)
 		assertEquals("w2", second.getOrNull()?.identity?.id)
@@ -82,7 +80,7 @@ class WallhavenProviderProcessPersistenceTest {
 	}
 
 	@Test
-	fun `page cursor survives provider recreation`() = runTest {
+	fun `page cursor survives provider recreation and wraps after last page`() = runTest {
 		val store = InMemoryWallhavenSelectionStore()
 		coEvery {
 			wallhavenApiService.search(
@@ -115,13 +113,84 @@ class WallhavenProviderProcessPersistenceTest {
 			)
 		} returns makePage(count = 1, currentPage = 2, lastPage = 2)
 
-		val first = provider(store)
-			.next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
-		val second = provider(store)
-			.next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
+		val first = provider(store).next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
+		val second = provider(store).next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
+		val third = provider(store).next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
 
 		assertEquals("w-1-1", first.getOrNull()?.identity?.id)
 		assertEquals("w-2-1", second.getOrNull()?.identity?.id)
+		assertEquals("w-1-1", third.getOrNull()?.identity?.id)
+		coVerify(exactly = 2) {
+			wallhavenApiService.search(
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 1,
+				colors = any(),
+				apiKey = any()
+			)
+		}
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 2,
+				colors = any(),
+				apiKey = any()
+			)
+		}
+	}
+
+	@Test
+	fun `blocked cached results stay filtered across provider recreation`() = runTest {
+		val store = InMemoryWallhavenSelectionStore()
+		coEvery {
+			wallhavenApiService.search(
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any()
+			)
+		} returns makePage(3)
+
+		val first = provider(store).next(AppSettings(), portraitScreen, emptySet())
+		val second = provider(store).next(AppSettings(), portraitScreen, setOf("w2"))
+
+		assertEquals("w1", first.getOrNull()?.identity?.id)
+		assertEquals("w3", second.getOrNull()?.identity?.id)
+		coVerify(exactly = 1) {
+			wallhavenApiService.search(
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any(),
+				any()
+			)
+		}
 	}
 
 	@Test
@@ -158,10 +227,8 @@ class WallhavenProviderProcessPersistenceTest {
 			)
 		} returns makePage(5, idPrefix = "ocean")
 
-		val first = provider(store)
-			.next(AppSettings(searchQuery = "mountains", sorting = Sorting.VIEWS), portraitScreen, emptySet())
-		val second = provider(store)
-			.next(AppSettings(searchQuery = "ocean", sorting = Sorting.VIEWS), portraitScreen, emptySet())
+		val first = provider(store).next(AppSettings(searchQuery = "mountains", sorting = Sorting.VIEWS), portraitScreen, emptySet())
+		val second = provider(store).next(AppSettings(searchQuery = "ocean", sorting = Sorting.VIEWS), portraitScreen, emptySet())
 
 		assertEquals("mountain1", first.getOrNull()?.identity?.id)
 		assertEquals("ocean1", second.getOrNull()?.identity?.id)

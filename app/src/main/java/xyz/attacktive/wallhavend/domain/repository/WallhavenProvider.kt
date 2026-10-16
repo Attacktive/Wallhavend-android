@@ -71,10 +71,8 @@ class WallhavenProvider @Inject constructor(
 		val key = settings.toSearchKey(screenInfo)
 		val fingerprint = key.fingerprint()
 		var state = selectionStore.read()
-
 		if (state.searchKeyFingerprint != fingerprint) {
 			state = WallhavenSelectionState(searchKeyFingerprint = fingerprint)
-			selectionStore.write(state)
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds, state) }
@@ -86,9 +84,8 @@ class WallhavenProvider @Inject constructor(
 
 	/*
 	 * Blocked wallpapers are filtered after the fetch, so they still occupy slots in a returned page.
-	 * Drop them when picking, and when a whole page comes back blocked, advance to the next page rather
-	 * than giving up. A genuinely empty page (no results at all) stops immediately, and an all-blocked
-	 * search is bounded so it can't loop forever before falling back to NoResults.
+	 * Drop them when picking, and when a whole page comes back blocked, advance to the next page rather than giving up.
+	 * A genuinely empty page stops immediately, and an all-blocked search is bounded so it cannot loop forever before falling back to NoResults.
 	 */
 	private suspend fun selectNext(
 		key: SearchKey,
@@ -101,28 +98,29 @@ class WallhavenProvider @Inject constructor(
 
 		while (true) {
 			val usableCache = state.cache.dropWhile { it.id in blockedIds }
-			if (usableCache != state.cache) {
-				state = state.copy(cache = usableCache)
-				selectionStore.write(state)
-			}
-
-			if (state.cache.isNotEmpty()) {
-				val selected = state.cache.first()
-				state = state.copy(cache = state.cache.drop(1))
+			if (usableCache.isNotEmpty()) {
+				val selected = usableCache.first()
+				state = state.copy(cache = usableCache.drop(1))
 				selectionStore.write(state)
 
 				return selected
 			}
 
+			if (usableCache != state.cache) {
+				state = state.copy(cache = usableCache)
+			}
+
 			if (refetches >= maxBlockedPageRefetches) {
+				selectionStore.write(state)
+
 				return null
 			}
 
 			refetches++
 			state = refetch(key, state).getOrThrow()
-			selectionStore.write(state)
-
 			if (state.cache.isEmpty()) {
+				selectionStore.write(state)
+
 				return null
 			}
 		}
@@ -131,7 +129,7 @@ class WallhavenProvider @Inject constructor(
 	private suspend fun refetch(key: SearchKey, state: WallhavenSelectionState) = runCatching {
 		// Random sorting always fetches page 1 with a fresh seed.
 		// Deterministic sorts walk through pages; after the last page, wrap back to 1.
-		// (currentPage is advanced to response.currentPage + 1 after each fetch.)
+		// currentPage is advanced to response.currentPage + 1 after each fetch.
 		val pageToFetch = if (key.sorting == Sorting.RANDOM) {
 			1
 		} else if (state.currentPage > state.lastPage) {
