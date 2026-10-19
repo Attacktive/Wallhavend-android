@@ -21,7 +21,7 @@ Supports filtering by category, purity, and aspect ratio. Schedules wallpaper ro
 
 ## Building from source
 
-Requires JDK 17 and the Android SDK ([Android Studio](https://developer.android.com/studio) bundles both).
+Requires JDK 21 and the Android SDK ([Android Studio](https://developer.android.com/studio) bundles both).
 
 ```sh
 git clone https://github.com/Attacktive/Wallhavend-android.git
