@@ -33,6 +33,17 @@ Debug builds need no secrets. The Wallhaven API key is entered in the app at run
 
 Run the unit tests with `./gradlew test`.
 
+## Monitoring
+
+A daily GitHub Actions workflow (`.github/workflows/google-play-vitals.yaml`) runs at `00:17` UTC and supports manual dispatch to monitor Android crashes and ANRs from the Google Play Developer Reporting API.
+
+Requirements and operation:
+- The Google Play Developer Reporting API must be enabled in Google Cloud.
+- Enable the IAM API and IAM Service Account Credentials API in the service account's Google Cloud project.
+- Grant the service account `roles/iam.serviceAccountTokenCreator` on itself, as required by the [authentication action's access-token setup](https://github.com/google-github-actions/auth/tree/7c6bc770dae815cd3e89ee6cdf493a5fab2cc093#inputs-service-account-key-json).
+- The service account in `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` must have read-only access (**View app information (read-only)**) in Google Play Console.
+- The workflow compares errors against the previous successful run's `play-vitals-snapshot` artifact (retained for 90 days), publishing a Markdown summary to GitHub Actions without sending notifications or opening issues.
+
 ## Contributing
 
 The codebase follows a formatting style that differs from the IDE defaults — see [CONTRIBUTING.md](CONTRIBUTING.md) before sending a pull request.

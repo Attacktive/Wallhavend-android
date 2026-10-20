@@ -1,0 +1,66 @@
+name: 'Google Play Vitals'
+
+on:
+  schedule:
+    - cron: '17 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: 'read'
+  actions: 'read'
+
+concurrency:
+  group: 'google-play-vitals'
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    name: 'Monitor vitals'
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Find previous snapshot'
+        id: 'previous'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          latest_run_id=$(gh run list --workflow 'google-play-vitals.yaml' --branch "$DEFAULT_BRANCH" --status 'success' --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -n "$latest_run_id" ]; then
+          	if gh run download "$latest_run_id" --name 'play-vitals-snapshot' --dir previous; then
+          		echo 'path=previous/report.json' >> "$GITHUB_OUTPUT"
+          	else
+          		echo 'Snapshot download failed or artifact expired; proceeding with baseline run.'
+          	fi
+          fi
+
+      - name: 'Authenticate to Google Cloud'
+        id: 'auth'
+        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3.0.0
+        with:
+          credentials_json: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          create_credentials_file: false
+          token_format: 'access_token'
+          access_token_scopes: 'https://www.googleapis.com/auth/playdeveloperreporting'
+
+      - name: 'Fetch crashes and ANRs'
+        id: 'vitals'
+        uses: 'Attacktive/google-play-vitals-action@689bd4747aad99f4eaaa1967a99dfad0986cb5ba' # v0.1.0
+        with:
+          package-name: 'xyz.attacktive.wallhavend'
+          google-access-token: ${{ steps.auth.outputs.access_token }}
+          previous-report: ${{ steps.previous.outputs.path }}
+
+      - name: 'Publish job summary'
+        env:
+          MARKDOWN_FILE: ${{ steps.vitals.outputs.markdown-file }}
+        run: cat "$MARKDOWN_FILE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 'Upload vitals snapshot'
+        uses: 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' # v7.0.2
+        with:
+          name: 'play-vitals-snapshot'
+          path: ${{ steps.vitals.outputs.report-file }}
+          if-no-files-found: 'error'
+          retention-days: 90
