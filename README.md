@@ -38,6 +38,7 @@ Run the unit tests with `./gradlew test`.
 A daily GitHub Actions workflow (`.github/workflows/google-play-vitals.yaml`) runs at `00:17` UTC and supports manual dispatch to monitor Android crashes and ANRs from the Google Play Developer Reporting API.
 
 Requirements and operation:
+
 - The Google Play Developer Reporting API must be enabled in Google Cloud.
 - Enable the IAM API and IAM Service Account Credentials API in the service account's Google Cloud project.
 - Grant the service account `roles/iam.serviceAccountTokenCreator` on itself, as required by the [authentication action's access-token setup](https://github.com/google-github-actions/auth/tree/7c6bc770dae815cd3e89ee6cdf493a5fab2cc093#inputs-service-account-key-json).
