@@ -24,6 +24,7 @@ import xyz.attacktive.wallhavend.domain.service.NetworkState
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.repository.WallpaperRepository
+import xyz.attacktive.wallhavend.domain.repository.WallpaperRotationResult
 import xyz.attacktive.wallhavend.domain.service.WallpaperApplier
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 import xyz.attacktive.wallhavend.domain.service.WallpaperMutationCoordinator
@@ -117,7 +118,7 @@ class WallpaperRotationExecutorRestoreTest {
 		every { settingsRepository.settings } returns flowOf(AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY)))
 
 		val wallpaperRepository = mockk<WallpaperRepository>()
-		coEvery { wallpaperRepository.next(any(), any()) } returns Result.success(wallpaper to downloaded)
+		coEvery { wallpaperRepository.next(any(), any()) } returns Result.success(WallpaperRotationResult(wallpaper, downloaded))
 
 		val fileManager = mockk<WallpaperFileManager>()
 		every { fileManager.listAll() } returns listOf(downloaded)
@@ -141,6 +142,91 @@ class WallpaperRotationExecutorRestoreTest {
 
 		executor.performUpdate(forceDownload = true)
 
-		coVerify { settingsRepository.rememberThumbnail(identity, "https://cdn/p1-thumb.jpg") }
+		coVerify { settingsRepository.rememberMetadata(identity, any()) }
+	}
+
+	@Test
+	fun `performUpdate surfaces Pexafy error even when Wallhaven succeeds as fallback`() = runTest {
+		val downloaded = File(tmpFolder.root, "wh.jpg").also { it.writeText("image") }
+		val wallpaper = Wallpaper(WallpaperIdentity(WallpaperSource.WALLHAVEN, "wh"), "https://cdn/wh.jpg")
+
+		val settingsRepository = mockk<SettingsRepository>(relaxed = true)
+		every { settingsRepository.settings } returns flowOf(
+			AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY, WallpaperSource.WALLHAVEN))
+		)
+
+		val wallpaperRepository = mockk<WallpaperRepository>()
+		coEvery { wallpaperRepository.next(any(), any()) } returns Result.success(
+			WallpaperRotationResult(wallpaper, downloaded, warning = QuotaExceededException(WallpaperSource.PEXAFY))
+		)
+
+		val fileManager = mockk<WallpaperFileManager>()
+		every { fileManager.listAll() } returns listOf(downloaded)
+		every { fileManager.trimToSize(any(), any()) } returns listOf(downloaded)
+
+		val applier = mockk<WallpaperApplier>()
+		every { applier.apply(any(), any()) } returns Result.success(0)
+
+		val stateRepository = ServiceStateRepository()
+		val executor = WallpaperRotationExecutor(
+			context = mockk(relaxed = true),
+			settingsRepository = settingsRepository,
+			wallpaperRepository = wallpaperRepository,
+			fileManager = fileManager,
+			stateRepository = stateRepository,
+			wallpaperMutationCoordinator = WallpaperMutationCoordinator(),
+			wallpaperApplier = applier
+		).apply {
+			networkStateProvider = { NetworkState(online = true, onWifi = true) }
+			screenInfoProvider = { ScreenInfo("9x16", 1080, 2400) }
+		}
+
+		executor.performUpdate(forceDownload = true)
+
+		assertEquals(AppError.QuotaExceeded(WallpaperSource.PEXAFY), stateRepository.state.value.error)
+	}
+
+	@Test
+	fun `performUpdate surfaces MissingApiKey when Pexafy is enabled with blank key even if Wallhaven succeeds without contacting Pexafy`() = runTest {
+		val downloaded = File(tmpFolder.root, "wh.jpg").also { it.writeText("image") }
+		val wallpaper = Wallpaper(WallpaperIdentity(WallpaperSource.WALLHAVEN, "wh"), "https://cdn/wh.jpg")
+
+		val settingsRepository = mockk<SettingsRepository>(relaxed = true)
+		every { settingsRepository.settings } returns flowOf(
+			AppSettings(
+				enabledSources = setOf(WallpaperSource.PEXAFY, WallpaperSource.WALLHAVEN),
+				pexafyApiKey = ""
+			)
+		)
+
+		val wallpaperRepository = mockk<WallpaperRepository>()
+		coEvery { wallpaperRepository.next(any(), any()) } returns Result.success(
+			WallpaperRotationResult(wallpaper, downloaded, warning = null)
+		)
+
+		val fileManager = mockk<WallpaperFileManager>()
+		every { fileManager.listAll() } returns listOf(downloaded)
+		every { fileManager.trimToSize(any(), any()) } returns listOf(downloaded)
+
+		val applier = mockk<WallpaperApplier>()
+		every { applier.apply(any(), any()) } returns Result.success(0)
+
+		val stateRepository = ServiceStateRepository()
+		val executor = WallpaperRotationExecutor(
+			context = mockk(relaxed = true),
+			settingsRepository = settingsRepository,
+			wallpaperRepository = wallpaperRepository,
+			fileManager = fileManager,
+			stateRepository = stateRepository,
+			wallpaperMutationCoordinator = WallpaperMutationCoordinator(),
+			wallpaperApplier = applier
+		).apply {
+			networkStateProvider = { NetworkState(online = true, onWifi = true) }
+			screenInfoProvider = { ScreenInfo("9x16", 1080, 2400) }
+		}
+
+		executor.performUpdate(forceDownload = true)
+
+		assertEquals(AppError.MissingApiKey(WallpaperSource.PEXAFY), stateRepository.state.value.error)
 	}
 }

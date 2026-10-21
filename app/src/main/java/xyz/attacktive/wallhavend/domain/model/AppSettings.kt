@@ -29,9 +29,11 @@ data class AppSettings(
 	val blockedIds: Set<String> = emptySet(),
 	val pinnedIds: Set<String> = emptySet(),
 	val autoUpdateEnabled: Boolean = false,
-	val thumbnailUrls: Map<String, String> = emptyMap()
-)
-
+	val wallpaperMetadata: Map<String, WallpaperMetadata> = emptyMap()
+) {
+	val thumbnailUrls: Map<String, String>
+		get() = wallpaperMetadata.mapNotNull { (key, metadata) -> metadata.thumbnailUrl?.let { key to it } }.toMap()
+}
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)
 val POOL_SIZE_OPTIONS = listOf(1, 5, 10, 25, 50)
 

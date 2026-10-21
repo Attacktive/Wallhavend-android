@@ -4,14 +4,19 @@ import java.io.File
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.provider.MediaStore
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 internal class MediaStoreExporter(private val contentResolver: ContentResolver) {
-	fun save(file: File, mimeType: String) {
+	fun save(file: File, mimeType: String, metadata: WallpaperMetadata? = null) {
 		val pendingValues = ContentValues().apply {
 			put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
 			put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
 			put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Wallhavend")
 			put(MediaStore.MediaColumns.IS_PENDING, 1)
+
+			metadata?.displayCredit?.let { credit ->
+				put(MediaStore.Images.Media.DESCRIPTION, credit)
+			}
 		}
 
 		val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, pendingValues)

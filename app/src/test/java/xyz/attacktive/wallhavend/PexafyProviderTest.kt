@@ -162,6 +162,11 @@ class PexafyProviderTest {
 		assertEquals("pexafy_019e1a0d-1a4f-7d62-856f-e6775b49785d", wallpaper.identity.qualified)
 		assertEquals("https://images.pexels.com/photos/019e1a0d-1a4f-7d62-856f-e6775b49785d.jpeg", wallpaper.directUrl)
 		assertEquals("https://images.pexels.com/photos/019e1a0d-1a4f-7d62-856f-e6775b49785d.jpeg?w=200", wallpaper.thumbnailUrl)
+		assertEquals("https://www.pexels.com/photo/019e1a0d-1a4f-7d62-856f-e6775b49785d", wallpaper.metadata?.sourceUrl)
+		assertEquals("Pexels", wallpaper.metadata?.upstreamSource)
+		assertEquals("free", wallpaper.metadata?.licenseType)
+		assertEquals("Jane Doe", wallpaper.metadata?.photographerName)
+		assertEquals("Photo by Jane Doe on Pexels", wallpaper.metadata?.attributionText)
 
 		coVerify(exactly = 1) {
 			pexafyApiService.search(
@@ -395,6 +400,61 @@ class PexafyProviderTest {
 		val result = provider.next(settingsWithKey(), portraitScreen, emptySet())
 
 		assertTrue(result.exceptionOrNull() is IOException)
+	}
+
+	@Test
+	fun `recycles exhausted single-photo final page on next rotation without waiting for cursor TTL`() = runTest {
+		coEvery {
+			pexafyApiService.search(any(), any(), any(), any(), any(), any(), any())
+		} returns makePage(makePhoto("single-photo"), hasMore = false, nextCursor = null)
+
+		val first = provider.next(settingsWithKey(), portraitScreen, emptySet()).getOrThrow()
+		assertEquals("single-photo", first.identity.id)
+
+		// 1 minute later, cache was emptied by first call, but window was terminal (has_more=false).
+		currentTimeMs += 60_000L
+		val second = provider.next(settingsWithKey(), portraitScreen, emptySet()).getOrThrow()
+		assertEquals("single-photo", second.identity.id)
+
+		// Did not need to wait 5 minutes, and did not throw NoResultsException
+		coVerify(exactly = 1) { pexafyApiService.search(any(), any(), any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `large keyword and color fan-out is strictly bounded per search`() = runTest {
+		everySearch() returns makePage(makePhoto("p1"))
+
+		provider.next(
+			settingsWithKey(
+				searchQuery = "w1, w2, w3, w4, w5",
+				filterColor = "111111, 222222, 333333, 444444, 555555"
+			),
+			portraitScreen,
+			emptySet()
+		)
+
+		coVerify(atMost = 5) { pexafyApiService.search(any(), any(), any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `rejected cursor followed by rate limit on reset retry maps to RateLimitedException with Retry-After`() = runTest {
+		coEvery {
+			pexafyApiService.search(any(), any(), any(), any(), any(), any(), null)
+		} returns makePage(makePhoto("p1"), hasMore = true, nextCursor = "bad-cursor")
+
+		provider.next(settingsWithKey(), portraitScreen, emptySet())
+
+		coEvery {
+			pexafyApiService.search(any(), any(), any(), any(), any(), any(), "bad-cursor")
+		} throws httpError(400, "INVALID_PARAMS")
+
+		coEvery {
+			pexafyApiService.search(any(), any(), any(), any(), any(), any(), null)
+		} throws httpError(429, "RATE_LIMITED", retryAfter = "45")
+
+		val result = provider.next(settingsWithKey(), portraitScreen, emptySet())
+		assertTrue(result.exceptionOrNull() is RateLimitedException)
+		assertEquals(45L, (result.exceptionOrNull() as RateLimitedException).retryAfterSeconds)
 	}
 
 	@Test

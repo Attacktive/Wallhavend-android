@@ -76,6 +76,7 @@ import xyz.attacktive.wallhavend.ui.home.HomeViewModel
 fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
 	val pinnedIds by viewModel.pinnedIds.collectAsStateWithLifecycle()
+	val metadata by viewModel.wallpaperMetadata.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 
 	/*
@@ -200,7 +201,18 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					)
 				}
 
-				Text(text = caption, color = Color.White, style = MaterialTheme.typography.titleSmall)
+				val currentMetadata = metadata[currentIdentity.qualified]
+				Column {
+					Text(text = caption, color = Color.White, style = MaterialTheme.typography.titleSmall)
+
+					currentMetadata?.displayCredit?.let { credit ->
+						Text(
+							text = credit,
+							color = Color.White.copy(alpha = 0.8f),
+							style = MaterialTheme.typography.bodySmall
+						)
+					}
+				}
 			}
 		}
 
@@ -287,7 +299,8 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 					icon = Icons.Default.OpenInBrowser,
 					label = stringResource(R.string.preview_action_open_in_browser),
 					onClick = {
-						val intent = Intent(Intent.ACTION_VIEW, currentIdentity.pageUrl.toUri())
+						val pageUrl = currentIdentity.pageUrl(metadata)
+						val intent = Intent(Intent.ACTION_VIEW, pageUrl.toUri())
 						context.startActivity(intent)
 					}
 				)

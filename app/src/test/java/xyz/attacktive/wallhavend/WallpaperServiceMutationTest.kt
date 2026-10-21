@@ -31,6 +31,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.repository.WallpaperRepository
+import xyz.attacktive.wallhavend.domain.repository.WallpaperRotationResult
 import xyz.attacktive.wallhavend.domain.service.NetworkState
 import xyz.attacktive.wallhavend.domain.service.WallpaperApplier
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
@@ -168,7 +169,7 @@ class WallpaperServiceMutationTest {
 		}
 
 		val wallpaperRepository = mockk<WallpaperRepository>()
-		coEvery { wallpaperRepository.next(any(), any()) } returns Result.success(wallpaper to downloaded)
+		coEvery { wallpaperRepository.next(any(), any()) } returns Result.success(WallpaperRotationResult(wallpaper, downloaded))
 
 		val executor = executor(
 			fileManager = WallpaperFileManager(wallpapersDir, mockk(relaxed = true)),

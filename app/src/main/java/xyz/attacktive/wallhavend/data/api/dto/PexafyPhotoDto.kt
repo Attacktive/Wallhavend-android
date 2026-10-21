@@ -3,6 +3,7 @@ package xyz.attacktive.wallhavend.data.api.dto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import android.annotation.SuppressLint
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
@@ -51,5 +52,15 @@ data class PexafyAttributionDto(
 fun PexafyPhotoDto.toDomain() = Wallpaper(
 	identity = WallpaperIdentity(WallpaperSource.PEXAFY, photoId),
 	directUrl = checkNotNull(downloadUrl),
-	thumbnailUrl = resolvedThumbnailUrl
+	metadata = WallpaperMetadata(
+		sourceUrl = sourceImageUrl,
+		thumbnailUrl = resolvedThumbnailUrl,
+		upstreamSource = source,
+		licenseType = licenseType,
+		photographerName = photographerFullName,
+		photographerUsername = photographerUsername,
+		photographerUrl = photographerUrl,
+		attributionText = attribution?.plain,
+		attributionHtml = attribution?.html
+	)
 )

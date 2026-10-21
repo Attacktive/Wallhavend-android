@@ -7,6 +7,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 class WallpaperIdentityTest {
 	@Test
@@ -123,14 +124,19 @@ class WallpaperIdentityTest {
 	}
 
 	@Test
-	fun `a Pexafy identity points at its Pexafy page and uses a stored thumbnail URL when provided`() {
+	fun `a Pexafy identity points at its Pexafy page and uses stored metadata when provided`() {
 		val identity = WallpaperIdentity(WallpaperSource.PEXAFY, "019e1a0d-1a4f-7d62-856f-e6775b49785d")
+		val metadata = WallpaperMetadata(
+			sourceUrl = "https://www.pexels.com/photo/red-fox-walking-in-snow-20853949",
+			thumbnailUrl = "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200",
+			upstreamSource = "Pexels",
+			photographerName = "Dip Kheto"
+		)
+		val metadataMap = mapOf(identity.qualified to metadata)
 
 		assertEquals("https://pexafy.com/photos/019e1a0d-1a4f-7d62-856f-e6775b49785d", identity.pageUrl)
+		assertEquals("https://www.pexels.com/photo/red-fox-walking-in-snow-20853949", identity.pageUrl(metadataMap))
 		assertNull(identity.thumbnailUrl)
-		assertEquals(
-			"https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200",
-			identity.thumbnailUrl(mapOf(identity.qualified to "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200"))
-		)
+		assertEquals("https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200", identity.thumbnailUrl(metadataMap))
 	}
 }

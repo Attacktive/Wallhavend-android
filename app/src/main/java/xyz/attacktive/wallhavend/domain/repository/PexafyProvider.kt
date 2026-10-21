@@ -42,6 +42,7 @@ class PexafyProvider(
 	private var cursorStates = mutableMapOf<QueryWindow, CursorState>()
 	private var servedIds = mutableSetOf<String>()
 	private var lastApiKey: String? = null
+	private var lastAdmittedResults = listOf<PexafyPhotoDto>()
 	private var rateLimitedUntilMs = 0L
 
 	private data class SearchKey(
@@ -125,15 +126,17 @@ class PexafyProvider(
 			cacheKey = key
 			cursorStates.clear()
 			servedIds.clear()
-		} else if (cache.isNotEmpty() && now - cachePopulatedAtMs >= CACHE_TTL_MS) {
+			lastAdmittedResults = emptyList()
+		} else if (now - cachePopulatedAtMs >= CACHE_TTL_MS) {
 			// Pexafy's terms cap search response caching at 24 hours.
 			cache.clear()
 			cachePopulatedAtMs = 0L
+			lastAdmittedResults = emptyList()
 		}
 	}
-
 	private suspend fun selectNext(key: SearchKey, blockedIds: Set<String>): PexafyPhotoDto? {
 		var refetches = 0
+		var totalRequestsInCall = 0
 		var fallbackCandidate: PexafyPhotoDto? = null
 
 		while (true) {
@@ -146,8 +149,9 @@ class PexafyProvider(
 				return freshCandidate
 			}
 
-			val windows = nextRefetchWindows(key, refetches) ?: return recycleFallback(fallbackCandidate)
+			val windows = nextRefetchWindows(key, refetches, totalRequestsInCall) ?: return recycleFallback(fallbackCandidate)
 			refetches++
+			totalRequestsInCall += windows.size
 
 			val fetchedCount = refetch(key, windows).getOrThrow()
 			if (isExhausted(fetchedCount)) {
@@ -175,12 +179,18 @@ class PexafyProvider(
 		return null to firstSeen
 	}
 
-	private fun nextRefetchWindows(key: SearchKey, refetches: Int): List<QueryWindow>? {
-		if (refetches >= MAX_REFETCHES) {
+	private fun nextRefetchWindows(key: SearchKey, refetches: Int, totalRequestsInCall: Int): List<QueryWindow>? {
+		val remainingBudget = (MAX_REQUESTS_PER_SELECTION - totalRequestsInCall).coerceAtLeast(0)
+		if (refetches >= MAX_REFETCHES || remainingBudget <= 0) {
 			return null
 		}
 
-		return activeWindowsFor(key).takeIf { it.isNotEmpty() }
+		val active = activeWindowsFor(key)
+		if (active.isEmpty()) {
+			return null
+		}
+
+		return active.take(minOf(MAX_WINDOWS_PER_REFETCH, remainingBudget))
 	}
 
 	private fun isExhausted(fetchedCount: Int) = fetchedCount == 0 && cursorStates.values.none { it.hasMore }
@@ -188,9 +198,18 @@ class PexafyProvider(
 	private fun recycleFallback(fallbackCandidate: PexafyPhotoDto?): PexafyPhotoDto? {
 		if (fallbackCandidate != null) {
 			servedIds.clear()
+
+			return fallbackCandidate
 		}
 
-		return fallbackCandidate
+		if (lastAdmittedResults.isNotEmpty()) {
+			servedIds.clear()
+			cache = ArrayDeque(lastAdmittedResults.shuffled())
+
+			return cache.removeFirstOrNull()
+		}
+
+		return null
 	}
 
 	private fun activeWindowsFor(key: SearchKey): List<QueryWindow> {
@@ -238,6 +257,10 @@ class PexafyProvider(
 		cache = ArrayDeque(admitted)
 		cachePopulatedAtMs = fetchedAt
 
+		if (admitted.isNotEmpty()) {
+			lastAdmittedResults = admitted.take(PAGE_SIZE)
+		}
+
 		results.size
 	}
 
@@ -250,7 +273,11 @@ class PexafyProvider(
 			if (isRejectedCursor(cursor, exception)) {
 				cursorStates.remove(window)
 
-				return validateResponse(requestWindow(key, window, null))
+				try {
+					return validateResponse(requestWindow(key, window, null))
+				} catch (retryException: HttpException) {
+					throw mapHttpException(retryException)
+				}
 			}
 
 			throw mapHttpException(exception)
@@ -354,6 +381,8 @@ class PexafyProvider(
 	companion object {
 		private const val PAGE_SIZE = 20
 		private const val MAX_REFETCHES = 5
+		private const val MAX_WINDOWS_PER_REFETCH = 3
+		private const val MAX_REQUESTS_PER_SELECTION = 5
 		private const val CURSOR_TTL_MS = 5 * 60 * 1_000L
 		private const val CACHE_TTL_MS = 24 * 60 * 60 * 1_000L
 		private const val DEFAULT_RETRY_AFTER_SECONDS = 60L

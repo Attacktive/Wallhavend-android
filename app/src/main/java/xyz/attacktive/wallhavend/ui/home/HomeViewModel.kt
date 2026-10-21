@@ -4,6 +4,7 @@ import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
@@ -54,6 +55,9 @@ class HomeViewModel @Inject constructor(
 		.map { it.rotationMode }
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RotationMode.FRESH_WIFI)
 
+	val wallpaperMetadata = settingsRepository.settings
+		.map { it.wallpaperMetadata }
+		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 	private val _saveMessage = MutableSharedFlow<String>(extraBufferCapacity = 1)
 	val saveMessage = _saveMessage.asSharedFlow()
 
@@ -100,7 +104,7 @@ class HomeViewModel @Inject constructor(
 		viewModelScope.launch(Dispatchers.IO) {
 			wallpaperMutationCoordinator.serialize {
 				evictFromPool(path)
-				settingsRepository.forgetThumbnail(WallpaperIdentity.parse(File(path).nameWithoutExtension))
+				settingsRepository.forgetMetadata(WallpaperIdentity.parse(File(path).nameWithoutExtension))
 			}
 		}
 	}
@@ -180,8 +184,10 @@ class HomeViewModel @Inject constructor(
 					else -> "image/*"
 				}
 
+				val identity = WallpaperIdentity.parse(file.nameWithoutExtension)
+				val metadata = settingsRepository.settings.first().wallpaperMetadata[identity.qualified]
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-					MediaStoreExporter(context.contentResolver).save(file, mimeType)
+					MediaStoreExporter(context.contentResolver).save(file, mimeType, metadata)
 				} else {
 					val destinationDirectory = File(
 						Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),

@@ -123,27 +123,38 @@ class WallpaperRotationExecutor @Inject constructor(
 
 		wallpaperRepository.next(settings, screenInfo)
 			.fold(
-				onSuccess = { (wallpaper, file) -> onWallpaperFetched(wallpaper, file, settings) },
+				onSuccess = { result -> onWallpaperFetched(result.wallpaper, result.file, settings, result.warning) },
 				onFailure = { throwable -> onFetchError(throwable, settings) }
 			)
 	}
 
-	private suspend fun onWallpaperFetched(wallpaper: Wallpaper, file: File, settings: AppSettings) {
+	private suspend fun onWallpaperFetched(
+		wallpaper: Wallpaper,
+		file: File,
+		settings: AppSettings,
+		warning: Throwable? = null
+	) {
 		wallpaperApplier.apply(file, settings.wallpaperTarget)
 			.fold(
 				onSuccess = {
-					if (wallpaper.thumbnailUrl != null) {
-						settingsRepository.rememberThumbnail(wallpaper.identity, wallpaper.thumbnailUrl)
+					if (wallpaper.metadata != null) {
+						settingsRepository.rememberMetadata(wallpaper.identity, wallpaper.metadata)
 					}
 
 					val remaining = fileManager.trimToSize(settings.poolSize, settings.pinnedIds)
 					val paths = remaining.map { it.absolutePath }
-					if (settings.thumbnailUrls.isNotEmpty()) {
+					if (settings.wallpaperMetadata.isNotEmpty()) {
 						val activeIds = remaining.map { WallpaperIdentity.parse(it.nameWithoutExtension).qualified }.toSet() + settings.blockedIds
-						settingsRepository.retainThumbnails(activeIds)
+						settingsRepository.retainMetadata(activeIds)
 					}
 
 					val now = System.currentTimeMillis()
+					val pendingWarning = if (wallpaper.identity.source == WallpaperSource.PEXAFY) {
+						null
+					} else {
+						warning ?: persistentProviderWarning(settings)
+					}
+					val errorToPost = pendingWarning?.let { appErrorFor(it, settings) }
 
 					stateRepository.update { state ->
 						state.copy(
@@ -151,7 +162,7 @@ class WallpaperRotationExecutor @Inject constructor(
 							currentWallpaperPath = paths.firstOrNull(),
 							previousWallpaperPath = paths.getOrNull(1),
 							poolPaths = paths,
-							error = null
+							error = errorToPost
 						)
 					}
 
@@ -209,6 +220,14 @@ class WallpaperRotationExecutor @Inject constructor(
 		is AppError.QuotaExceeded,
 		is AppError.RateLimited -> true
 		else -> false
+	}
+
+	private fun persistentProviderWarning(settings: AppSettings): Throwable? {
+		if (WallpaperSource.PEXAFY in settings.enabledSources && settings.pexafyApiKey.isBlank()) {
+			return MissingApiKeyException(WallpaperSource.PEXAFY)
+		}
+
+		return null
 	}
 
 	private suspend fun cycleFromPool(settings: AppSettings) {

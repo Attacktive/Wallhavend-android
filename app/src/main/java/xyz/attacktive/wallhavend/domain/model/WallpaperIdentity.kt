@@ -14,6 +14,8 @@ data class WallpaperIdentity(val source: WallpaperSource, val id: String) {
 		WallpaperSource.PEXAFY -> "https://pexafy.com/photos/$id"
 	}
 
+	fun pageUrl(metadata: Map<String, WallpaperMetadata>) = metadata[qualified]?.sourceUrl ?: pageUrl
+
 	/** A remote thumbnail, for wallpapers with no local file left to show — a blocked one, say. */
 	val thumbnailUrl get() = when (source) {
 		WallpaperSource.WALLHAVEN -> "https://th.wallhaven.cc/lg/${id.take(2)}/$id.jpg"
@@ -21,6 +23,9 @@ data class WallpaperIdentity(val source: WallpaperSource, val id: String) {
 		WallpaperSource.PEXAFY -> null
 	}
 
+	fun thumbnailUrl(metadata: Map<String, WallpaperMetadata>) = thumbnailUrl ?: metadata[qualified]?.thumbnailUrl
+
+	@JvmName("thumbnailUrlFromStrings")
 	fun thumbnailUrl(storedThumbnails: Map<String, String>) = thumbnailUrl ?: storedThumbnails[qualified]
 
 	/**

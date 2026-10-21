@@ -7,6 +7,10 @@ import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.UndersizedWallpaperException
+import xyz.attacktive.wallhavend.domain.model.InvalidApiKeyException
+import xyz.attacktive.wallhavend.domain.model.MissingApiKeyException
+import xyz.attacktive.wallhavend.domain.model.QuotaExceededException
+import xyz.attacktive.wallhavend.domain.model.RateLimitedException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
@@ -21,7 +25,7 @@ class WallpaperRepository @Inject constructor(
 	private val providers: Set<@JvmSuppressWildcards WallpaperProvider>,
 	private val fileManager: WallpaperFileManager
 ) {
-	suspend fun next(settings: AppSettings, screenInfo: ScreenInfo): Result<Pair<Wallpaper, File>> {
+	suspend fun next(settings: AppSettings, screenInfo: ScreenInfo): Result<WallpaperRotationResult> {
 		val failures = mutableListOf<Throwable>()
 
 		val enabledProviders = providers.filter { it.source in settings.enabledSources }
@@ -42,7 +46,10 @@ class WallpaperRepository @Inject constructor(
 			)
 
 			if (attempt.isSuccess) {
-				return attempt
+				val (wallpaper, file) = attempt.getOrThrow()
+				val warning = failures.persistentWarning()
+
+				return Result.success(WallpaperRotationResult(wallpaper, file, warning))
 			}
 
 			attempt.exceptionOrNull()
@@ -87,6 +94,22 @@ class WallpaperRepository @Inject constructor(
 	companion object {
 		private const val MAX_CANDIDATE_ATTEMPTS = 5
 	}
+}
+
+data class WallpaperRotationResult(
+	val wallpaper: Wallpaper,
+	val file: File,
+	val warning: Throwable? = null
+) {
+	val first get() = wallpaper
+	val second get() = file
+}
+
+private fun List<Throwable>.persistentWarning() = firstOrNull {
+	it is MissingApiKeyException ||
+		it is InvalidApiKeyException ||
+		it is QuotaExceededException ||
+		it is RateLimitedException
 }
 
 /** "No results" says the least about what went wrong, so a genuine search or download failure from any source wins the report. */

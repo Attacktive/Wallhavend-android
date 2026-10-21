@@ -15,6 +15,10 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
@@ -71,6 +75,7 @@ class SettingsRepository @Inject constructor(
 		val CURRENT_WALLPAPER_PATH = stringPreferencesKey("current_wallpaper_path")
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
 		val AUTO_UPDATE_ENABLED = booleanPreferencesKey("auto_update_enabled")
+		val WALLPAPER_METADATA = stringSetPreferencesKey("wallpaper_metadata")
 		val THUMBNAIL_URLS = stringSetPreferencesKey("thumbnail_urls")
 	}
 
@@ -122,7 +127,7 @@ class SettingsRepository @Inject constructor(
 					blockedIds = preferences[Keys.BLOCKED_IDS] ?: emptySet(),
 					pinnedIds = preferences[Keys.PINNED_IDS] ?: emptySet(),
 					autoUpdateEnabled = preferences[Keys.AUTO_UPDATE_ENABLED] ?: false,
-					thumbnailUrls = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
+					wallpaperMetadata = decodeWallpaperMetadata(preferences[Keys.WALLPAPER_METADATA], preferences[Keys.THUMBNAIL_URLS])
 				)
 					.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 			}
@@ -193,30 +198,46 @@ class SettingsRepository @Inject constructor(
 		dataStore.edit { preferences ->
 			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) - identity.persistedForms
 
-			val existing = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
-			preferences[Keys.THUMBNAIL_URLS] = encodeThumbnailUrls(existing - identity.persistedForms)
+			val existing = decodeWallpaperMetadata(preferences[Keys.WALLPAPER_METADATA], preferences[Keys.THUMBNAIL_URLS])
+			preferences[Keys.WALLPAPER_METADATA] = encodeWallpaperMetadata(existing - identity.persistedForms)
+			preferences.remove(Keys.THUMBNAIL_URLS)
+		}
+	}
+
+	suspend fun rememberMetadata(identity: WallpaperIdentity, metadata: WallpaperMetadata) {
+		dataStore.edit { preferences ->
+			val existing = decodeWallpaperMetadata(preferences[Keys.WALLPAPER_METADATA], preferences[Keys.THUMBNAIL_URLS])
+			preferences[Keys.WALLPAPER_METADATA] = encodeWallpaperMetadata(existing + (identity.qualified to metadata))
+			preferences.remove(Keys.THUMBNAIL_URLS)
+		}
+	}
+
+	suspend fun forgetMetadata(identity: WallpaperIdentity) {
+		dataStore.edit { preferences ->
+			val existing = decodeWallpaperMetadata(preferences[Keys.WALLPAPER_METADATA], preferences[Keys.THUMBNAIL_URLS])
+			preferences[Keys.WALLPAPER_METADATA] = encodeWallpaperMetadata(existing - identity.persistedForms)
+			preferences.remove(Keys.THUMBNAIL_URLS)
+		}
+	}
+
+	suspend fun retainMetadata(keepQualifiedIds: Set<String>) {
+		dataStore.edit { preferences ->
+			val existing = decodeWallpaperMetadata(preferences[Keys.WALLPAPER_METADATA], preferences[Keys.THUMBNAIL_URLS])
+			preferences[Keys.WALLPAPER_METADATA] = encodeWallpaperMetadata(existing.filterKeys { it in keepQualifiedIds })
+			preferences.remove(Keys.THUMBNAIL_URLS)
 		}
 	}
 
 	suspend fun rememberThumbnail(identity: WallpaperIdentity, url: String) {
-		dataStore.edit { preferences ->
-			val existing = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
-			preferences[Keys.THUMBNAIL_URLS] = encodeThumbnailUrls(existing + (identity.qualified to url))
-		}
+		rememberMetadata(identity, WallpaperMetadata(thumbnailUrl = url))
 	}
 
 	suspend fun forgetThumbnail(identity: WallpaperIdentity) {
-		dataStore.edit { preferences ->
-			val existing = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
-			preferences[Keys.THUMBNAIL_URLS] = encodeThumbnailUrls(existing - identity.persistedForms)
-		}
+		forgetMetadata(identity)
 	}
 
 	suspend fun retainThumbnails(keepQualifiedIds: Set<String>) {
-		dataStore.edit { preferences ->
-			val existing = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
-			preferences[Keys.THUMBNAIL_URLS] = encodeThumbnailUrls(existing.filterKeys { it in keepQualifiedIds })
-		}
+		retainMetadata(keepQualifiedIds)
 	}
 
 	/* Same isolation rationale as block/unblock: the pin set grows from the preview screen, so it gets its own key that save() leaves untouched. */
@@ -328,20 +349,40 @@ private fun AppSettings.redactedForLog() = copy(
 	}
 )
 
-private const val THUMBNAIL_ENTRY_DELIMITER = '\t'
+private const val METADATA_ENTRY_DELIMITER = '\t'
+private val METADATA_JSON = Json { ignoreUnknownKeys = true }
 
-private fun decodeThumbnailUrls(entries: Set<String>?) = entries
-	.orEmpty()
-	.mapNotNull { entry ->
-		val separatorIndex = entry.indexOf(THUMBNAIL_ENTRY_DELIMITER)
-		if (separatorIndex > 0 && separatorIndex < entry.lastIndex) {
-			entry.take(separatorIndex) to entry.substring(separatorIndex + 1)
-		} else {
-			null
+private fun decodeWallpaperMetadata(entries: Set<String>?, legacyThumbnailEntries: Set<String>?): Map<String, WallpaperMetadata> {
+	val decoded = entries.orEmpty()
+		.mapNotNull { entry ->
+			val separatorIndex = entry.indexOf(METADATA_ENTRY_DELIMITER)
+			if (separatorIndex > 0 && separatorIndex < entry.lastIndex) {
+				val qualified = entry.take(separatorIndex)
+				val jsonString = entry.substring(separatorIndex + 1)
+				val metadata = runCatching { METADATA_JSON.decodeFromString<WallpaperMetadata>(jsonString) }.getOrNull()
+				metadata?.let { qualified to it }
+			} else {
+				null
+			}
 		}
-	}
-	.toMap()
+		.toMap()
+		.toMutableMap()
 
-private fun encodeThumbnailUrls(urls: Map<String, String>) = urls.entries
-	.map { (key, url) -> "$key$THUMBNAIL_ENTRY_DELIMITER$url" }
+	legacyThumbnailEntries.orEmpty()
+		.forEach { entry ->
+			val separatorIndex = entry.indexOf(METADATA_ENTRY_DELIMITER)
+			if (separatorIndex > 0 && separatorIndex < entry.lastIndex) {
+				val qualified = entry.take(separatorIndex)
+				val url = entry.substring(separatorIndex + 1)
+				if (qualified !in decoded) {
+					decoded[qualified] = WallpaperMetadata(thumbnailUrl = url)
+				}
+			}
+		}
+
+	return decoded
+}
+
+private fun encodeWallpaperMetadata(metadataMap: Map<String, WallpaperMetadata>): Set<String> = metadataMap.entries
+	.map { (key, metadata) -> "$key$METADATA_ENTRY_DELIMITER${METADATA_JSON.encodeToString(metadata)}" }
 	.toSet()

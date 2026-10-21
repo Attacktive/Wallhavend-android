@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 @HiltViewModel
 class BlocklistViewModel @Inject constructor(private val settingsRepository: SettingsRepository): ViewModel() {
@@ -21,8 +22,8 @@ class BlocklistViewModel @Inject constructor(private val settingsRepository: Set
 		}
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-	val thumbnailUrls = settingsRepository.settings
-		.map { it.thumbnailUrls }
+	val wallpaperMetadata = settingsRepository.settings
+		.map { it.wallpaperMetadata }
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
 	fun unblock(identity: WallpaperIdentity) {

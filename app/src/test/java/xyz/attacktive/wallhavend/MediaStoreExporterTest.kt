@@ -23,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.ui.home.MediaStoreExporter
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 class MediaStoreExporterTest {
 	@get:Rule
@@ -124,5 +125,26 @@ class MediaStoreExporterTest {
 		}
 
 		verify(exactly = 1) { contentResolver.delete(uri, null, null) }
+	}
+
+	@Test
+	fun `save populates description when metadata has attribution or credit`() {
+		val contentResolver = mockk<ContentResolver>(relaxed = true)
+		val uri = mockk<Uri>()
+		val outputStream = ByteArrayOutputStream()
+		val file = tmpFolder.newFile("pexafy_123.jpg").also { it.writeBytes(ByteArray(10)) }
+
+		every { contentResolver.insert(any(), any()) } returns uri
+		every { contentResolver.openOutputStream(uri) } returns outputStream
+		every { contentResolver.update(uri, any(), null, null) } returns 1
+
+		val metadata = WallpaperMetadata(
+			sourceUrl = "https://example.com/photo",
+			attributionText = "Photo by Jane Doe on Pexels"
+		)
+
+		MediaStoreExporter(contentResolver).save(file, "image/jpeg", metadata)
+
+		verify(exactly = 1) { anyConstructed<ContentValues>().put(MediaStore.Images.Media.DESCRIPTION, "Photo by Jane Doe on Pexels") }
 	}
 }

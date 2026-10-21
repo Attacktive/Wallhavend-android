@@ -41,12 +41,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = hiltViewModel()) {
 	val blockedWallpapers by viewModel.blockedWallpapers.collectAsStateWithLifecycle()
-	val thumbnailUrls by viewModel.thumbnailUrls.collectAsStateWithLifecycle()
+	val metadata by viewModel.wallpaperMetadata.collectAsStateWithLifecycle()
 
 	Scaffold(
 		topBar = {
@@ -85,7 +86,7 @@ fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = 
 			items(blockedWallpapers, key = { it.qualified }) { identity ->
 				BlockedRow(
 					identity = identity,
-					thumbnailUrl = identity.thumbnailUrl(thumbnailUrls),
+					metadata = metadata[identity.qualified],
 					onUnblock = { viewModel.unblock(identity) }
 				)
 			}
@@ -94,7 +95,7 @@ fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = 
 }
 
 @Composable
-private fun BlockedRow(identity: WallpaperIdentity, thumbnailUrl: String?, onUnblock: () -> Unit) {
+private fun BlockedRow(identity: WallpaperIdentity, metadata: WallpaperMetadata?, onUnblock: () -> Unit) {
 	val uriHandler = LocalUriHandler.current
 
 	Row(
@@ -103,6 +104,8 @@ private fun BlockedRow(identity: WallpaperIdentity, thumbnailUrl: String?, onUnb
 			.fillMaxWidth()
 			.padding(horizontal = 16.dp, vertical = 8.dp)
 	) {
+		val metadataMap = metadata?.let { mapOf(identity.qualified to it) } ?: emptyMap()
+		val thumbnailUrl = identity.thumbnailUrl(metadataMap)
 		RevealableThumbnail(identity = identity, thumbnailUrl = thumbnailUrl)
 
 		Column(
@@ -110,16 +113,18 @@ private fun BlockedRow(identity: WallpaperIdentity, thumbnailUrl: String?, onUnb
 				.weight(1f)
 				.padding(start = 16.dp)
 		) {
+			val pageUrl = metadata?.sourceUrl ?: identity.pageUrl
 			Text(
 				text = identity.id,
 				style = MaterialTheme.typography.bodyLarge,
 				color = MaterialTheme.colorScheme.primary,
 				textDecoration = TextDecoration.Underline,
-				modifier = Modifier.clickable { uriHandler.openUri(identity.pageUrl) }
+				modifier = Modifier.clickable { uriHandler.openUri(pageUrl) }
 			)
 
+			val hint = metadata?.displayCredit ?: stringResource(R.string.blocklist_open_hint)
 			Text(
-				text = stringResource(R.string.blocklist_open_hint),
+				text = hint,
 				style = MaterialTheme.typography.bodySmall,
 				color = MaterialTheme.colorScheme.onSurfaceVariant
 			)

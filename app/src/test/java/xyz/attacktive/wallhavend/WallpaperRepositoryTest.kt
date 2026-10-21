@@ -155,13 +155,18 @@ class WallpaperRepositoryTest {
 		val openverse = FakeWallpaperProvider(Result.success(openverseWallpaper), WallpaperSource.OPENVERSE)
 		val repository = createRepository(pexafy, openverse)
 
+		val warnings = mutableListOf<Throwable?>()
 		repeat(shuffleAttempts) {
 			val result = repository.next(
 				AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY, WallpaperSource.OPENVERSE)),
 				screen
 			)
-			assertEquals(openverseWallpaper, result.getOrNull()?.first)
+			val rotationResult = result.getOrNull()
+			assertEquals(openverseWallpaper, rotationResult?.wallpaper)
+			warnings += rotationResult?.warning
 		}
+
+		assertTrue(warnings.any { it is QuotaExceededException })
 	}
 
 	@Test

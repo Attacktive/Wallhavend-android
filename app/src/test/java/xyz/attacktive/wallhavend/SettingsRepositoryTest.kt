@@ -31,6 +31,7 @@ import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 class SettingsRepositoryTest {
 	@get:Rule
@@ -340,5 +341,30 @@ class SettingsRepositoryTest {
 		repository.unblock(identity)
 		val afterUnblock = repository.settings.first { it.blockedIds.isEmpty() }
 		assertTrue(afterUnblock.thumbnailUrls.isEmpty())
+	}
+
+	@Test
+	fun `rememberMetadata, retainMetadata, and unblock manage stored wallpaper metadata`() = runTest {
+		val repository = createRepository()
+		val identity = WallpaperIdentity(WallpaperSource.PEXAFY, "019e1a0d-1a4f-7d62-856f-e6775b49785d")
+		val metadata = WallpaperMetadata(
+			sourceUrl = "https://www.pexels.com/photo/red-fox-walking-in-snow-20853949",
+			thumbnailUrl = "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200",
+			upstreamSource = "Pexels",
+			photographerName = "Dip Kheto"
+		)
+
+		repository.rememberMetadata(identity, metadata)
+		assertEquals(mapOf(identity.qualified to metadata), repository.settings.first { it.wallpaperMetadata.isNotEmpty() }.wallpaperMetadata)
+
+		repository.block(identity)
+		repository.save(AppSettings(searchQuery = "marker"))
+
+		val afterSave = repository.settings.first { it.searchQuery == "marker" }
+		assertEquals(mapOf(identity.qualified to metadata), afterSave.wallpaperMetadata)
+
+		repository.unblock(identity)
+		val afterUnblock = repository.settings.first { it.blockedIds.isEmpty() }
+		assertTrue(afterUnblock.wallpaperMetadata.isEmpty())
 	}
 }
