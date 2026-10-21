@@ -421,6 +421,57 @@ class PexafyProviderTest {
 	}
 
 	@Test
+	fun `recycleFallback does not replay a wallpaper that the user blocked`() = runTest {
+		coEvery {
+			pexafyApiService.search(any(), any(), any(), any(), any(), any(), any())
+		} returns makePage(makePhoto("p1"), hasMore = false, nextCursor = null)
+
+		val first = provider.next(settingsWithKey(), portraitScreen, emptySet()).getOrThrow()
+		assertEquals("p1", first.identity.id)
+
+		// Rotation 2: p1 was blocked by the user
+		val second = provider.next(settingsWithKey(), portraitScreen, setOf("p1"))
+		assertTrue(second.exceptionOrNull() is NoResultsException)
+	}
+
+	@Test
+	fun `does not declare search exhausted while later query windows remain unvisited`() = runTest {
+		coEvery {
+			pexafyApiService.search(any(), "w1", any(), any(), any(), any(), any())
+		} returns makePage(hasMore = false)
+		coEvery {
+			pexafyApiService.search(any(), "w2", any(), any(), any(), any(), any())
+		} returns makePage(hasMore = false)
+		coEvery {
+			pexafyApiService.search(any(), "w3", any(), any(), any(), any(), any())
+		} returns makePage(hasMore = false)
+		coEvery {
+			pexafyApiService.search(any(), "w4", any(), any(), any(), any(), any())
+		} returns makePage(makePhoto("w4-photo"), hasMore = false)
+
+		val result = provider.next(settingsWithKey(searchQuery = "w1, w2, w3, w4"), portraitScreen, emptySet())
+
+		assertEquals("w4-photo", result.getOrThrow().identity.id)
+		coVerify(exactly = 1) { pexafyApiService.search(any(), "w4", any(), any(), any(), any(), any()) }
+	}
+
+	@Test
+	fun `query windows with cursors rotate fairly without starving other windows`() = runTest {
+		val requestedKeywords = mutableListOf<String?>()
+		coEvery {
+			pexafyApiService.search(any(), captureNullable(requestedKeywords), any(), any(), any(), any(), any())
+		} returns makePage(makePhoto("p"), hasMore = true, nextCursor = "c")
+
+		// First call requests up to 3 windows
+		provider.next(settingsWithKey(searchQuery = "k1, k2, k3, k4"), portraitScreen, emptySet())
+		assertEquals(listOf("k1", "k2", "k3"), requestedKeywords)
+
+		// Second call must visit k4 rather than repeatedly picking k1, k2, k3
+		provider.next(settingsWithKey(searchQuery = "k1, k2, k3, k4"), portraitScreen, emptySet())
+		assertTrue("k4 must be visited in subsequent call", "k4" in requestedKeywords)
+	}
+
+	@Test
 	fun `large keyword and color fan-out is strictly bounded per search`() = runTest {
 		everySearch() returns makePage(makePhoto("p1"))
 

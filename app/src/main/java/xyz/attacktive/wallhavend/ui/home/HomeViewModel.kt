@@ -197,11 +197,22 @@ class HomeViewModel @Inject constructor(
 					destinationDirectory.mkdirs()
 					val destinationFile = File(destinationDirectory, file.name)
 					file.copyTo(destinationFile, overwrite = true)
+					metadata?.galleryDescription?.let { description ->
+						embedExifDescription(destinationFile, description)
+					}
 					MediaScannerConnection.scanFile(context, arrayOf(destinationFile.absolutePath), arrayOf(mimeType), null)
 				}
 			}
 			.onSuccess { _saveMessage.emit(context.getString(R.string.home_msg_saved_to_pictures)) }
 			.onFailure { exception -> _saveMessage.emit(context.getString(R.string.home_msg_save_failed, exception.message)) }
 		}
+	}
+}
+
+private fun embedExifDescription(file: File, description: String) {
+	runCatching {
+		val exifInterface = android.media.ExifInterface(file.absolutePath)
+		exifInterface.setAttribute(android.media.ExifInterface.TAG_IMAGE_DESCRIPTION, description)
+		exifInterface.saveAttributes()
 	}
 }

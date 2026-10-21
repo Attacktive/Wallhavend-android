@@ -138,6 +138,7 @@ class PexafyProvider(
 		var refetches = 0
 		var totalRequestsInCall = 0
 		var fallbackCandidate: PexafyPhotoDto? = null
+		val allWindows = allWindowsFor(key)
 
 		while (true) {
 			val (freshCandidate, seenCandidate) = pollCachedCandidate(blockedIds)
@@ -149,13 +150,13 @@ class PexafyProvider(
 				return freshCandidate
 			}
 
-			val windows = nextRefetchWindows(key, refetches, totalRequestsInCall) ?: return recycleFallback(fallbackCandidate)
+			val windows = nextRefetchWindows(key, refetches, totalRequestsInCall) ?: return recycleFallback(fallbackCandidate, blockedIds)
 			refetches++
 			totalRequestsInCall += windows.size
 
 			val fetchedCount = refetch(key, windows).getOrThrow()
-			if (isExhausted(fetchedCount)) {
-				return recycleFallback(fallbackCandidate)
+			if (isExhausted(allWindows, fetchedCount)) {
+				return recycleFallback(fallbackCandidate, blockedIds)
 			}
 		}
 	}
@@ -193,18 +194,30 @@ class PexafyProvider(
 		return active.take(minOf(MAX_WINDOWS_PER_REFETCH, remainingBudget))
 	}
 
-	private fun isExhausted(fetchedCount: Int) = fetchedCount == 0 && cursorStates.values.none { it.hasMore }
+	private fun isExhausted(allWindows: List<QueryWindow>, fetchedCount: Int): Boolean {
+		if (fetchedCount > 0) {
+			return false
+		}
 
-	private fun recycleFallback(fallbackCandidate: PexafyPhotoDto?): PexafyPhotoDto? {
-		if (fallbackCandidate != null) {
+		val now = clock()
+
+		return allWindows.all { window ->
+			val state = cursorStates[window]
+			state != null && !state.hasMore && (now - state.issuedAtMs < CURSOR_TTL_MS)
+		}
+	}
+
+	private fun recycleFallback(fallbackCandidate: PexafyPhotoDto?, blockedIds: Set<String>): PexafyPhotoDto? {
+		if (fallbackCandidate != null && fallbackCandidate.photoId !in blockedIds) {
 			servedIds.clear()
 
 			return fallbackCandidate
 		}
 
-		if (lastAdmittedResults.isNotEmpty()) {
+		val unblocked = lastAdmittedResults.filter { it.photoId !in blockedIds }
+		if (unblocked.isNotEmpty()) {
 			servedIds.clear()
-			cache = ArrayDeque(lastAdmittedResults.shuffled())
+			cache = ArrayDeque(unblocked.shuffled())
 
 			return cache.removeFirstOrNull()
 		}
@@ -212,18 +225,28 @@ class PexafyProvider(
 		return null
 	}
 
-	private fun activeWindowsFor(key: SearchKey): List<QueryWindow> {
+	private fun allWindowsFor(key: SearchKey): List<QueryWindow> {
 		val effectiveKeywords: List<String?> = key.keywords.ifEmpty { listOf(null) }
 		val effectiveColors: List<String?> = key.colorHexes.ifEmpty { listOf(null) }
-		val allWindows = effectiveKeywords.flatMap { keyword ->
+
+		return effectiveKeywords.flatMap { keyword ->
 			effectiveColors.map { color -> QueryWindow(keyword, color) }
 		}
-		val now = clock()
+	}
 
-		return allWindows.filter { window ->
+	private fun activeWindowsFor(key: SearchKey): List<QueryWindow> {
+		val now = clock()
+		val active = allWindowsFor(key).filter { window ->
 			val state = cursorStates[window]
 			state == null || state.hasMore || now - state.issuedAtMs >= CURSOR_TTL_MS
 		}
+
+		return active.sortedWith(
+			compareBy(
+				{ cursorStates[it] != null },
+				{ cursorStates[it]?.issuedAtMs ?: 0L }
+			)
+		)
 	}
 
 	private suspend fun refetch(key: SearchKey, windows: List<QueryWindow>) = runCatching {

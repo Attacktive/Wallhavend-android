@@ -30,4 +30,13 @@ data class WallpaperMetadata(
 			else -> null
 		}
 	}
+
+	val galleryDescription: String? get() {
+		val parts = mutableListOf<String>()
+		displayCredit?.let { parts += it }
+		sourceUrl?.takeIf { it.isNotBlank() }?.let { parts += it }
+		licenseType?.takeIf { it.isNotBlank() }?.let { parts += "License: $it" }
+
+		return parts.joinToString("\n").takeIf { it.isNotBlank() }
+	}
 }

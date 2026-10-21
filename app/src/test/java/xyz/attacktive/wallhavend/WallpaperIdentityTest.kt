@@ -139,4 +139,19 @@ class WallpaperIdentityTest {
 		assertNull(identity.thumbnailUrl)
 		assertEquals("https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200", identity.thumbnailUrl(metadataMap))
 	}
+
+	@Test
+	fun `galleryDescription formats credit, source link, and license`() {
+		val metadata = WallpaperMetadata(
+			sourceUrl = "https://www.pexels.com/photo/123",
+			upstreamSource = "Pexels",
+			licenseType = "free",
+			photographerName = "Jane Doe"
+		)
+
+		assertEquals(
+			"Photo by Jane Doe on Pexels\nhttps://www.pexels.com/photo/123\nLicense: free",
+			metadata.galleryDescription
+		)
+	}
 }

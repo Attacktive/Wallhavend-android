@@ -14,8 +14,8 @@ internal class MediaStoreExporter(private val contentResolver: ContentResolver) 
 			put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Wallhavend")
 			put(MediaStore.MediaColumns.IS_PENDING, 1)
 
-			metadata?.displayCredit?.let { credit ->
-				put(MediaStore.Images.Media.DESCRIPTION, credit)
+			metadata?.galleryDescription?.let { description ->
+				put(MediaStore.Images.Media.DESCRIPTION, description)
 			}
 		}
 

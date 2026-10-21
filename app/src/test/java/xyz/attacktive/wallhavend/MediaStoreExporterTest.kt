@@ -128,7 +128,7 @@ class MediaStoreExporterTest {
 	}
 
 	@Test
-	fun `save populates description when metadata has attribution or credit`() {
+	fun `save populates description with credit, source link, and license when present in metadata`() {
 		val contentResolver = mockk<ContentResolver>(relaxed = true)
 		val uri = mockk<Uri>()
 		val outputStream = ByteArrayOutputStream()
@@ -140,11 +140,13 @@ class MediaStoreExporterTest {
 
 		val metadata = WallpaperMetadata(
 			sourceUrl = "https://example.com/photo",
+			licenseType = "free",
 			attributionText = "Photo by Jane Doe on Pexels"
 		)
 
 		MediaStoreExporter(contentResolver).save(file, "image/jpeg", metadata)
 
-		verify(exactly = 1) { anyConstructed<ContentValues>().put(MediaStore.Images.Media.DESCRIPTION, "Photo by Jane Doe on Pexels") }
+		val expectedDescription = "Photo by Jane Doe on Pexels\nhttps://example.com/photo\nLicense: free"
+		verify(exactly = 1) { anyConstructed<ContentValues>().put(MediaStore.Images.Media.DESCRIPTION, expectedDescription) }
 	}
 }
