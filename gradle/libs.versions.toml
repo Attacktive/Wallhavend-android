@@ -20,6 +20,7 @@ activityCompose = "1.13.0"
 junit = "4.13.2"
 coroutinesTest = "1.11.0"
 mockk = "1.14.11"
+exifinterface = "1.4.2"
 
 [libraries]
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -49,6 +50,7 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

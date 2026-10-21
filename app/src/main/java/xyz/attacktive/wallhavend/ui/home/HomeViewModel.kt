@@ -208,11 +208,3 @@ class HomeViewModel @Inject constructor(
 		}
 	}
 }
-
-private fun embedExifDescription(file: File, description: String) {
-	runCatching {
-		val exifInterface = android.media.ExifInterface(file.absolutePath)
-		exifInterface.setAttribute(android.media.ExifInterface.TAG_IMAGE_DESCRIPTION, description)
-		exifInterface.saveAttributes()
-	}
-}

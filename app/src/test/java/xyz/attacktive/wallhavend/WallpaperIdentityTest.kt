@@ -150,7 +150,7 @@ class WallpaperIdentityTest {
 		)
 
 		assertEquals(
-			"Photo by Jane Doe on Pexels\nhttps://www.pexels.com/photo/123\nLicense: free",
+			"Photo by Jane Doe on Pexels - https://www.pexels.com/photo/123 - License: free",
 			metadata.galleryDescription
 		)
 	}

@@ -37,6 +37,6 @@ data class WallpaperMetadata(
 		sourceUrl?.takeIf { it.isNotBlank() }?.let { parts += it }
 		licenseType?.takeIf { it.isNotBlank() }?.let { parts += "License: $it" }
 
-		return parts.joinToString("\n").takeIf { it.isNotBlank() }
+		return parts.joinToString(" - ").takeIf { it.isNotBlank() }
 	}
 }

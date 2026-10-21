@@ -23,6 +23,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.ui.home.MediaStoreExporter
+import xyz.attacktive.wallhavend.ui.home.embedExifDescription
+import androidx.exifinterface.media.ExifInterface
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 class MediaStoreExporterTest {
@@ -128,11 +132,14 @@ class MediaStoreExporterTest {
 	}
 
 	@Test
-	fun `save populates description with credit, source link, and license when present in metadata`() {
+	fun `save embeds description into exported JPEG EXIF metadata when present`() {
 		val contentResolver = mockk<ContentResolver>(relaxed = true)
 		val uri = mockk<Uri>()
 		val outputStream = ByteArrayOutputStream()
-		val file = tmpFolder.newFile("pexafy_123.jpg").also { it.writeBytes(ByteArray(10)) }
+		val jpegBytes = java.util.Base64.getDecoder().decode(
+			"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q=="
+		)
+		val file = tmpFolder.newFile("pexafy_123.jpg").also { it.writeBytes(jpegBytes) }
 
 		every { contentResolver.insert(any(), any()) } returns uri
 		every { contentResolver.openOutputStream(uri) } returns outputStream
@@ -146,7 +153,53 @@ class MediaStoreExporterTest {
 
 		MediaStoreExporter(contentResolver).save(file, "image/jpeg", metadata)
 
-		val expectedDescription = "Photo by Jane Doe on Pexels\nhttps://example.com/photo\nLicense: free"
-		verify(exactly = 1) { anyConstructed<ContentValues>().put(MediaStore.Images.Media.DESCRIPTION, expectedDescription) }
+		val exportedFile = tmpFolder.newFile("exported.jpg").also { it.writeBytes(outputStream.toByteArray()) }
+		val exifInterface = ExifInterface(exportedFile)
+		val actualDescription = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION)
+
+		val expectedDescription = "Photo by Jane Doe on Pexels - https://example.com/photo - License: free"
+		assertEquals(expectedDescription, actualDescription)
+		assertNull(ExifInterface(file).getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION))
+	}
+
+	@Test
+	fun `save embeds description into exported PNG EXIF metadata when present`() {
+		val contentResolver = mockk<ContentResolver>(relaxed = true)
+		val uri = mockk<Uri>()
+		val outputStream = ByteArrayOutputStream()
+		val pngBytes = java.util.Base64.getDecoder().decode(
+			"iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEElEQVR4nGP8zwACTGCSAQANHQEDgslx/wAAAABJRU5ErkJggg=="
+		)
+		val file = tmpFolder.newFile("pexafy_123.png").also { it.writeBytes(pngBytes) }
+
+		every { contentResolver.insert(any(), any()) } returns uri
+		every { contentResolver.openOutputStream(uri) } returns outputStream
+		every { contentResolver.update(uri, any(), null, null) } returns 1
+
+		val metadata = WallpaperMetadata(
+			sourceUrl = "https://example.com/photo_png",
+			licenseType = "free",
+			attributionText = "Photo by Jane Doe on Pexels"
+		)
+
+		MediaStoreExporter(contentResolver).save(file, "image/png", metadata)
+
+		val exportedFile = tmpFolder.newFile("exported.png").also { it.writeBytes(outputStream.toByteArray()) }
+		val exifInterface = ExifInterface(exportedFile)
+		val actualDescription = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION)
+
+		val expectedDescription = "Photo by Jane Doe on Pexels - https://example.com/photo_png - License: free"
+		assertEquals(expectedDescription, actualDescription)
+	}
+
+	@Test
+	fun `embedExifDescription writes description to image file`() {
+		val jpegBytes = java.util.Base64.getDecoder().decode(
+			"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q=="
+		)
+		val file = tmpFolder.newFile("pre_q.jpg").also { it.writeBytes(jpegBytes) }
+		embedExifDescription(file, "Sample Description")
+
+		assertEquals("Sample Description", ExifInterface(file).getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION))
 	}
 }
