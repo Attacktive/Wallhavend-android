@@ -21,6 +21,10 @@ class BlocklistViewModel @Inject constructor(private val settingsRepository: Set
 		}
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+	val thumbnailUrls = settingsRepository.settings
+		.map { it.thumbnailUrls }
+		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
 	fun unblock(identity: WallpaperIdentity) {
 		viewModelScope.launch {
 			settingsRepository.unblock(identity)

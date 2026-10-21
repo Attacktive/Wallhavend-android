@@ -41,4 +41,40 @@ class NetworkSecurityTest {
 		assertTrue(output.contains("apikey"))
 		assertFalse(output.contains("super-secret"))
 	}
+
+	@Test
+	fun `HTTP logging redacts the Pexafy x-api-key header`() {
+		val logs = mutableListOf<String>()
+		val logger = HttpLoggingInterceptor.Logger { message -> logs += message }
+		val server = MockWebServer()
+
+		server.enqueue(MockResponse())
+
+		try {
+			server.start()
+
+			val client = OkHttpClient.Builder()
+				.addInterceptor(
+					createBasicLoggingInterceptor(logger).apply {
+						level = HttpLoggingInterceptor.Level.HEADERS
+					}
+				)
+				.build()
+			val request = Request.Builder()
+				.url(server.url("/api/v1/search/photos?q=mountains"))
+				.header("x-api-key", "pexafy_api_super_secret")
+				.build()
+
+			client.newCall(request)
+				.execute()
+				.close()
+		} finally {
+			server.shutdown()
+		}
+
+		val output = logs.joinToString("\n")
+
+		assertTrue(output.contains("x-api-key"))
+		assertFalse(output.contains("pexafy_api_super_secret"))
+	}
 }

@@ -66,8 +66,12 @@
 	<string name="settings_subtitle_pool_size">Fondos de pantalla guardados en el dispositivo y mostrados en la galería (excluyendo fijados)</string>
 	<string name="settings_label_api_key">CLAVE API (OPCIONAL, REQUERIDA PARA NSFW)</string>
 	<string name="settings_placeholder_api_key">Tu clave API de Wallhaven</string>
+	<string name="settings_label_pexafy_api_key">CLAVE API DE PEXAFY (REQUERIDA PARA PEXAFY)</string>
+	<string name="settings_placeholder_pexafy_api_key">Tu clave API de Pexafy</string>
+	<string name="settings_link_create_pexafy_api_key">Crear una clave API de Pexafy</string>
 	<string name="settings_powered_by_wallhaven">Desarrollado por wallhaven.cc</string>
 	<string name="settings_powered_by_openverse">Creado con Openverse — sin respaldo ni certificación de Openverse</string>
+	<string name="settings_powered_by_pexafy">Desarrollado por Pexafy</string>
 	<string name="settings_report_bug">Informar de un error</string>
 	<string name="category_general">General</string>
 	<string name="category_anime">Anime</string>
@@ -77,6 +81,7 @@
 	<string name="purity_nsfw">NSFW</string>
 	<string name="source_wallhaven">Wallhaven</string>
 	<string name="source_openverse">Openverse</string>
+	<string name="source_pexafy">Pexafy</string>
 	<string name="license_public_domain">Dominio público</string>
 	<string name="license_permissive">Permisiva</string>
 	<string name="license_any_commercial">Cualquier uso comercial</string>
@@ -88,6 +93,12 @@
 	<string name="error_apply_failed">⚠ Error al aplicar el fondo de pantalla: %s</string>
 	<string name="error_network_error">⚠ Error de red: %s</string>
 	<string name="error_network_error_source">⚠ No se puede acceder a %1$s — reintentando automáticamente</string>
+	<string name="error_missing_api_key">⚠ %1$s requiere una clave API — añade una en Ajustes → Avanzado</string>
+	<string name="error_invalid_api_key">⚠ Clave API de %1$s no válida — comprueba tu clave en Ajustes → Avanzado</string>
+	<string name="error_quota_exceeded">⚠ Cuota mensual de %1$s agotada — se restablece el día 1 del mes</string>
+	<string name="error_rate_limited">⚠ Límite de velocidad de %1$s alcanzado — reintentando tras %2$ds</string>
+	<string name="error_rate_limited_generic">⚠ Límite de velocidad de %1$s alcanzado — reintentando automáticamente</string>
+	<string name="settings_hint_sorting_pexafy">Pexafy admite Fecha de adición (más recientes) y asigna otros órdenes a Relevancia</string>
 	<string name="cd_settings">Ajustes</string>
 	<string name="cd_save_to_pictures">Guardar en Imágenes</string>
 	<string name="cd_delete">Eliminar</string>

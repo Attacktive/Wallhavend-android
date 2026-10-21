@@ -13,6 +13,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -91,5 +93,58 @@ class SettingsSecurityTest {
 		assertEquals("", restored.apiKey)
 		assertNull(settingsStore.data.first()[apiKey])
 		assertNull(credentialStore.data.first()[apiKey])
+	}
+
+	@Test
+	fun `Pexafy API key is stored outside the normal settings DataStore`() = runTest {
+		val settingsStore = dataStore("pexafy_settings")
+		val credentialStore = dataStore("pexafy_credentials")
+		val repository = SettingsRepository(settingsStore, credentialStore, FakeAppLogger())
+		val pexafyApiKey = stringPreferencesKey("pexafy_api_key")
+
+		repository.save(AppSettings(pexafyApiKey = "pexafy_api_secret"))
+
+		assertNull(settingsStore.data.first()[pexafyApiKey])
+		assertEquals("pexafy_api_secret", credentialStore.data.first()[pexafyApiKey])
+	}
+
+	@Test
+	fun `restoring a snapshot discards Pexafy API key`() = runTest {
+		val pexafyApiKey = stringPreferencesKey("pexafy_api_key")
+		val settingsStore = dataStore("restored_pexafy_settings")
+		val credentialStore = dataStore("restored_pexafy_credentials")
+
+		settingsStore.edit { preferences ->
+			preferences[pexafyApiKey] = "restored-pexafy-secret"
+		}
+
+		credentialStore.edit { preferences ->
+			preferences[pexafyApiKey] = "restored-pexafy-secret"
+		}
+
+		clearRestoredApiKeys(settingsStore, credentialStore)
+
+		val repository = SettingsRepository(settingsStore, credentialStore, FakeAppLogger())
+		val restored = repository.settings.first()
+
+		assertEquals("", restored.pexafyApiKey)
+		assertNull(settingsStore.data.first()[pexafyApiKey])
+		assertNull(credentialStore.data.first()[pexafyApiKey])
+	}
+
+	@Test
+	fun `logging redacts both Wallhaven and Pexafy API keys`() = runTest {
+		val settingsStore = dataStore("log_settings")
+		val credentialStore = dataStore("log_credentials")
+		val logger = FakeAppLogger()
+		val repository = SettingsRepository(settingsStore, credentialStore, logger)
+
+		repository.save(AppSettings(apiKey = "wh-secret-123", pexafyApiKey = "pexafy-secret-456"))
+		repository.settings.first()
+
+		val logs = logger.entries.joinToString("\n") { it.message }
+		assertFalse(logs.contains("wh-secret-123"))
+		assertFalse(logs.contains("pexafy-secret-456"))
+		assertTrue(logs.contains("pexafyApiKey=***"))
 	}
 }

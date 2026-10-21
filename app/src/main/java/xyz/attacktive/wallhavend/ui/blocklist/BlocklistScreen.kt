@@ -46,6 +46,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 @Composable
 fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = hiltViewModel()) {
 	val blockedWallpapers by viewModel.blockedWallpapers.collectAsStateWithLifecycle()
+	val thumbnailUrls by viewModel.thumbnailUrls.collectAsStateWithLifecycle()
 
 	Scaffold(
 		topBar = {
@@ -82,14 +83,18 @@ fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = 
 			.padding(padding)
 		) {
 			items(blockedWallpapers, key = { it.qualified }) { identity ->
-				BlockedRow(identity = identity, onUnblock = { viewModel.unblock(identity) })
+				BlockedRow(
+					identity = identity,
+					thumbnailUrl = identity.thumbnailUrl(thumbnailUrls),
+					onUnblock = { viewModel.unblock(identity) }
+				)
 			}
 		}
 	}
 }
 
 @Composable
-private fun BlockedRow(identity: WallpaperIdentity, onUnblock: () -> Unit) {
+private fun BlockedRow(identity: WallpaperIdentity, thumbnailUrl: String?, onUnblock: () -> Unit) {
 	val uriHandler = LocalUriHandler.current
 
 	Row(
@@ -98,7 +103,7 @@ private fun BlockedRow(identity: WallpaperIdentity, onUnblock: () -> Unit) {
 			.fillMaxWidth()
 			.padding(horizontal = 16.dp, vertical = 8.dp)
 	) {
-		RevealableThumbnail(identity = identity)
+		RevealableThumbnail(identity = identity, thumbnailUrl = thumbnailUrl)
 
 		Column(
 			modifier = Modifier
@@ -131,7 +136,7 @@ private fun BlockedRow(identity: WallpaperIdentity, onUnblock: () -> Unit) {
  * user chose to be rid of. The thumbnail loads from the network only after an explicit tap.
  */
 @Composable
-private fun RevealableThumbnail(identity: WallpaperIdentity) {
+private fun RevealableThumbnail(identity: WallpaperIdentity, thumbnailUrl: String?) {
 	var revealed by remember(identity) { mutableStateOf(false) }
 
 	Box(
@@ -140,11 +145,11 @@ private fun RevealableThumbnail(identity: WallpaperIdentity) {
 			.size(64.dp)
 			.clip(RoundedCornerShape(6.dp))
 			.background(MaterialTheme.colorScheme.surfaceVariant)
-			.clickable { revealed = true }
+			.clickable(enabled = thumbnailUrl != null) { revealed = true }
 	) {
-		if (revealed) {
+		if (revealed && thumbnailUrl != null) {
 			AsyncImage(
-				model = identity.thumbnailUrl,
+				model = thumbnailUrl,
 				contentDescription = null,
 				contentScale = ContentScale.Crop,
 				modifier = Modifier.fillMaxSize()

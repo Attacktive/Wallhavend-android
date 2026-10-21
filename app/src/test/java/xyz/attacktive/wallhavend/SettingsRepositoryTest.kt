@@ -82,13 +82,13 @@ class SettingsRepositoryTest {
 	@Test
 	fun `enabled sources and the licence tier round-trip`() = runTest {
 		val repository = createRepository()
-		val bothSources = setOf(WallpaperSource.WALLHAVEN, WallpaperSource.OPENVERSE)
+		val allSources = setOf(WallpaperSource.WALLHAVEN, WallpaperSource.OPENVERSE, WallpaperSource.PEXAFY)
 
-		repository.save(AppSettings(searchQuery = "marker", enabledSources = bothSources, licenseFilter = LicenseFilter.ANY_COMMERCIAL))
+		repository.save(AppSettings(searchQuery = "marker", enabledSources = allSources, licenseFilter = LicenseFilter.ANY_COMMERCIAL))
 
 		val loaded = repository.settings.first { it.searchQuery == "marker" }
 
-		assertEquals(bothSources, loaded.enabledSources)
+		assertEquals(allSources, loaded.enabledSources)
 		assertEquals(LicenseFilter.ANY_COMMERCIAL, loaded.licenseFilter)
 	}
 
@@ -149,6 +149,7 @@ class SettingsRepositoryTest {
 			rotationMode = RotationMode.FRESH_ANY,
 			poolSize = 25,
 			apiKey = "secret",
+			pexafyApiKey = "pexafy_secret",
 			autoStartOnBoot = true,
 			sorting = Sorting.TOPLIST,
 			toplistRange = ToplistRange.ONE_YEAR
@@ -319,5 +320,25 @@ class SettingsRepositoryTest {
 		)
 
 		assertTrue(secondProcess.settings.first().autoUpdateEnabled)
+	}
+
+	@Test
+	fun `rememberThumbnail and unblock manage stored thumbnail URLs`() = runTest {
+		val repository = createRepository()
+		val identity = WallpaperIdentity(WallpaperSource.PEXAFY, "019e1a0d-1a4f-7d62-856f-e6775b49785d")
+		val thumbnailUrl = "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200"
+
+		repository.rememberThumbnail(identity, thumbnailUrl)
+		assertEquals(mapOf(identity.qualified to thumbnailUrl), repository.settings.first { it.thumbnailUrls.isNotEmpty() }.thumbnailUrls)
+
+		repository.block(identity)
+		repository.save(AppSettings(searchQuery = "marker"))
+
+		val afterSave = repository.settings.first { it.searchQuery == "marker" }
+		assertEquals(mapOf(identity.qualified to thumbnailUrl), afterSave.thumbnailUrls)
+
+		repository.unblock(identity)
+		val afterUnblock = repository.settings.first { it.blockedIds.isEmpty() }
+		assertTrue(afterUnblock.thumbnailUrls.isEmpty())
 	}
 }

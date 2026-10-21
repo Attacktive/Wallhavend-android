@@ -4,9 +4,9 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/attacktive/wallhavend-android/badge)](https://www.codefactor.io/repository/github/attacktive/wallhavend-android)
 [![Test](https://github.com/Attacktive/Wallhavend-android/actions/workflows/test.yaml/badge.svg)](https://github.com/Attacktive/Wallhavend-android/actions/workflows/test.yaml)
 
-Android app that automatically rotates wallpapers from [Wallhaven](https://wallhaven.cc).
+Android app that automatically rotates wallpapers from [Wallhaven](https://wallhaven.cc), [Openverse](https://openverse.org), and [Pexafy](https://pexafy.com).
 
-Supports filtering by category, purity, and aspect ratio. Schedules wallpaper rotation across device sleep and performs each update as bounded background work. Android may still delay updates while the device is idle, so configured intervals are approximate. Requires an API key for NSFW content only.
+Supports filtering by category, purity, license, and aspect ratio. Schedules wallpaper rotation across device sleep and performs each update as bounded background work. Android may still delay updates while the device is idle, so configured intervals are approximate. Requires a user-supplied API key for Wallhaven NSFW content and for Pexafy.
 
 **Min SDK:** Android 8.0 (API 26)
 
@@ -29,7 +29,7 @@ cd Wallhavend-android
 ./gradlew assembleDebug
 ```
 
-Debug builds need no secrets. The Wallhaven API key is entered in the app at runtime (for NSFW content only), and `release.keystore` with `KEYSTORE_PASSWORD` are needed only for release signing.
+Debug builds need no secrets. Wallhaven (for NSFW content) and Pexafy API keys are entered in the app at runtime, and `release.keystore` with `KEYSTORE_PASSWORD` are needed only for release signing.
 
 Run the unit tests with `./gradlew test`.
 
@@ -51,4 +51,4 @@ The codebase follows a formatting style that differs from the IDE defaults — s
 
 ---
 
-Wallpapers provided by [Wallhaven](https://wallhaven.cc). All images remain property of their respective uploaders.
+Wallpapers provided by [Wallhaven](https://wallhaven.cc), [Openverse](https://openverse.org), and [Pexafy](https://pexafy.com). All images remain property of their respective creators and uploaders.

@@ -66,8 +66,12 @@
 	<string name="settings_subtitle_pool_size">Wallpapers kept on device and shown in gallery (excludes pinned)</string>
 	<string name="settings_label_api_key">API KEY (OPTIONAL, REQUIRED FOR NSFW)</string>
 	<string name="settings_placeholder_api_key">Your Wallhaven API key</string>
+	<string name="settings_label_pexafy_api_key">PEXAFY API KEY (REQUIRED FOR PEXAFY)</string>
+	<string name="settings_placeholder_pexafy_api_key">Your Pexafy API key</string>
+	<string name="settings_link_create_pexafy_api_key">Create a Pexafy API key</string>
 	<string name="settings_powered_by_wallhaven">Powered by wallhaven.cc</string>
 	<string name="settings_powered_by_openverse">Made using Openverse — not endorsed or certified by Openverse</string>
+	<string name="settings_powered_by_pexafy">Powered by Pexafy</string>
 	<string name="settings_report_bug">Report a bug</string>
 	<string name="category_general">General</string>
 	<string name="category_anime">Anime</string>
@@ -77,6 +81,7 @@
 	<string name="purity_nsfw">NSFW</string>
 	<string name="source_wallhaven">Wallhaven</string>
 	<string name="source_openverse">Openverse</string>
+	<string name="source_pexafy">Pexafy</string>
 	<string name="license_public_domain">Public domain</string>
 	<string name="license_permissive">Permissive</string>
 	<string name="license_any_commercial">Any commercial use</string>
@@ -88,6 +93,12 @@
 	<string name="error_apply_failed">⚠ Failed to apply wallpaper: %s</string>
 	<string name="error_network_error">⚠ Network error: %s</string>
 	<string name="error_network_error_source">⚠ Can\'t reach %1$s — retrying automatically</string>
+	<string name="error_missing_api_key">⚠ %1$s requires an API key — add one in Settings → Advanced</string>
+	<string name="error_invalid_api_key">⚠ Invalid %1$s API key — check your key in Settings → Advanced</string>
+	<string name="error_quota_exceeded">⚠ %1$s monthly quota exceeded — resets on the 1st of the month</string>
+	<string name="error_rate_limited">⚠ %1$s rate limit reached — retrying after %2$ds</string>
+	<string name="error_rate_limited_generic">⚠ %1$s rate limit reached — retrying automatically</string>
+	<string name="settings_hint_sorting_pexafy">Pexafy supports Date Added (newest) and maps other sorts to Relevance</string>
 	<string name="cd_settings">Settings</string>
 	<string name="cd_save_to_pictures">Save to Pictures</string>
 	<string name="cd_delete">Delete</string>

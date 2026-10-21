@@ -3,6 +3,7 @@ package xyz.attacktive.wallhavend
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Test
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
@@ -103,5 +104,33 @@ class WallpaperIdentityTest {
 
 		assertEquals("https://openverse.org/image/abc-123", identity.pageUrl)
 		assertEquals("https://api.openverse.org/v1/images/abc-123/thumb/", identity.thumbnailUrl)
+	}
+
+	@Test
+	fun `a Pexafy identity qualifies and round-trips through parse`() {
+		val identity = WallpaperIdentity(WallpaperSource.PEXAFY, "019e1a0d-1a4f-7d62-856f-e6775b49785d")
+
+		assertEquals("pexafy_019e1a0d-1a4f-7d62-856f-e6775b49785d", identity.qualified)
+		assertEquals(identity, WallpaperIdentity.parse(identity.qualified))
+	}
+
+	@Test
+	fun `a Pexafy id has only the one spelling, since none of them predate qualification`() {
+		val identity = WallpaperIdentity(WallpaperSource.PEXAFY, "019e1a0d-1a4f-7d62-856f-e6775b49785d")
+
+		assertEquals(setOf("pexafy_019e1a0d-1a4f-7d62-856f-e6775b49785d"), identity.persistedForms)
+		assertFalse(identity.matches(setOf("019e1a0d-1a4f-7d62-856f-e6775b49785d")))
+	}
+
+	@Test
+	fun `a Pexafy identity points at its Pexafy page and uses a stored thumbnail URL when provided`() {
+		val identity = WallpaperIdentity(WallpaperSource.PEXAFY, "019e1a0d-1a4f-7d62-856f-e6775b49785d")
+
+		assertEquals("https://pexafy.com/photos/019e1a0d-1a4f-7d62-856f-e6775b49785d", identity.pageUrl)
+		assertNull(identity.thumbnailUrl)
+		assertEquals(
+			"https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200",
+			identity.thumbnailUrl(mapOf(identity.qualified to "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200"))
+		)
 	}
 }

@@ -66,8 +66,12 @@
 	<string name="settings_subtitle_pool_size">デバイスに保存され、ギャラリーに表示される壁紙の数（ピン留めを除く）</string>
 	<string name="settings_label_api_key">APIキー (任意、NSFWに必要)</string>
 	<string name="settings_placeholder_api_key">Wallhaven APIキー</string>
+	<string name="settings_label_pexafy_api_key">PEXAFY APIキー (PEXAFYに必要)</string>
+	<string name="settings_placeholder_pexafy_api_key">Pexafy APIキー</string>
+	<string name="settings_link_create_pexafy_api_key">Pexafy APIキーを作成</string>
 	<string name="settings_powered_by_wallhaven">Powered by wallhaven.cc</string>
 	<string name="settings_powered_by_openverse">Openverse を利用 — Openverse による承認・認定は受けていません</string>
+	<string name="settings_powered_by_pexafy">Powered by Pexafy</string>
 	<string name="settings_report_bug">バグを報告</string>
 	<string name="category_general">一般</string>
 	<string name="category_anime">アニメ</string>
@@ -77,6 +81,7 @@
 	<string name="purity_nsfw">NSFW</string>
 	<string name="source_wallhaven">Wallhaven</string>
 	<string name="source_openverse">Openverse</string>
+	<string name="source_pexafy">Pexafy</string>
 	<string name="license_public_domain">パブリックドメイン</string>
 	<string name="license_permissive">寛容なライセンス</string>
 	<string name="license_any_commercial">商用利用可</string>
@@ -88,6 +93,12 @@
 	<string name="error_apply_failed">⚠ 壁紙の適用に失敗しました: %s</string>
 	<string name="error_network_error">⚠ ネットワークエラー: %s</string>
 	<string name="error_network_error_source">⚠ %1$s に接続できません — 自動的に再試行します</string>
+	<string name="error_missing_api_key">⚠ %1$s にはAPIキーが必要です — 設定 → 詳細設定で追加してください</string>
+	<string name="error_invalid_api_key">⚠ %1$s のAPIキーが無効です — 設定 → 詳細設定でキーを確認してください</string>
+	<string name="error_quota_exceeded">⚠ %1$s の月間クォータを超過しました — 毎月1日にリセットされます</string>
+	<string name="error_rate_limited">⚠ %1$s のレート制限に達しました — %2$d秒後に再試行します</string>
+	<string name="error_rate_limited_generic">⚠ %1$s のレート制限に達しました — 自動的に再試行します</string>
+	<string name="settings_hint_sorting_pexafy">Pexafyは追加日（新着順）に対応し、その他の並び順は関連度順にマッピングされます</string>
 	<string name="cd_settings">設定</string>
 	<string name="cd_save_to_pictures">ピクチャに保存</string>
 	<string name="cd_delete">削除</string>

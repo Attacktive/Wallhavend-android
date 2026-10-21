@@ -261,6 +261,14 @@ private fun ErrorBanner(error: AppError) {
 		is AppError.NetworkError -> error.source
 			?.let { source -> stringResource(R.string.error_network_error_source, stringResource(source.nameRes)) }
 			?: stringResource(R.string.error_network_error, error.cause)
+		is AppError.MissingApiKey -> stringResource(R.string.error_missing_api_key, stringResource(error.source.nameRes))
+		is AppError.InvalidApiKey -> stringResource(R.string.error_invalid_api_key, stringResource(error.source.nameRes))
+		is AppError.QuotaExceeded -> stringResource(R.string.error_quota_exceeded, stringResource(error.source.nameRes))
+		is AppError.RateLimited -> if (error.retryAfterSeconds != null) {
+			stringResource(R.string.error_rate_limited, stringResource(error.source.nameRes), error.retryAfterSeconds)
+		} else {
+			stringResource(R.string.error_rate_limited_generic, stringResource(error.source.nameRes))
+		}
 	}
 
 	Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {

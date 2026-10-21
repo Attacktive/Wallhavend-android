@@ -100,6 +100,7 @@ class HomeViewModel @Inject constructor(
 		viewModelScope.launch(Dispatchers.IO) {
 			wallpaperMutationCoordinator.serialize {
 				evictFromPool(path)
+				settingsRepository.forgetThumbnail(WallpaperIdentity.parse(File(path).nameWithoutExtension))
 			}
 		}
 	}

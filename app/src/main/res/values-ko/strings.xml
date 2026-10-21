@@ -66,8 +66,12 @@
 	<string name="settings_subtitle_pool_size">기기에 보관되고 갤러리에 표시되는 배경화면 수 (고정된 항목 제외)</string>
 	<string name="settings_label_api_key">API 키 (선택 사항, NSFW 필수)</string>
 	<string name="settings_placeholder_api_key">Wallhaven API 키</string>
+	<string name="settings_label_pexafy_api_key">PEXAFY API 키 (PEXAFY 필수)</string>
+	<string name="settings_placeholder_pexafy_api_key">Pexafy API 키</string>
+	<string name="settings_link_create_pexafy_api_key">Pexafy API 키 만들기</string>
 	<string name="settings_powered_by_wallhaven">Powered by wallhaven.cc</string>
 	<string name="settings_powered_by_openverse">Openverse 사용 — Openverse의 보증이나 인증을 받지 않았습니다</string>
+	<string name="settings_powered_by_pexafy">Powered by Pexafy</string>
 	<string name="settings_report_bug">버그 보고</string>
 	<string name="category_general">일반</string>
 	<string name="category_anime">애니메이션</string>
@@ -77,6 +81,7 @@
 	<string name="purity_nsfw">NSFW</string>
 	<string name="source_wallhaven">Wallhaven</string>
 	<string name="source_openverse">Openverse</string>
+	<string name="source_pexafy">Pexafy</string>
 	<string name="license_public_domain">퍼블릭 도메인</string>
 	<string name="license_permissive">관대한 라이선스</string>
 	<string name="license_any_commercial">상업적 이용 가능</string>
@@ -88,6 +93,12 @@
 	<string name="error_apply_failed">⚠ 배경화면 적용 실패: %s</string>
 	<string name="error_network_error">⚠ 네트워크 오류: %s</string>
 	<string name="error_network_error_source">⚠ %1$s에 연결할 수 없습니다 — 자동으로 다시 시도합니다</string>
+	<string name="error_missing_api_key">⚠ %1$s에는 API 키가 필요합니다 — 설정 → 고급에서 추가하세요</string>
+	<string name="error_invalid_api_key">⚠ 잘못된 %1$s API 키입니다 — 설정 → 고급에서 키를 확인하세요</string>
+	<string name="error_quota_exceeded">⚠ %1$s 월간 할당량을 초과했습니다 — 매월 1일에 초기화됩니다</string>
+	<string name="error_rate_limited">⚠ %1$s 요청 한도에 도달했습니다 — %2$d초 후 다시 시도합니다</string>
+	<string name="error_rate_limited_generic">⚠ %1$s 요청 한도에 도달했습니다 — 자동으로 다시 시도합니다</string>
+	<string name="settings_hint_sorting_pexafy">Pexafy는 추가된 날짜(최신순)를 지원하며 다른 정렬은 관련성으로 매핑합니다</string>
 	<string name="cd_settings">설정</string>
 	<string name="cd_save_to_pictures">사진 폴더에 저장</string>
 	<string name="cd_delete">삭제</string>

@@ -96,6 +96,10 @@ class WallpaperService: Service() {
 		val contentText = when (val error = state.error) {
 			is AppError.ApiError -> providerFailureText(error.source)
 			is AppError.NetworkError -> providerFailureText(error.source)
+			is AppError.MissingApiKey -> providerFailureText(error.source)
+			is AppError.InvalidApiKey -> providerFailureText(error.source)
+			is AppError.QuotaExceeded -> providerFailureText(error.source)
+			is AppError.RateLimited -> providerFailureText(error.source)
 			else -> state.lastUpdatedMs
 				?.let { timestamp ->
 					val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault())

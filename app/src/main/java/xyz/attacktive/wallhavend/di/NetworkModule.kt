@@ -15,6 +15,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import xyz.attacktive.wallhavend.BuildConfig
 import xyz.attacktive.wallhavend.data.api.OpenverseApiService
+import xyz.attacktive.wallhavend.data.api.PexafyApiService
 import xyz.attacktive.wallhavend.data.api.WallhavenApiService
 
 @Qualifier
@@ -24,6 +25,10 @@ annotation class WallhavenRetrofit
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class OpenverseRetrofit
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class PexafyRetrofit
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -58,17 +63,27 @@ object NetworkModule {
 
 	@Provides
 	@Singleton
+	@PexafyRetrofit
+	fun providePexafyRetrofit(okHttpClient: OkHttpClient, json: Json) = retrofitFor("https://api.pexafy.com/", okHttpClient, json)
+
+	@Provides
+	@Singleton
 	fun provideWallhavenApiService(@WallhavenRetrofit retrofit: Retrofit): WallhavenApiService = retrofit.create(WallhavenApiService::class.java)
 
 	@Provides
 	@Singleton
 	fun provideOpenverseApiService(@OpenverseRetrofit retrofit: Retrofit): OpenverseApiService = retrofit.create(OpenverseApiService::class.java)
+
+	@Provides
+	@Singleton
+	fun providePexafyApiService(@PexafyRetrofit retrofit: Retrofit): PexafyApiService = retrofit.create(PexafyApiService::class.java)
 }
 
 internal fun createBasicLoggingInterceptor(logger: HttpLoggingInterceptor.Logger = HttpLoggingInterceptor.Logger.DEFAULT) =
 	HttpLoggingInterceptor(logger)
 		.apply {
 			redactQueryParams("apikey")
+			redactHeader("x-api-key")
 			level = HttpLoggingInterceptor.Level.BASIC
 		}
 

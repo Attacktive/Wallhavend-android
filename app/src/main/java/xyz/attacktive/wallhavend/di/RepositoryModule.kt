@@ -15,6 +15,7 @@ import dagger.multibindings.IntoSet
 import okhttp3.OkHttpClient
 import xyz.attacktive.wallhavend.domain.repository.CredentialDataStore
 import xyz.attacktive.wallhavend.domain.repository.OpenverseProvider
+import xyz.attacktive.wallhavend.domain.repository.PexafyProvider
 import xyz.attacktive.wallhavend.domain.repository.RotationScheduleDataStore
 import xyz.attacktive.wallhavend.domain.repository.SettingsDataStore
 import xyz.attacktive.wallhavend.domain.repository.WallhavenProvider
@@ -72,4 +73,8 @@ object RepositoryModule {
 	@Provides
 	@IntoSet
 	fun provideOpenverseProvider(openverseProvider: OpenverseProvider): WallpaperProvider = openverseProvider
+
+	@Provides
+	@IntoSet
+	fun providePexafyProvider(pexafyProvider: PexafyProvider): WallpaperProvider = pexafyProvider
 }

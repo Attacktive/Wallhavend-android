@@ -66,8 +66,12 @@
 	<string name="settings_subtitle_pool_size">Fonds d\'écran gardés sur l\'appareil et affichés dans la galerie (hors épinglés)</string>
 	<string name="settings_label_api_key">CLÉ API (OPTIONNEL, REQUIS POUR NSFW)</string>
 	<string name="settings_placeholder_api_key">Votre clé API Wallhaven</string>
+	<string name="settings_label_pexafy_api_key">CLÉ API PEXAFY (REQUIS POUR PEXAFY)</string>
+	<string name="settings_placeholder_pexafy_api_key">Votre clé API Pexafy</string>
+	<string name="settings_link_create_pexafy_api_key">Créer une clé API Pexafy</string>
 	<string name="settings_powered_by_wallhaven">Propulsé par wallhaven.cc</string>
 	<string name="settings_powered_by_openverse">Réalisé avec Openverse — sans approbation ni certification d\'Openverse</string>
+	<string name="settings_powered_by_pexafy">Propulsé par Pexafy</string>
 	<string name="settings_report_bug">Signaler un bug</string>
 	<string name="category_general">Général</string>
 	<string name="category_anime">Anime</string>
@@ -77,6 +81,7 @@
 	<string name="purity_nsfw">NSFW</string>
 	<string name="source_wallhaven">Wallhaven</string>
 	<string name="source_openverse">Openverse</string>
+	<string name="source_pexafy">Pexafy</string>
 	<string name="license_public_domain">Domaine public</string>
 	<string name="license_permissive">Permissive</string>
 	<string name="license_any_commercial">Tout usage commercial</string>
@@ -88,6 +93,12 @@
 	<string name="error_apply_failed">⚠ Échec de l\'application du fond d\'écran : %s</string>
 	<string name="error_network_error">⚠ Erreur réseau : %s</string>
 	<string name="error_network_error_source">⚠ Impossible de joindre %1$s — nouvelle tentative automatique</string>
+	<string name="error_missing_api_key">⚠ %1$s nécessite une clé API — ajoutez-en une dans Paramètres → Avancé</string>
+	<string name="error_invalid_api_key">⚠ Clé API %1$s invalide — vérifiez votre clé dans Paramètres → Avancé</string>
+	<string name="error_quota_exceeded">⚠ Quota mensuel %1$s dépassé — réinitialisation le 1er du mois</string>
+	<string name="error_rate_limited">⚠ Limite de débit %1$s atteinte — nouvelle tentative dans %2$ds</string>
+	<string name="error_rate_limited_generic">⚠ Limite de débit %1$s atteinte — nouvelle tentative automatique</string>
+	<string name="settings_hint_sorting_pexafy">Pexafy prend en charge Date d\'ajout (plus récents) et associe les autres tris à Pertinence</string>
 	<string name="cd_settings">Paramètres</string>
 	<string name="cd_save_to_pictures">Enregistrer dans Images</string>
 	<string name="cd_delete">Supprimer</string>

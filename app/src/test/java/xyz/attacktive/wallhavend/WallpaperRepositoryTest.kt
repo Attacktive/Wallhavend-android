@@ -11,6 +11,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.MissingApiKeyException
+import xyz.attacktive.wallhavend.domain.model.QuotaExceededException
+import xyz.attacktive.wallhavend.domain.model.UndersizedWallpaperException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
@@ -138,6 +141,71 @@ class WallpaperRepositoryTest {
 		createRepository(provider).next(AppSettings(blockedIds = blockedIds), screen)
 
 		assertEquals(setOf("abc123", "def456"), provider.receivedBlockedIds)
+	}
+
+	@Test
+	fun `a failure in Pexafy does not prevent rotation through other enabled providers`() = runTest {
+		val openverseWallpaper = Wallpaper(
+			identity = WallpaperIdentity(WallpaperSource.OPENVERSE, "ov-1"),
+			directUrl = "https://cdn/ov-1.jpg"
+		)
+		coEvery { fileManager.download(openverseWallpaper, any(), any()) } returns Result.success(File("/tmp/openverse_ov-1.jpg"))
+
+		val pexafy = FakeWallpaperProvider(Result.failure(QuotaExceededException(WallpaperSource.PEXAFY)), WallpaperSource.PEXAFY)
+		val openverse = FakeWallpaperProvider(Result.success(openverseWallpaper), WallpaperSource.OPENVERSE)
+		val repository = createRepository(pexafy, openverse)
+
+		repeat(shuffleAttempts) {
+			val result = repository.next(
+				AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY, WallpaperSource.OPENVERSE)),
+				screen
+			)
+			assertEquals(openverseWallpaper, result.getOrNull()?.first)
+		}
+	}
+
+	@Test
+	fun `when avoidBlurryWallpapers is enabled an undersized downloaded candidate retries the provider`() = runTest {
+		val undersized = Wallpaper(
+			identity = WallpaperIdentity(WallpaperSource.PEXAFY, "small-1"),
+			directUrl = "https://cdn/small-1.jpg"
+		)
+		val fullSized = Wallpaper(
+			identity = WallpaperIdentity(WallpaperSource.PEXAFY, "big-2"),
+			directUrl = "https://cdn/big-2.jpg"
+		)
+		coEvery {
+			fileManager.download(undersized, 1080, 2400)
+		} returns Result.failure(UndersizedWallpaperException(800, 1200, 1080, 2400))
+		coEvery {
+			fileManager.download(fullSized, 1080, 2400)
+		} returns Result.success(File("/tmp/pexafy_big-2.jpg"))
+
+		val queue = ArrayDeque(listOf(Result.success(undersized), Result.success(fullSized)))
+		val pexafy = object: WallpaperProvider {
+			override val source = WallpaperSource.PEXAFY
+			override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>) = queue.removeFirst()
+		}
+
+		val result = createRepository(pexafy).next(
+			AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY), avoidBlurryWallpapers = true),
+			screen
+		)
+
+		assertEquals(fullSized, result.getOrThrow().first)
+	}
+
+	@Test
+	fun `blocked ids for Pexafy are stripped of the pexafy prefix and ignore other sources`() = runTest {
+		val pexafy = FakeWallpaperProvider(Result.failure(MissingApiKeyException(WallpaperSource.PEXAFY)), WallpaperSource.PEXAFY)
+		val blockedIds = setOf("pexafy_uuid-1", "wallhaven_abc123", "openverse_uuid-2")
+
+		createRepository(pexafy).next(
+			AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY), blockedIds = blockedIds),
+			screen
+		)
+
+		assertEquals(setOf("uuid-1"), pexafy.receivedBlockedIds)
 	}
 }
 

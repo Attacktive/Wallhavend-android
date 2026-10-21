@@ -66,8 +66,12 @@
 	<string name="settings_subtitle_pool_size">在设备上保留并在图库中显示的壁纸数量（不含已置顶）</string>
 	<string name="settings_label_api_key">API 密钥 (可选，访问 NSFW 内容必填)</string>
 	<string name="settings_placeholder_api_key">您的 Wallhaven API 密钥</string>
+	<string name="settings_label_pexafy_api_key">PEXAFY API 密钥 (PEXAFY 必填)</string>
+	<string name="settings_placeholder_pexafy_api_key">您的 Pexafy API 密钥</string>
+	<string name="settings_link_create_pexafy_api_key">创建 Pexafy API 密钥</string>
 	<string name="settings_powered_by_wallhaven">由 wallhaven.cc 提供支持</string>
 	<string name="settings_powered_by_openverse">使用 Openverse 构建 — 未获 Openverse 认可或认证</string>
+	<string name="settings_powered_by_pexafy">由 Pexafy 提供支持</string>
 	<string name="settings_report_bug">反馈问题</string>
 	<string name="category_general">常规</string>
 	<string name="category_anime">动漫</string>
@@ -77,6 +81,7 @@
 	<string name="purity_nsfw">NSFW (成人)</string>
 	<string name="source_wallhaven">Wallhaven</string>
 	<string name="source_openverse">Openverse</string>
+	<string name="source_pexafy">Pexafy</string>
 	<string name="license_public_domain">公有领域</string>
 	<string name="license_permissive">宽松许可</string>
 	<string name="license_any_commercial">允许商业使用</string>
@@ -88,6 +93,12 @@
 	<string name="error_apply_failed">⚠ 壁纸应用失败: %s</string>
 	<string name="error_network_error">⚠ 网络错误: %s</string>
 	<string name="error_network_error_source">⚠ 无法连接到 %1$s — 正在自动重试</string>
+	<string name="error_missing_api_key">⚠ %1$s 需要 API 密钥 — 请在“设置 → 高级”中添加</string>
+	<string name="error_invalid_api_key">⚠ %1$s API 密钥无效 — 请在“设置 → 高级”中检查您的密钥</string>
+	<string name="error_quota_exceeded">⚠ %1$s 月度配额已用尽 — 每月 1 日重置</string>
+	<string name="error_rate_limited">⚠ 已达到 %1$s 速率限制 — 将在 %2$d 秒后重试</string>
+	<string name="error_rate_limited_generic">⚠ 已达到 %1$s 速率限制 — 正在自动重试</string>
+	<string name="settings_hint_sorting_pexafy">Pexafy 支持按添加日期（最新）排序，其他排序将映射为按相关度排序</string>
 	<string name="cd_settings">设置</string>
 	<string name="cd_save_to_pictures">保存至相册</string>
 	<string name="cd_delete">删除</string>

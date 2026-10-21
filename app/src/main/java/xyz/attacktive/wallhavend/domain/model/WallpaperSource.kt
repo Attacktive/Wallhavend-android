@@ -15,7 +15,8 @@ enum class WallpaperSource(
 	val homeUrl: String
 ) {
 	WALLHAVEN("wallhaven", R.string.source_wallhaven, R.string.settings_powered_by_wallhaven, "https://wallhaven.cc"),
-	OPENVERSE("openverse", R.string.source_openverse, R.string.settings_powered_by_openverse, "https://openverse.org");
+	OPENVERSE("openverse", R.string.source_openverse, R.string.settings_powered_by_openverse, "https://openverse.org"),
+	PEXAFY("pexafy", R.string.source_pexafy, R.string.settings_powered_by_pexafy, "https://pexafy.com");
 
 	companion object {
 		fun fromKey(key: String) = entries.firstOrNull { it.key == key }

@@ -346,7 +346,8 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		}
 	}
 
-	AnimatedVisibility(visible = wallhavenEnabled) {
+	val pexafyEnabled = WallpaperSource.PEXAFY in settings.enabledSources
+	AnimatedVisibility(visible = wallhavenEnabled || pexafyEnabled) {
 		WallhavenFilterSettings(
 			settings = settings,
 			filterColor = filterColor,
@@ -547,7 +548,16 @@ private fun SortingSettings(settings: AppSettings, onSave: (AppSettings) -> Unit
 		}
 	}
 
-	AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST) {
+	AnimatedVisibility(visible = WallpaperSource.PEXAFY in settings.enabledSources) {
+		Text(
+			text = stringResource(R.string.settings_hint_sorting_pexafy),
+			style = MaterialTheme.typography.bodySmall,
+			color = MaterialTheme.colorScheme.onSurfaceVariant,
+			modifier = Modifier.padding(top = 4.dp)
+		)
+	}
+
+	AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST && WallpaperSource.WALLHAVEN in settings.enabledSources) {
 		ToplistRangeSetting(
 			settings = settings,
 			onSave = onSave
@@ -716,6 +726,8 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 @Composable
 private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 	var apiKey by rememberSaveable { mutableStateOf(settings.apiKey) }
+	var pexafyApiKey by rememberSaveable { mutableStateOf(settings.pexafyApiKey) }
+	val uriHandler = LocalUriHandler.current
 
 	LaunchedEffect(settings.apiKey) {
 		if (apiKey != settings.apiKey) {
@@ -723,10 +735,22 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		}
 	}
 
+	LaunchedEffect(settings.pexafyApiKey) {
+		if (pexafyApiKey != settings.pexafyApiKey) {
+			pexafyApiKey = settings.pexafyApiKey
+		}
+	}
+
 	PersistOnChange(
 		value = apiKey,
 		upstream = settings.apiKey,
 		onPersist = { onSave(settings.copy(apiKey = it)) }
+	)
+
+	PersistOnChange(
+		value = pexafyApiKey,
+		upstream = settings.pexafyApiKey,
+		onPersist = { onSave(settings.copy(pexafyApiKey = it)) }
 	)
 
 	SectionLabel(stringResource(R.string.settings_label_pool_size))
@@ -766,6 +790,32 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 				visualTransformation = PasswordVisualTransformation(),
 				keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
 				modifier = Modifier.fillMaxWidth()
+			)
+		}
+	}
+
+	AnimatedVisibility(visible = WallpaperSource.PEXAFY in settings.enabledSources) {
+		Column {
+			Spacer(Modifier.height(16.dp))
+			SectionLabel(stringResource(R.string.settings_label_pexafy_api_key))
+
+			OutlinedTextField(
+				value = pexafyApiKey,
+				onValueChange = { pexafyApiKey = it },
+				placeholder = { Text(stringResource(R.string.settings_placeholder_pexafy_api_key)) },
+				visualTransformation = PasswordVisualTransformation(),
+				keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+				modifier = Modifier.fillMaxWidth()
+			)
+
+			Text(
+				text = stringResource(R.string.settings_link_create_pexafy_api_key),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.primary,
+				textDecoration = TextDecoration.Underline,
+				modifier = Modifier
+					.padding(top = 4.dp)
+					.clickable { uriHandler.openUri("https://pexafy.com/dashboard/api-keys/create") }
 			)
 		}
 	}

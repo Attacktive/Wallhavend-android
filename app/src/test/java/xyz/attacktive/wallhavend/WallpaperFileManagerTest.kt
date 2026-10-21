@@ -15,6 +15,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import xyz.attacktive.wallhavend.domain.model.UndersizedWallpaperException
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
@@ -46,6 +47,18 @@ class WallpaperFileManagerTest {
 			.setBody(Buffer().write(body))
 			.addHeader("Content-Type", "image/jpeg")
 			.setSocketPolicy(SocketPolicy.DISCONNECT_DURING_RESPONSE_BODY)
+
+	private fun pngHeaderBytes(width: Int, height: Int): ByteArray {
+		val buffer = Buffer()
+		buffer.write(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))
+		buffer.writeInt(13)
+		buffer.writeUtf8("IHDR")
+		buffer.writeInt(width)
+		buffer.writeInt(height)
+		buffer.write(ByteArray(17))
+
+		return buffer.readByteArray()
+	}
 
 	@Test
 	fun `download names the file after the source-qualified id`() = runTest {
@@ -252,5 +265,35 @@ class WallpaperFileManagerTest {
 		assertTrue(!files[1].exists())
 		assertTrue(files[2].exists())
 		assertTrue(files[3].exists())
+	}
+
+	@Test
+	fun `download rejects a PNG smaller than minimum dimensions and leaves no file behind`() = runTest {
+		val smallPng = pngHeaderBytes(width = 800, height = 1200)
+		server.enqueue(MockResponse().setBody(Buffer().write(smallPng)).addHeader("Content-Type", "image/png"))
+
+		val result = manager.download(
+			wallpaper = makeWallpaper("small", "/small.png"),
+			minimumWidth = 1080,
+			minimumHeight = 2400
+		)
+
+		assertTrue(result.exceptionOrNull() is UndersizedWallpaperException)
+		assertEquals(emptyList<File>(), manager.listAll())
+	}
+
+	@Test
+	fun `download accepts a PNG meeting minimum dimensions`() = runTest {
+		val largePng = pngHeaderBytes(width = 1440, height = 3200)
+		server.enqueue(MockResponse().setBody(Buffer().write(largePng)).addHeader("Content-Type", "image/png"))
+
+		val result = manager.download(
+			wallpaper = makeWallpaper("large", "/large.png"),
+			minimumWidth = 1080,
+			minimumHeight = 2400
+		)
+
+		assertTrue(result.isSuccess)
+		assertEquals("wallhaven_large.png", result.getOrNull()?.name)
 	}
 }

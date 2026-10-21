@@ -18,6 +18,11 @@ import retrofit2.HttpException
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.InvalidApiKeyException
+import xyz.attacktive.wallhavend.domain.model.MissingApiKeyException
+import xyz.attacktive.wallhavend.domain.model.QuotaExceededException
+import xyz.attacktive.wallhavend.domain.model.RateLimitedException
+import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
@@ -118,17 +123,26 @@ class WallpaperRotationExecutor @Inject constructor(
 
 		wallpaperRepository.next(settings, screenInfo)
 			.fold(
-				onSuccess = { (_, file) -> onWallpaperFetched(file, settings) },
+				onSuccess = { (wallpaper, file) -> onWallpaperFetched(wallpaper, file, settings) },
 				onFailure = { throwable -> onFetchError(throwable, settings) }
 			)
 	}
 
-	private suspend fun onWallpaperFetched(file: File, settings: AppSettings) {
+	private suspend fun onWallpaperFetched(wallpaper: Wallpaper, file: File, settings: AppSettings) {
 		wallpaperApplier.apply(file, settings.wallpaperTarget)
 			.fold(
 				onSuccess = {
+					if (wallpaper.thumbnailUrl != null) {
+						settingsRepository.rememberThumbnail(wallpaper.identity, wallpaper.thumbnailUrl)
+					}
+
 					val remaining = fileManager.trimToSize(settings.poolSize, settings.pinnedIds)
 					val paths = remaining.map { it.absolutePath }
+					if (settings.thumbnailUrls.isNotEmpty()) {
+						val activeIds = remaining.map { WallpaperIdentity.parse(it.nameWithoutExtension).qualified }.toSet() + settings.blockedIds
+						settingsRepository.retainThumbnails(activeIds)
+					}
+
 					val now = System.currentTimeMillis()
 
 					stateRepository.update { state ->
@@ -151,7 +165,7 @@ class WallpaperRotationExecutor @Inject constructor(
 
 	private suspend fun onFetchError(throwable: Throwable, settings: AppSettings) {
 		val error = appErrorFor(throwable, settings)
-		val providerFailure = error is AppError.ApiError || error is AppError.NetworkError
+		val providerFailure = error.isProviderFailure()
 		stateRepository.postError(error, autoClear = !providerFailure)
 
 		if (!providerFailure) {
@@ -176,12 +190,26 @@ class WallpaperRotationExecutor @Inject constructor(
 				AppError.NoResults
 			}
 			is UnsupportedFormatException -> AppError.UnsupportedFormat
+			is MissingApiKeyException -> AppError.MissingApiKey(throwable.source)
+			is InvalidApiKeyException -> AppError.InvalidApiKey(throwable.source)
+			is QuotaExceededException -> AppError.QuotaExceeded(throwable.source)
+			is RateLimitedException -> AppError.RateLimited(throwable.source, throwable.retryAfterSeconds)
 			is HttpException -> AppError.ApiError(throwable.code(), source)
 			else -> AppError.NetworkError(throwable.messageOrType(), source)
 		}
 	}
 
 	private fun Throwable.messageOrType() = message ?: javaClass.simpleName
+
+	private fun AppError.isProviderFailure() = when (this) {
+		is AppError.ApiError,
+		is AppError.NetworkError,
+		is AppError.MissingApiKey,
+		is AppError.InvalidApiKey,
+		is AppError.QuotaExceeded,
+		is AppError.RateLimited -> true
+		else -> false
+	}
 
 	private suspend fun cycleFromPool(settings: AppSettings) {
 		val pool = fileManager.listAll()

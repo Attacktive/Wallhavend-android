@@ -59,6 +59,7 @@ class SettingsRepository @Inject constructor(
 		val ROTATION_MODE = stringPreferencesKey("rotation_mode")
 		val POOL_SIZE = intPreferencesKey("pool_size")
 		val API_KEY = stringPreferencesKey("api_key")
+		val PEXAFY_API_KEY = stringPreferencesKey("pexafy_api_key")
 		val AUTO_START_ON_BOOT = booleanPreferencesKey("auto_start_on_boot")
 		val FILTER_COLOR = stringPreferencesKey("filter_color")
 		val SORTING = stringPreferencesKey("sorting")
@@ -70,10 +71,12 @@ class SettingsRepository @Inject constructor(
 		val CURRENT_WALLPAPER_PATH = stringPreferencesKey("current_wallpaper_path")
 		val PREVIOUS_WALLPAPER_PATH = stringPreferencesKey("previous_wallpaper_path")
 		val AUTO_UPDATE_ENABLED = booleanPreferencesKey("auto_update_enabled")
+		val THUMBNAIL_URLS = stringSetPreferencesKey("thumbnail_urls")
 	}
 
 	private object CredentialKeys {
 		val API_KEY = stringPreferencesKey("api_key")
+		val PEXAFY_API_KEY = stringPreferencesKey("pexafy_api_key")
 	}
 
 	val settings = flow {
@@ -110,6 +113,7 @@ class SettingsRepository @Inject constructor(
 						?: migrateRotationMode(preferences[Keys.WIFI_ONLY]),
 					poolSize = (preferences[Keys.POOL_SIZE] ?: 10).coerceAtLeast(1),
 					apiKey = credentials[CredentialKeys.API_KEY] ?: "",
+					pexafyApiKey = credentials[CredentialKeys.PEXAFY_API_KEY] ?: "",
 					autoStartOnBoot = preferences[Keys.AUTO_START_ON_BOOT] ?: true,
 					filterColor = preferences[Keys.FILTER_COLOR] ?: "",
 					sorting = Sorting.fromApiValue(preferences[Keys.SORTING] ?: "random"),
@@ -117,7 +121,8 @@ class SettingsRepository @Inject constructor(
 					avoidBlurryWallpapers = preferences[Keys.AVOID_BLURRY_WALLPAPERS] ?: false,
 					blockedIds = preferences[Keys.BLOCKED_IDS] ?: emptySet(),
 					pinnedIds = preferences[Keys.PINNED_IDS] ?: emptySet(),
-					autoUpdateEnabled = preferences[Keys.AUTO_UPDATE_ENABLED] ?: false
+					autoUpdateEnabled = preferences[Keys.AUTO_UPDATE_ENABLED] ?: false,
+					thumbnailUrls = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
 				)
 					.also { logger.debug(TAG, "read: ${it.redactedForLog()}") }
 			}
@@ -129,6 +134,7 @@ class SettingsRepository @Inject constructor(
 
 		credentialDataStore.edit { credentials ->
 			credentials[CredentialKeys.API_KEY] = settings.apiKey
+			credentials[CredentialKeys.PEXAFY_API_KEY] = settings.pexafyApiKey
 		}
 
 		dataStore.edit { preferences ->
@@ -156,6 +162,7 @@ class SettingsRepository @Inject constructor(
 
 			if (dataStore !== credentialDataStore) {
 				preferences.remove(Keys.API_KEY)
+				preferences.remove(Keys.PEXAFY_API_KEY)
 			}
 
 			preferences[Keys.AUTO_START_ON_BOOT] = settings.autoStartOnBoot
@@ -185,6 +192,30 @@ class SettingsRepository @Inject constructor(
 	suspend fun unblock(identity: WallpaperIdentity) {
 		dataStore.edit { preferences ->
 			preferences[Keys.BLOCKED_IDS] = (preferences[Keys.BLOCKED_IDS] ?: emptySet()) - identity.persistedForms
+
+			val existing = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
+			preferences[Keys.THUMBNAIL_URLS] = encodeThumbnailUrls(existing - identity.persistedForms)
+		}
+	}
+
+	suspend fun rememberThumbnail(identity: WallpaperIdentity, url: String) {
+		dataStore.edit { preferences ->
+			val existing = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
+			preferences[Keys.THUMBNAIL_URLS] = encodeThumbnailUrls(existing + (identity.qualified to url))
+		}
+	}
+
+	suspend fun forgetThumbnail(identity: WallpaperIdentity) {
+		dataStore.edit { preferences ->
+			val existing = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
+			preferences[Keys.THUMBNAIL_URLS] = encodeThumbnailUrls(existing - identity.persistedForms)
+		}
+	}
+
+	suspend fun retainThumbnails(keepQualifiedIds: Set<String>) {
+		dataStore.edit { preferences ->
+			val existing = decodeThumbnailUrls(preferences[Keys.THUMBNAIL_URLS])
+			preferences[Keys.THUMBNAIL_URLS] = encodeThumbnailUrls(existing.filterKeys { it in keepQualifiedIds })
 		}
 	}
 
@@ -260,14 +291,17 @@ class SettingsRepository @Inject constructor(
 
 internal suspend fun clearRestoredApiKeys(settingsDataStore: DataStore<Preferences>, credentialDataStore: DataStore<Preferences>) {
 	val apiKey = stringPreferencesKey("api_key")
+	val pexafyApiKey = stringPreferencesKey("pexafy_api_key")
 
 	settingsDataStore.edit { preferences ->
 		preferences.remove(apiKey)
+		preferences.remove(pexafyApiKey)
 	}
 
 	if (settingsDataStore !== credentialDataStore) {
 		credentialDataStore.edit { preferences ->
 			preferences.remove(apiKey)
+			preferences.remove(pexafyApiKey)
 		}
 	}
 }
@@ -281,9 +315,33 @@ private fun migrateRotationMode(wifiOnly: Boolean?) =
 	}
 
 /** Renders settings for logging without exposing the API key. */
-private fun AppSettings.redactedForLog(): AppSettings =
-	if (apiKey.isEmpty()) {
-		this
+private fun AppSettings.redactedForLog() = copy(
+	apiKey = if (apiKey.isEmpty()) {
+		""
 	} else {
-		copy(apiKey = "***")
+		"***"
+	},
+	pexafyApiKey = if (pexafyApiKey.isEmpty()) {
+		""
+	} else {
+		"***"
 	}
+)
+
+private const val THUMBNAIL_ENTRY_DELIMITER = '\t'
+
+private fun decodeThumbnailUrls(entries: Set<String>?) = entries
+	.orEmpty()
+	.mapNotNull { entry ->
+		val separatorIndex = entry.indexOf(THUMBNAIL_ENTRY_DELIMITER)
+		if (separatorIndex > 0 && separatorIndex < entry.lastIndex) {
+			entry.take(separatorIndex) to entry.substring(separatorIndex + 1)
+		} else {
+			null
+		}
+	}
+	.toMap()
+
+private fun encodeThumbnailUrls(urls: Map<String, String>) = urls.entries
+	.map { (key, url) -> "$key$THUMBNAIL_ENTRY_DELIMITER$url" }
+	.toSet()

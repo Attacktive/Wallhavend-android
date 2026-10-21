@@ -6,6 +6,7 @@ import javax.inject.Singleton
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
+import xyz.attacktive.wallhavend.domain.model.UndersizedWallpaperException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
@@ -26,11 +27,19 @@ class WallpaperRepository @Inject constructor(
 		val enabledProviders = providers.filter { it.source in settings.enabledSources }
 			.shuffled()
 
+		val minimumWidth = screenInfo.width.takeIf { settings.avoidBlurryWallpapers }
+		val minimumHeight = screenInfo.height.takeIf { settings.avoidBlurryWallpapers }
+
 		for (provider in enabledProviders) {
 			val blockedIds = blockedIdsFor(provider.source, settings.blockedIds)
-
-			val attempt = provider.next(settings, screenInfo, blockedIds)
-				.mapCatching { wallpaper -> wallpaper to fileManager.download(wallpaper).getOrThrow() }
+			val attempt = fetchFromProvider(
+				provider = provider,
+				settings = settings,
+				screenInfo = screenInfo,
+				blockedIds = blockedIds,
+				minimumWidth = minimumWidth,
+				minimumHeight = minimumHeight
+			)
 
 			if (attempt.isSuccess) {
 				return attempt
@@ -43,11 +52,41 @@ class WallpaperRepository @Inject constructor(
 		return Result.failure(failures.mostInformative())
 	}
 
+	private suspend fun fetchFromProvider(
+		provider: WallpaperProvider,
+		settings: AppSettings,
+		screenInfo: ScreenInfo,
+		blockedIds: Set<String>,
+		minimumWidth: Int?,
+		minimumHeight: Int?
+	): Result<Pair<Wallpaper, File>> {
+		repeat(MAX_CANDIDATE_ATTEMPTS) {
+			val candidate = provider.next(settings, screenInfo, blockedIds)
+				.getOrElse { error -> return Result.failure(error) }
+
+			val download = fileManager.download(candidate, minimumWidth, minimumHeight)
+			if (download.isSuccess) {
+				return Result.success(candidate to download.getOrThrow())
+			}
+
+			val failure = download.exceptionOrNull() ?: return Result.failure(NoResultsException())
+			if (failure !is UndersizedWallpaperException) {
+				return Result.failure(failure)
+			}
+		}
+
+		return Result.failure(NoResultsException())
+	}
+
 	private fun blockedIdsFor(source: WallpaperSource, rawIds: Set<String>) = rawIds
 		.map { WallpaperIdentity.parse(it) }
 		.filter { it.source == source }
 		.map { it.id }
 		.toSet()
+
+	companion object {
+		private const val MAX_CANDIDATE_ATTEMPTS = 5
+	}
 }
 
 /** "No results" says the least about what went wrong, so a genuine search or download failure from any source wins the report. */

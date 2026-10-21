@@ -11,13 +11,17 @@ data class WallpaperIdentity(val source: WallpaperSource, val id: String) {
 	val pageUrl get() = when (source) {
 		WallpaperSource.WALLHAVEN -> "https://wallhaven.cc/w/$id"
 		WallpaperSource.OPENVERSE -> "https://openverse.org/image/$id"
+		WallpaperSource.PEXAFY -> "https://pexafy.com/photos/$id"
 	}
 
 	/** A remote thumbnail, for wallpapers with no local file left to show — a blocked one, say. */
 	val thumbnailUrl get() = when (source) {
 		WallpaperSource.WALLHAVEN -> "https://th.wallhaven.cc/lg/${id.take(2)}/$id.jpg"
 		WallpaperSource.OPENVERSE -> "https://api.openverse.org/v1/images/$id/thumb/"
+		WallpaperSource.PEXAFY -> null
 	}
+
+	fun thumbnailUrl(storedThumbnails: Map<String, String>) = thumbnailUrl ?: storedThumbnails[qualified]
 
 	/**
 	 * Every form this wallpaper can appear as in a persisted id set.
@@ -26,7 +30,7 @@ data class WallpaperIdentity(val source: WallpaperSource, val id: String) {
 	 */
 	val persistedForms get() = when (source) {
 		WallpaperSource.WALLHAVEN -> setOf(qualified, id)
-		WallpaperSource.OPENVERSE -> setOf(qualified)
+		WallpaperSource.OPENVERSE, WallpaperSource.PEXAFY -> setOf(qualified)
 	}
 
 	fun toFileName(extension: String) = "$qualified.$extension"

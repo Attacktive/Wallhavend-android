@@ -66,8 +66,12 @@
 	<string name="settings_subtitle_pool_size">Hintergrundbilder, die auf dem Gerät behalten und in der Galerie angezeigt werden (ohne angeheftete)</string>
 	<string name="settings_label_api_key">API-KEY (OPTIONAL, FÜR NSFW ERFORDERLICH)</string>
 	<string name="settings_placeholder_api_key">Dein Wallhaven API-Key</string>
+	<string name="settings_label_pexafy_api_key">PEXAFY API-KEY (FÜR PEXAFY ERFORDERLICH)</string>
+	<string name="settings_placeholder_pexafy_api_key">Dein Pexafy API-Key</string>
+	<string name="settings_link_create_pexafy_api_key">Pexafy API-Key erstellen</string>
 	<string name="settings_powered_by_wallhaven">Unterstützt von wallhaven.cc</string>
 	<string name="settings_powered_by_openverse">Erstellt mit Openverse — nicht von Openverse unterstützt oder zertifiziert</string>
+	<string name="settings_powered_by_pexafy">Unterstützt von Pexafy</string>
 	<string name="settings_report_bug">Einen Fehler melden</string>
 	<string name="category_general">Allgemein</string>
 	<string name="category_anime">Anime</string>
@@ -77,6 +81,7 @@
 	<string name="purity_nsfw">NSFW</string>
 	<string name="source_wallhaven">Wallhaven</string>
 	<string name="source_openverse">Openverse</string>
+	<string name="source_pexafy">Pexafy</string>
 	<string name="license_public_domain">Gemeinfrei</string>
 	<string name="license_permissive">Freizügig</string>
 	<string name="license_any_commercial">Jede kommerzielle Nutzung</string>
@@ -88,6 +93,12 @@
 	<string name="error_apply_failed">⚠ Hintergrundbild konnte nicht angewendet werden: %s</string>
 	<string name="error_network_error">⚠ Netzwerkfehler: %s</string>
 	<string name="error_network_error_source">⚠ %1$s ist nicht erreichbar — automatischer Neuversuch</string>
+	<string name="error_missing_api_key">⚠ %1$s erfordert einen API-Key — fügen Sie einen unter Einstellungen → Erweitert hinzu</string>
+	<string name="error_invalid_api_key">⚠ Ungültiger %1$s API-Key — überprüfen Sie Ihren Key unter Einstellungen → Erweitert</string>
+	<string name="error_quota_exceeded">⚠ Monatliches Kontingent für %1$s überschritten — wird am 1. des Monats zurückgesetzt</string>
+	<string name="error_rate_limited">⚠ %1$s-Ratenlimit erreicht — erneuter Versuch nach %2$ds</string>
+	<string name="error_rate_limited_generic">⚠ %1$s-Ratenlimit erreicht — automatischer Neuversuch</string>
+	<string name="settings_hint_sorting_pexafy">Pexafy unterstützt Hinzugefügt am (neueste) und ordnet andere Sortierungen der Relevanz zu</string>
 	<string name="cd_settings">Einstellungen</string>
 	<string name="cd_save_to_pictures">In Bildern speichern</string>
 	<string name="cd_delete">Löschen</string>

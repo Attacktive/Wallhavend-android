@@ -7,4 +7,8 @@ sealed class AppError {
 	data object UnsupportedFormat: AppError()
 	data class WallpaperApplyFailed(val cause: String): AppError()
 	data class NetworkError(val cause: String, val source: WallpaperSource? = null): AppError()
+	data class MissingApiKey(val source: WallpaperSource): AppError()
+	data class InvalidApiKey(val source: WallpaperSource): AppError()
+	data class QuotaExceeded(val source: WallpaperSource): AppError()
+	data class RateLimited(val source: WallpaperSource, val retryAfterSeconds: Long? = null): AppError()
 }

@@ -20,6 +20,7 @@ data class AppSettings(
 	val rotationMode: RotationMode = RotationMode.FRESH_WIFI,
 	val poolSize: Int = 10,
 	val apiKey: String = "",
+	val pexafyApiKey: String = "",
 	val autoStartOnBoot: Boolean = true,
 	val filterColor: String = "",
 	val sorting: Sorting = Sorting.RANDOM,
@@ -27,7 +28,8 @@ data class AppSettings(
 	val avoidBlurryWallpapers: Boolean = false,
 	val blockedIds: Set<String> = emptySet(),
 	val pinnedIds: Set<String> = emptySet(),
-	val autoUpdateEnabled: Boolean = false
+	val autoUpdateEnabled: Boolean = false,
+	val thumbnailUrls: Map<String, String> = emptyMap()
 )
 
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)
