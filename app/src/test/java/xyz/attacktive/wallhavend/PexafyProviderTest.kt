@@ -404,49 +404,7 @@ class PexafyProviderTest {
 			MockResponse()
 				.setResponseCode(200)
 				.setHeader("Content-Type", "application/json")
-				.setBody(
-					"""
-					{
-					  "success": true,
-					  "data": [
-					    {
-					      "photo_id": "019e1a0d-1a4f-7d62-856f-e6775b49785d",
-					      "image_url": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg",
-					      "urls": {
-					        "thumb": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200",
-					        "small": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=400",
-					        "regular": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=1280",
-					        "large": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=1920",
-					        "full": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=2400"
-					      },
-					      "width": 8234,
-					      "height": 5489,
-					      "orientation": "landscape",
-					      "source": "Pexels",
-					      "license_type": "free",
-					      "source_image_url": "https://www.pexels.com/photo/red-fox-walking-in-snow-20853949",
-					      "photographer_username": "dip-kheto",
-					      "photographer_full_name": "Dip Kheto",
-					      "photographer_url": "https://www.pexels.com/search/users/Dip%20Kheto/",
-					      "attribution": {
-					        "html": "<span>Photo by Dip Kheto on Pexels</span>",
-					        "plain": "Photo by Dip Kheto on Pexels"
-					      }
-					    }
-					  ],
-					  "meta": {
-					    "request_id": "ad7140d9-2cc2-4134-8bae-6b90ba3dede2",
-					    "took_ms": 86.42
-					  },
-					  "pagination": {
-					    "next_cursor": "eyJycyI6IjBlYWNjM2Q5MjI0NTRjMmFiYTc4NjBhMGIwZjJkZDlkIiwicCI6MSwicHAiOjJ9",
-					    "per_page": 20,
-					    "has_more": true
-					  },
-					  "error": null
-					}
-					""".trimIndent()
-				)
+				.setBody(sampleSearchResponseJson())
 		)
 
 		try {
@@ -477,4 +435,47 @@ class PexafyProviderTest {
 			server.shutdown()
 		}
 	}
+
+	private fun sampleSearchResponseJson() =
+		"""
+		{
+		  "success": true,
+		  "data": [
+		    {
+		      "photo_id": "019e1a0d-1a4f-7d62-856f-e6775b49785d",
+		      "image_url": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg",
+		      "urls": {
+		        "thumb": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=200",
+		        "small": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=400",
+		        "regular": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=1280",
+		        "large": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=1920",
+		        "full": "https://images.pexels.com/photos/20853949/pexels-photo-20853949.jpeg?w=2400"
+		      },
+		      "width": 8234,
+		      "height": 5489,
+		      "orientation": "landscape",
+		      "source": "Pexels",
+		      "license_type": "free",
+		      "source_image_url": "https://www.pexels.com/photo/red-fox-walking-in-snow-20853949",
+		      "photographer_username": "dip-kheto",
+		      "photographer_full_name": "Dip Kheto",
+		      "photographer_url": "https://www.pexels.com/search/users/Dip%20Kheto/",
+		      "attribution": {
+		        "html": "<span>Photo by Dip Kheto on Pexels</span>",
+		        "plain": "Photo by Dip Kheto on Pexels"
+		      }
+		    }
+		  ],
+		  "meta": {
+		    "request_id": "ad7140d9-2cc2-4134-8bae-6b90ba3dede2",
+		    "took_ms": 86.42
+		  },
+		  "pagination": {
+		    "next_cursor": "eyJycyI6IjBlYWNjM2Q5MjI0NTRjMmFiYTc4NjBhMGIwZjJkZDlkIiwicCI6MSwicHAiOjJ9",
+		    "per_page": 20,
+		    "has_more": true
+		  },
+		  "error": null
+		}
+		""".trimIndent()
 }

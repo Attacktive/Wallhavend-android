@@ -109,32 +109,33 @@ private fun Response.imageExtension(): String {
 
 internal fun readImageDimensions(file: File) = runCatching {
 	RandomAccessFile(file, "r").use { randomAccessFile ->
-		if (randomAccessFile.length() >= 24) {
-			val header = ByteArray(24)
-			randomAccessFile.readFully(header)
-			if (isPngHeader(header)) {
-				val width = readBigEndianInt(header, 16)
-				val height = readBigEndianInt(header, 20)
-				if (width > 0 && height > 0) {
-					return@use width to height
-				}
-			}
-		}
-
-		randomAccessFile.seek(0)
-		readJpegDimensions(randomAccessFile)
+		readPngDimensions(randomAccessFile) ?: readJpegDimensions(randomAccessFile)
 	}
 }.getOrNull()
 
-private fun isPngHeader(bytes: ByteArray) =
-	bytes[0] == 0x89.toByte() &&
-		bytes[1] == 0x50.toByte() &&
-		bytes[2] == 0x4E.toByte() &&
-		bytes[3] == 0x47.toByte() &&
-		bytes[12] == 0x49.toByte() &&
-		bytes[13] == 0x48.toByte() &&
-		bytes[14] == 0x44.toByte() &&
-		bytes[15] == 0x52.toByte()
+private fun readPngDimensions(randomAccessFile: RandomAccessFile): Pair<Int, Int>? {
+	if (randomAccessFile.length() < 24) {
+		return null
+	}
+
+	val header = ByteArray(24)
+	randomAccessFile.readFully(header)
+	val hasSignature = header.copyOfRange(0, 8).contentEquals(PNG_SIGNATURE)
+	val hasIhdr = header.copyOfRange(12, 16).contentEquals(IHDR_CHUNK_TYPE)
+	if (!hasSignature || !hasIhdr) {
+		return null
+	}
+
+	val width = readBigEndianInt(header, 16)
+	val height = readBigEndianInt(header, 20)
+
+	return positiveDimensionsOrNull(width, height)
+}
+
+private val PNG_SIGNATURE = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
+private val IHDR_CHUNK_TYPE = byteArrayOf(0x49, 0x48, 0x44, 0x52)
+private val JPEG_SOF_MARKERS = (0xC0..0xCF).toSet() - setOf(0xC4, 0xC8, 0xCC)
+private val JPEG_STAND_ALONE_MARKERS = (0xD0..0xD7).toSet() + 0x01
 
 private fun readBigEndianInt(bytes: ByteArray, offset: Int) =
 	((bytes[offset].toInt() and 0xFF) shl 24) or
@@ -143,51 +144,78 @@ private fun readBigEndianInt(bytes: ByteArray, offset: Int) =
 		(bytes[offset + 3].toInt() and 0xFF)
 
 private fun readJpegDimensions(randomAccessFile: RandomAccessFile): Pair<Int, Int>? {
-	val hasJpegMagic = randomAccessFile.length() >= 4 &&
-		randomAccessFile.readUnsignedByte() == 0xFF &&
-		randomAccessFile.readUnsignedByte() == 0xD8
-	if (!hasJpegMagic) {
+	randomAccessFile.seek(0)
+	if (!hasJpegStartOfImage(randomAccessFile)) {
 		return null
 	}
 
 	while (randomAccessFile.filePointer < randomAccessFile.length()) {
-		var marker = randomAccessFile.readUnsignedByte()
-		while (marker != 0xFF && randomAccessFile.filePointer < randomAccessFile.length()) {
-			marker = randomAccessFile.readUnsignedByte()
+		val marker = nextJpegMarker(randomAccessFile) ?: return null
+		val dimensions = inspectJpegSegment(randomAccessFile, marker)
+		if (dimensions != null) {
+			return dimensions
 		}
-
-		while (marker == 0xFF && randomAccessFile.filePointer < randomAccessFile.length()) {
-			marker = randomAccessFile.readUnsignedByte()
-		}
-
-		if (marker == 0xD9 || marker == 0xDA) {
-			return null
-		}
-
-		if (marker == 0x01 || marker in 0xD0..0xD7) {
-			continue
-		}
-
-		val segmentLength = randomAccessFile.readUnsignedShort()
-		if (segmentLength < 2) {
-			return null
-		}
-
-		val isStartOfFrame = marker in 0xC0..0xCF && marker != 0xC4 && marker != 0xC8 && marker != 0xCC
-		if (isStartOfFrame && segmentLength >= 7) {
-			randomAccessFile.readUnsignedByte()
-			val height = randomAccessFile.readUnsignedShort()
-			val width = randomAccessFile.readUnsignedShort()
-
-			return if (width > 0 && height > 0) {
-				width to height
-			} else {
-				null
-			}
-		}
-
-		randomAccessFile.skipBytes(segmentLength - 2)
 	}
 
 	return null
 }
+
+private fun hasJpegStartOfImage(randomAccessFile: RandomAccessFile) =
+	randomAccessFile.length() >= 4 &&
+		randomAccessFile.readUnsignedByte() == 0xFF &&
+		randomAccessFile.readUnsignedByte() == 0xD8
+
+private fun nextJpegMarker(randomAccessFile: RandomAccessFile): Int? {
+	val prefix = skipUntilMarkerPrefix(randomAccessFile) ?: return null
+	val marker = skipMarkerPadding(randomAccessFile, prefix)
+
+	return marker.takeUnless { it == 0xD9 || it == 0xDA }
+}
+
+private fun skipUntilMarkerPrefix(randomAccessFile: RandomAccessFile): Int? {
+	while (randomAccessFile.filePointer < randomAccessFile.length()) {
+		val byte = randomAccessFile.readUnsignedByte()
+		if (byte == 0xFF) {
+			return byte
+		}
+	}
+
+	return null
+}
+
+private fun skipMarkerPadding(randomAccessFile: RandomAccessFile, initialByte: Int): Int {
+	var current = initialByte
+	while (current == 0xFF && randomAccessFile.filePointer < randomAccessFile.length()) {
+		current = randomAccessFile.readUnsignedByte()
+	}
+
+	return current
+}
+
+private fun inspectJpegSegment(randomAccessFile: RandomAccessFile, marker: Int): Pair<Int, Int>? {
+	if (marker in JPEG_STAND_ALONE_MARKERS) {
+		return null
+	}
+
+	val segmentLength = randomAccessFile.readUnsignedShort()
+	check(segmentLength >= 2) { "Invalid JPEG segment length" }
+
+	if (marker in JPEG_SOF_MARKERS && segmentLength >= 7) {
+		randomAccessFile.readUnsignedByte()
+		val height = randomAccessFile.readUnsignedShort()
+		val width = randomAccessFile.readUnsignedShort()
+
+		return positiveDimensionsOrNull(width, height) ?: error("Invalid SOF dimensions")
+	}
+
+	randomAccessFile.skipBytes(segmentLength - 2)
+
+	return null
+}
+
+private fun positiveDimensionsOrNull(width: Int, height: Int) =
+	if (width > 0 && height > 0) {
+		width to height
+	} else {
+		null
+	}

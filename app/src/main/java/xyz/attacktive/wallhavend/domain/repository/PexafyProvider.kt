@@ -82,32 +82,9 @@ class PexafyProvider(
 
 	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>): Result<Wallpaper> = mutex.withLock {
 		val key = settings.toSearchKey(screenInfo)
-		if (key.apiKey.isEmpty()) {
-			return@withLock Result.failure(MissingApiKeyException(WallpaperSource.PEXAFY))
-		}
-
-		if (key.apiKey != lastApiKey) {
-			lastApiKey = key.apiKey
-			rateLimitedUntilMs = 0L
-		}
-
-		val now = clock()
-		if (now < rateLimitedUntilMs) {
-			val remainingSeconds = ((rateLimitedUntilMs - now + 999L) / 1_000L).coerceAtLeast(1L)
-
-			return@withLock Result.failure(RateLimitedException(WallpaperSource.PEXAFY, remainingSeconds))
-		}
-
-		if (key != cacheKey) {
-			cache.clear()
-			cachePopulatedAtMs = 0L
-			cacheKey = key
-			cursorStates.clear()
-			servedIds.clear()
-		} else if (cache.isNotEmpty() && now - cachePopulatedAtMs >= CACHE_TTL_MS) {
-			// Pexafy's terms cap search response caching at 24 hours.
-			cache.clear()
-			cachePopulatedAtMs = 0L
+		val precheckFailure = prepareSearchState(key)
+		if (precheckFailure != null) {
+			return@withLock Result.failure(precheckFailure)
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds) }
@@ -119,41 +96,94 @@ class PexafyProvider(
 		Result.success(dto.toDomain())
 	}
 
+	private fun prepareSearchState(key: SearchKey): Throwable? {
+		if (key.apiKey.isEmpty()) {
+			return MissingApiKeyException(WallpaperSource.PEXAFY)
+		}
+
+		if (key.apiKey != lastApiKey) {
+			lastApiKey = key.apiKey
+			rateLimitedUntilMs = 0L
+		}
+
+		val now = clock()
+		if (now < rateLimitedUntilMs) {
+			val remainingSeconds = ((rateLimitedUntilMs - now + 999L) / 1_000L).coerceAtLeast(1L)
+
+			return RateLimitedException(WallpaperSource.PEXAFY, remainingSeconds)
+		}
+
+		refreshCacheLifecycle(key, now)
+
+		return null
+	}
+
+	private fun refreshCacheLifecycle(key: SearchKey, now: Long) {
+		if (key != cacheKey) {
+			cache.clear()
+			cachePopulatedAtMs = 0L
+			cacheKey = key
+			cursorStates.clear()
+			servedIds.clear()
+		} else if (cache.isNotEmpty() && now - cachePopulatedAtMs >= CACHE_TTL_MS) {
+			// Pexafy's terms cap search response caching at 24 hours.
+			cache.clear()
+			cachePopulatedAtMs = 0L
+		}
+	}
+
 	private suspend fun selectNext(key: SearchKey, blockedIds: Set<String>): PexafyPhotoDto? {
 		var refetches = 0
 		var fallbackCandidate: PexafyPhotoDto? = null
 
 		while (true) {
-			while (cache.isNotEmpty()) {
-				val head = cache.first()
-				if (head.photoId in blockedIds) {
-					cache.removeFirst()
-				} else if (head.photoId in servedIds) {
-					val seen = cache.removeFirst()
-					if (fallbackCandidate == null) {
-						fallbackCandidate = seen
-					}
-				} else {
-					return cache.removeFirst()
-				}
+			val (freshCandidate, seenCandidate) = pollCachedCandidate(blockedIds)
+			if (fallbackCandidate == null) {
+				fallbackCandidate = seenCandidate
 			}
 
-			if (refetches >= MAX_REFETCHES) {
-				return recycleFallback(fallbackCandidate)
+			if (freshCandidate != null) {
+				return freshCandidate
 			}
 
-			val windows = activeWindowsFor(key)
-			if (windows.isEmpty()) {
-				return recycleFallback(fallbackCandidate)
-			}
-
+			val windows = nextRefetchWindows(key, refetches) ?: return recycleFallback(fallbackCandidate)
 			refetches++
+
 			val fetchedCount = refetch(key, windows).getOrThrow()
-			if (fetchedCount == 0 && cursorStates.values.none { it.hasMore }) {
+			if (isExhausted(fetchedCount)) {
 				return recycleFallback(fallbackCandidate)
 			}
 		}
 	}
+
+	private fun pollCachedCandidate(blockedIds: Set<String>): Pair<PexafyPhotoDto?, PexafyPhotoDto?> {
+		var firstSeen: PexafyPhotoDto? = null
+
+		while (cache.isNotEmpty()) {
+			val candidate = cache.removeFirst()
+			if (candidate.photoId !in blockedIds) {
+				if (candidate.photoId !in servedIds) {
+					return candidate to firstSeen
+				}
+
+				if (firstSeen == null) {
+					firstSeen = candidate
+				}
+			}
+		}
+
+		return null to firstSeen
+	}
+
+	private fun nextRefetchWindows(key: SearchKey, refetches: Int): List<QueryWindow>? {
+		if (refetches >= MAX_REFETCHES) {
+			return null
+		}
+
+		return activeWindowsFor(key).takeIf { it.isNotEmpty() }
+	}
+
+	private fun isExhausted(fetchedCount: Int) = fetchedCount == 0 && cursorStates.values.none { it.hasMore }
 
 	private fun recycleFallback(fallbackCandidate: PexafyPhotoDto?): PexafyPhotoDto? {
 		if (fallbackCandidate != null) {
@@ -215,40 +245,39 @@ class PexafyProvider(
 		val cursor = validCursorFor(window)
 
 		return try {
-			val response = pexafyApiService.search(
-				apiKey = key.apiKey,
-				query = window.keyword,
-				orientation = key.orientation,
-				colorHex = window.colorHex,
-				sortBy = key.sortBy,
-				perPage = PAGE_SIZE,
-				cursor = cursor
-			)
-
-			if (!response.success && response.error != null) {
-				throw mapErrorCode(response.error.code, null)
-					?: IllegalStateException(response.error.message ?: "Pexafy search failed")
-			}
-
-			response
+			validateResponse(requestWindow(key, window, cursor))
 		} catch (exception: HttpException) {
-			if (cursor != null && (exception.code() == 400 || exception.code() == 422)) {
+			if (isRejectedCursor(cursor, exception)) {
 				cursorStates.remove(window)
 
-				return pexafyApiService.search(
-					apiKey = key.apiKey,
-					query = window.keyword,
-					orientation = key.orientation,
-					colorHex = window.colorHex,
-					sortBy = key.sortBy,
-					perPage = PAGE_SIZE,
-					cursor = null
-				)
+				return validateResponse(requestWindow(key, window, null))
 			}
 
 			throw mapHttpException(exception)
 		}
 	}
+
+	private suspend fun requestWindow(key: SearchKey, window: QueryWindow, cursor: String?) = pexafyApiService.search(
+		apiKey = key.apiKey,
+		query = window.keyword,
+		orientation = key.orientation,
+		colorHex = window.colorHex,
+		sortBy = key.sortBy,
+		perPage = PAGE_SIZE,
+		cursor = cursor
+	)
+
+	private fun validateResponse(response: PexafySearchResponseDto): PexafySearchResponseDto {
+		if (!response.success && response.error != null) {
+			throw mapErrorCode(response.error.code, null)
+				?: IllegalStateException(response.error.message ?: "Pexafy search failed")
+		}
+
+		return response
+	}
+
+	private fun isRejectedCursor(cursor: String?, exception: HttpException) =
+		cursor != null && (exception.code() == 400 || exception.code() == 422)
 
 	private fun validCursorFor(window: QueryWindow): String? {
 		val state = cursorStates[window] ?: return null
