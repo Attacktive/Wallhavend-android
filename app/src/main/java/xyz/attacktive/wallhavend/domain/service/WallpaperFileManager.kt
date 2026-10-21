@@ -15,6 +15,7 @@ import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 
 private const val PART_SUFFIX = ".part"
+private const val EXPORT_PREFIX = "wallhavend_export_"
 
 class WallpaperFileManager(private val wallpaperDir: File, private val okHttpClient: OkHttpClient) {
 	private val dir: File get() = wallpaperDir.also { it.mkdirs() }
@@ -88,7 +89,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 
 	private fun sortedFiles() =
 		dir.listFiles()
-			?.filterNot { it.name.endsWith(PART_SUFFIX) }
+			?.filterNot { it.name.endsWith(PART_SUFFIX) || it.name.startsWith(EXPORT_PREFIX) }
 			?.sortedByDescending { it.lastModified() }
 			?: emptyList()
 }

@@ -268,6 +268,19 @@ class WallpaperFileManagerTest {
 	}
 
 	@Test
+	fun `trimToSize and listAll ignore scratch export files and do not evict rotating wallpapers for them`() {
+		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val wallpaper = File(wallpapersDir, "wallhaven_1.jpg").also { it.writeText("data") }
+		File(wallpapersDir, "wallhavend_export_scratch.jpg").also { it.writeText("scratch") }
+
+		assertEquals(listOf(wallpaper), manager.listAll())
+
+		val kept = manager.trimToSize(1)
+		assertEquals(listOf(wallpaper), kept)
+		assertTrue(wallpaper.exists())
+	}
+
+	@Test
 	fun `download rejects a PNG smaller than minimum dimensions and leaves no file behind`() = runTest {
 		val smallPng = pngHeaderBytes(width = 800, height = 1200)
 		server.enqueue(MockResponse().setBody(Buffer().write(smallPng)).addHeader("Content-Type", "image/png"))
