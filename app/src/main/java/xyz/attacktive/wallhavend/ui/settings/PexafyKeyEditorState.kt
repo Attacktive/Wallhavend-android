@@ -46,3 +46,7 @@ internal class PexafyKeyEditorState(settings: AppSettings, draftKey: String) {
 /** The editor follows source selection, except while explicitly setting up an inactive Pexafy source. */
 internal fun AppSettings.shouldShowPexafyKeyEditor(setupRequested: Boolean) =
 	setupRequested || WallpaperSource.PEXAFY in enabledSources
+
+/** A selected source with missing credentials still needs setup until another source replaces it. */
+internal fun AppSettings.canDismissPexafySetup(setupRequested: Boolean) =
+	setupRequested && WallpaperSource.PEXAFY !in enabledSources

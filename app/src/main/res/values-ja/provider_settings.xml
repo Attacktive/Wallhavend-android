@@ -2,6 +2,7 @@
 <resources>
 	<string name="provider_wallhaven_key">Wallhaven API キー（任意、NSFW には必須）</string>
 	<string name="provider_pexafy_setup_required">Pexafy には API キーが必要です。キーを保存して有効にするまで、Pexafy は無効のままです。</string>
+	<string name="provider_pexafy_cancel_setup">キャンセル</string>
 	<string name="provider_pexafy_save_enable">保存して Pexafy を有効にする</string>
 	<string name="provider_pexafy_remove_disable">キーを削除して Pexafy を無効にする</string>
 	<string name="provider_key_remove">キーを削除</string>

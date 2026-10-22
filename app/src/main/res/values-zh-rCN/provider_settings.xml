@@ -2,6 +2,7 @@
 <resources>
 	<string name="provider_wallhaven_key">Wallhaven API 密钥（可选，NSFW 内容必需）</string>
 	<string name="provider_pexafy_setup_required">Pexafy 需要 API 密钥。在保存密钥并启用之前，Pexafy 将保持停用状态。</string>
+	<string name="provider_pexafy_cancel_setup">取消</string>
 	<string name="provider_pexafy_save_enable">保存并启用 Pexafy</string>
 	<string name="provider_pexafy_remove_disable">删除密钥并停用 Pexafy</string>
 	<string name="provider_key_remove">删除密钥</string>

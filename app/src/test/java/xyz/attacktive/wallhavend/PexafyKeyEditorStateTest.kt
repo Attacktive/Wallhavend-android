@@ -7,6 +7,7 @@ import org.junit.Test
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.ui.settings.PexafyKeyEditorState
+import xyz.attacktive.wallhavend.ui.settings.canDismissPexafySetup
 import xyz.attacktive.wallhavend.ui.settings.shouldShowPexafyKeyEditor
 
 class PexafyKeyEditorStateTest {
@@ -131,5 +132,25 @@ class PexafyKeyEditorStateTest {
 		val settings = AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY))
 
 		assertTrue(settings.shouldShowPexafyKeyEditor(false))
+	}
+
+	@Test
+	fun `unconfigured Pexafy setup can be canceled without enabling it`() {
+		val wallhavenOnly = AppSettings()
+
+		assertFalse(wallhavenOnly.shouldShowPexafyKeyEditor(false))
+		assertTrue(wallhavenOnly.shouldShowPexafyKeyEditor(true))
+		assertTrue(wallhavenOnly.canDismissPexafySetup(true))
+		assertFalse(wallhavenOnly.shouldShowPexafyKeyEditor(false))
+		assertFalse(wallhavenOnly.canDismissPexafySetup(false))
+		assertEquals(setOf(WallpaperSource.WALLHAVEN), wallhavenOnly.enabledSources)
+	}
+
+	@Test
+	fun `keyless restored selection requires setup instead of an ineffective cancel button`() {
+		val restored = AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY))
+
+		assertTrue(restored.shouldShowPexafyKeyEditor(false))
+		assertFalse(restored.canDismissPexafySetup(true))
 	}
 }

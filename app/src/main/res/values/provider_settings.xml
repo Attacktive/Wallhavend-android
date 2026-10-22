@@ -2,6 +2,7 @@
 <resources>
 	<string name="provider_wallhaven_key">Wallhaven API key (optional, required for NSFW)</string>
 	<string name="provider_pexafy_setup_required">Pexafy requires an API key. It stays inactive until you save and enable it.</string>
+	<string name="provider_pexafy_cancel_setup">Cancel</string>
 	<string name="provider_pexafy_save_enable">Save &amp; enable Pexafy</string>
 	<string name="provider_pexafy_remove_disable">Remove key &amp; disable Pexafy</string>
 	<string name="provider_key_remove">Remove key</string>

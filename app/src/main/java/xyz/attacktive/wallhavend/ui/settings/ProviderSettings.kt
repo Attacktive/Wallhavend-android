@@ -2,8 +2,10 @@ package xyz.attacktive.wallhavend.ui.settings
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,14 +16,16 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,7 +41,7 @@ import xyz.attacktive.wallhavend.domain.model.configuredSources
 @Composable
 internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewModel) {
 	val saving by viewModel.savingProvider.collectAsStateWithLifecycle()
-	var showPexafySetup by rememberSaveable { mutableStateOf(false) }
+	var showPexafySetup by remember { mutableStateOf(false) }
 	val pexafyConfigured = WallpaperSource.PEXAFY in settings.configuredSources
 
 	// Once Pexafy becomes configured, dismiss temporary setup so disabling it hides the credential field.
@@ -50,11 +54,38 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 	// Credentials deliberately use remember, not rememberSaveable: drafts must not enter saved-state bundles.
 	var wallhavenKey by remember(settings.apiKey) { mutableStateOf(settings.apiKey) }
 	var pexafyKey by remember(settings.pexafyApiKey) { mutableStateOf(settings.pexafyApiKey) }
+	val focusManager = LocalFocusManager.current
+	val keyboardController = LocalSoftwareKeyboardController.current
 
-	ProviderSourceChips(settings, saving, onShowPexafySetup = { showPexafySetup = true }, onToggleSource = viewModel::toggleSource)
+	val dismissPexafySetup = {
+		showPexafySetup = false
+		pexafyKey = settings.pexafyApiKey
+		focusManager.clearFocus()
+		keyboardController?.hide()
+	}
+
+	ProviderSourceChips(
+		settings = settings,
+		saving = saving,
+		onTogglePexafySetup = {
+			if (showPexafySetup) {
+				dismissPexafySetup()
+			} else {
+				showPexafySetup = true
+			}
+		},
+		onToggleSource = viewModel::toggleSource
+	)
 
 	AnimatedVisibility(visible = settings.shouldShowPexafyKeyEditor(showPexafySetup)) {
-		PexafyKeySettings(settings, pexafyKey, onKeyChange = { pexafyKey = it }, saving = saving, onSave = viewModel::savePexafyKey)
+		PexafyKeySettings(
+			settings = settings,
+			key = pexafyKey,
+			onKeyChange = { pexafyKey = it },
+			saving = saving,
+			onSave = viewModel::savePexafyKey,
+			onCancel = if (settings.canDismissPexafySetup(showPexafySetup)) dismissPexafySetup else null
+		)
 	}
 
 	AnimatedVisibility(visible = WallpaperSource.WALLHAVEN in settings.enabledSources) {
@@ -63,7 +94,7 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 }
 
 @Composable
-private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, onShowPexafySetup: () -> Unit, onToggleSource: (WallpaperSource) -> Unit) {
+private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, onTogglePexafySetup: () -> Unit, onToggleSource: (WallpaperSource) -> Unit) {
 	val selected = settings.configuredSources
 
 	Text(stringResource(R.string.settings_label_sources), style = MaterialTheme.typography.labelLarge)
@@ -74,7 +105,7 @@ private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, onShowPe
 				selected = source in selected,
 				onClick = {
 					if (source == WallpaperSource.PEXAFY && settings.pexafyApiKey.isBlank()) {
-						onShowPexafySetup()
+						onTogglePexafySetup()
 					} else {
 						onToggleSource(source)
 					}
@@ -88,7 +119,7 @@ private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, onShowPe
 }
 
 @Composable
-private fun PexafyKeySettings(settings: AppSettings, key: String, onKeyChange: (String) -> Unit, saving: Boolean, onSave: (String, Boolean) -> Unit) {
+private fun PexafyKeySettings(settings: AppSettings, key: String, onKeyChange: (String) -> Unit, saving: Boolean, onSave: (String, Boolean) -> Unit, onCancel: (() -> Unit)?) {
 	val editor = PexafyKeyEditorState(settings, key)
 	val uriHandler = LocalUriHandler.current
 
@@ -108,8 +139,16 @@ private fun PexafyKeySettings(settings: AppSettings, key: String, onKeyChange: (
 			modifier = Modifier.fillMaxWidth()
 		)
 
-		Button(onClick = { onSave(key, editor.enableOnSave) }, enabled = !saving && editor.canSave) {
-			Text(stringResource(editor.actionRes))
+		Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+			Button(onClick = { onSave(key, editor.enableOnSave) }, enabled = !saving && editor.canSave) {
+				Text(stringResource(editor.actionRes))
+			}
+
+			if (onCancel != null) {
+				TextButton(onClick = onCancel, enabled = !saving) {
+					Text(stringResource(R.string.provider_pexafy_cancel_setup))
+				}
+			}
 		}
 
 		Text(
