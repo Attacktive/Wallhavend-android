@@ -93,8 +93,8 @@
 	<string name="error_apply_failed">⚠ Error al aplicar el fondo de pantalla: %s</string>
 	<string name="error_network_error">⚠ Error de red: %s</string>
 	<string name="error_network_error_source">⚠ No se puede acceder a %1$s — reintentando automáticamente</string>
-	<string name="error_missing_api_key">⚠ %1$s requiere una clave API — añade una en Ajustes → Avanzado</string>
-	<string name="error_invalid_api_key">⚠ Clave API de %1$s no válida — comprueba tu clave en Ajustes → Avanzado</string>
+	<string name="error_missing_api_key">⚠ %1$s requiere una clave API — añade una en Ajustes → Contenido</string>
+	<string name="error_invalid_api_key">⚠ Clave API de %1$s no válida — comprueba tu clave en Ajustes → Contenido</string>
 	<string name="error_quota_exceeded">⚠ Cuota mensual de %1$s agotada — se restablece el día 1 del mes</string>
 	<string name="error_rate_limited">⚠ Límite de velocidad de %1$s alcanzado — reintentando tras %2$ds</string>
 	<string name="error_rate_limited_generic">⚠ Límite de velocidad de %1$s alcanzado — reintentando automáticamente</string>

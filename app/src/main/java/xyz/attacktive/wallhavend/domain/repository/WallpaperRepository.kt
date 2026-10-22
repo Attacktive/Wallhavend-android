@@ -15,6 +15,7 @@ import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.configuredSources
+import xyz.attacktive.wallhavend.domain.model.requiresPexafySetup
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 /**
@@ -28,9 +29,14 @@ class WallpaperRepository @Inject constructor(
 	private val stateRepository: ServiceStateRepository = ServiceStateRepository()
 ) {
 	suspend fun next(settings: AppSettings, screenInfo: ScreenInfo): Result<WallpaperRotationResult> {
+		val configuredSources = settings.configuredSources
+		if (configuredSources.isEmpty() && settings.requiresPexafySetup) {
+			return Result.failure(MissingApiKeyException(WallpaperSource.PEXAFY))
+		}
+
 		val failures = mutableListOf<Throwable>()
 
-		val enabledProviders = providers.filter { it.source in settings.configuredSources }
+		val enabledProviders = providers.filter { it.source in configuredSources }
 			.shuffled()
 
 		val minimumWidth = screenInfo.width.takeIf { settings.avoidBlurryWallpapers }

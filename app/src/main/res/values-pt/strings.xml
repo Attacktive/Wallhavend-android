@@ -93,8 +93,8 @@
 	<string name="error_apply_failed">⚠ Falha ao aplicar papel de parede: %s</string>
 	<string name="error_network_error">⚠ Erro de rede: %s</string>
 	<string name="error_network_error_source">⚠ Não foi possível acessar %1$s — tentando novamente automaticamente</string>
-	<string name="error_missing_api_key">⚠ %1$s requer uma chave API — adicione uma em Configurações → Avançado</string>
-	<string name="error_invalid_api_key">⚠ Chave API do %1$s inválida — verifique sua chave em Configurações → Avançado</string>
+	<string name="error_missing_api_key">⚠ %1$s requer uma chave API — adicione uma em Configurações → Conteúdo</string>
+	<string name="error_invalid_api_key">⚠ Chave API do %1$s inválida — verifique sua chave em Configurações → Conteúdo</string>
 	<string name="error_quota_exceeded">⚠ Cota mensal do %1$s excedida — redefine no dia 1º do mês</string>
 	<string name="error_rate_limited">⚠ Limite de taxa do %1$s atingido — tentando novamente após %2$ds</string>
 	<string name="error_rate_limited_generic">⚠ Limite de taxa do %1$s atingido — tentando novamente automaticamente</string>
