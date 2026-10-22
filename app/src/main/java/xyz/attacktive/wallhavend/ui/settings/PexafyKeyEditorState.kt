@@ -50,3 +50,16 @@ internal fun AppSettings.shouldShowPexafyKeyEditor(setupRequested: Boolean) =
 /** A selected source with missing credentials still needs setup until another source replaces it. */
 internal fun AppSettings.canDismissPexafySetup(setupRequested: Boolean) =
 	setupRequested && WallpaperSource.PEXAFY !in enabledSources
+
+/** Pexafy remains unselected while its credential setup is pending. */
+internal enum class PexafyChipState {
+	DISABLED,
+	PENDING_SETUP,
+	ENABLED
+}
+
+internal fun AppSettings.pexafyChipState(setupRequested: Boolean) = when {
+	WallpaperSource.PEXAFY in configuredSources -> PexafyChipState.ENABLED
+	shouldShowPexafyKeyEditor(setupRequested) -> PexafyChipState.PENDING_SETUP
+	else -> PexafyChipState.DISABLED
+}

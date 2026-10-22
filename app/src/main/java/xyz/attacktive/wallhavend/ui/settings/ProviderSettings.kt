@@ -1,6 +1,7 @@
 package xyz.attacktive.wallhavend.ui.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -66,6 +68,7 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 	ProviderSourceChips(
 		settings = settings,
 		saving = saving,
+		pexafySetupRequested = showPexafySetup,
 		onTogglePexafySetup = {
 			if (showPexafySetup) {
 				dismissPexafySetup()
@@ -99,15 +102,19 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 }
 
 @Composable
-private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, onTogglePexafySetup: () -> Unit, onToggleSource: (WallpaperSource) -> Unit) {
+private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, pexafySetupRequested: Boolean, onTogglePexafySetup: () -> Unit, onToggleSource: (WallpaperSource) -> Unit) {
 	val selected = settings.configuredSources
+	val pexafyChipState = settings.pexafyChipState(pexafySetupRequested)
 
 	Text(stringResource(R.string.settings_label_sources), style = MaterialTheme.typography.labelLarge)
 
 	FlowRow {
 		WallpaperSource.entries.forEach { source ->
+			val isSelected = source in selected
+			val isPendingSetup = source == WallpaperSource.PEXAFY && pexafyChipState == PexafyChipState.PENDING_SETUP
+
 			FilterChip(
-				selected = source in selected,
+				selected = isSelected,
 				onClick = {
 					if (source == WallpaperSource.PEXAFY && settings.pexafyApiKey.isBlank()) {
 						onTogglePexafySetup()
@@ -117,6 +124,19 @@ private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, onToggle
 				},
 				label = { Text(stringResource(source.nameRes)) },
 				enabled = !saving,
+				colors = if (isPendingSetup) {
+					FilterChipDefaults.filterChipColors(
+						containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+						labelColor = MaterialTheme.colorScheme.primary
+					)
+				} else {
+					FilterChipDefaults.filterChipColors()
+				},
+				border = if (isPendingSetup) {
+					BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+				} else {
+					FilterChipDefaults.filterChipBorder(enabled = !saving, selected = isSelected)
+				},
 				modifier = Modifier.padding(end = 8.dp)
 			)
 		}

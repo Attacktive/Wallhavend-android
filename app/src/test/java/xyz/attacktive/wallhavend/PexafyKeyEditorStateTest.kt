@@ -6,8 +6,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
+import xyz.attacktive.wallhavend.domain.model.configuredSources
+import xyz.attacktive.wallhavend.domain.model.withPexafyKey
+import xyz.attacktive.wallhavend.ui.settings.PexafyChipState
 import xyz.attacktive.wallhavend.ui.settings.PexafyKeyEditorState
 import xyz.attacktive.wallhavend.ui.settings.canDismissPexafySetup
+import xyz.attacktive.wallhavend.ui.settings.pexafyChipState
 import xyz.attacktive.wallhavend.ui.settings.shouldShowPexafyKeyEditor
 
 class PexafyKeyEditorStateTest {
@@ -152,5 +156,46 @@ class PexafyKeyEditorStateTest {
 
 		assertTrue(restored.shouldShowPexafyKeyEditor(false))
 		assertFalse(restored.canDismissPexafySetup(true))
+	}
+
+	@Test
+	fun `unconfigured Pexafy switches from disabled to pending and back on cancel`() {
+		val settings = AppSettings(enabledSources = setOf(WallpaperSource.WALLHAVEN))
+
+		assertEquals(PexafyChipState.DISABLED, settings.pexafyChipState(false))
+		assertEquals(PexafyChipState.PENDING_SETUP, settings.pexafyChipState(true))
+		assertEquals(PexafyChipState.DISABLED, settings.pexafyChipState(false))
+		assertEquals(setOf(WallpaperSource.WALLHAVEN), settings.configuredSources)
+	}
+
+	@Test
+	fun `Pexafy becomes selected only after its key is saved and enabled`() {
+		val settings = AppSettings(enabledSources = setOf(WallpaperSource.WALLHAVEN))
+		val saved = settings.withPexafyKey("key", enable = false)
+		val enabled = saved.withPexafyKey("key", enable = true)
+
+		assertEquals(PexafyChipState.PENDING_SETUP, settings.pexafyChipState(true))
+		assertEquals(PexafyChipState.PENDING_SETUP, saved.pexafyChipState(true))
+		assertEquals(PexafyChipState.DISABLED, saved.pexafyChipState(false))
+		assertEquals(PexafyChipState.ENABLED, enabled.pexafyChipState(true))
+		assertEquals(PexafyChipState.ENABLED, enabled.pexafyChipState(false))
+	}
+
+	@Test
+	fun `restored keyless Pexafy selection shows pending rather than enabled`() {
+		val restored = AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY))
+
+		assertEquals(PexafyChipState.PENDING_SETUP, restored.pexafyChipState(false))
+		assertFalse(WallpaperSource.PEXAFY in restored.configuredSources)
+	}
+
+	@Test
+	fun `disabling configured Pexafy removes both chip highlight and editor without deleting its key`() {
+		val disabled = configured.copy(enabledSources = setOf(WallpaperSource.WALLHAVEN))
+
+		assertEquals(PexafyChipState.ENABLED, configured.pexafyChipState(false))
+		assertEquals(PexafyChipState.DISABLED, disabled.pexafyChipState(false))
+		assertFalse(disabled.shouldShowPexafyKeyEditor(false))
+		assertEquals(configured.pexafyApiKey, disabled.pexafyApiKey)
 	}
 }
