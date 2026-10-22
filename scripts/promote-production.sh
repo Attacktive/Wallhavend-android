@@ -65,7 +65,19 @@ play_api() {
 		args+=(--data "${body}")
 	fi
 
-	curl "${args[@]}" "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${PACKAGE_NAME}/${path}"
+	local response_file
+	response_file="$(mktemp)"
+	if ! curl "${args[@]}" --output "${response_file}" "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${PACKAGE_NAME}/${path}"; then
+		echo "Google Play API rejected ${method} ${path}" >&2
+		if [ -s "${response_file}" ]; then
+			jq -c '{code: (.error.code // null), status: (.error.status // null), message: (.error.message // .message // "Unknown error")}' "${response_file}" >&2 || true
+		fi
+		rm -f "${response_file}"
+		return 1
+	fi
+
+	cat "${response_file}"
+	rm -f "${response_file}"
 }
 
 target_version_code=''
