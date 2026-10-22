@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -145,7 +144,7 @@ private fun PexafyKeySettings(settings: AppSettings, key: String, onKeyChange: (
 			modifier = Modifier.fillMaxWidth()
 		)
 
-		Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+		FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 			Button(onClick = { onSave(key, editor.enableOnSave) }, enabled = !saving && editor.canSave) {
 				Text(stringResource(editor.actionRes))
 			}
