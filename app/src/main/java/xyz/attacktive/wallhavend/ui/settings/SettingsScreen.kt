@@ -215,12 +215,10 @@ fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit
 	}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onNavigateToBlocklist: () -> Unit, providerSettings: @Composable () -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
 	var filterColor by rememberSaveable { mutableStateOf(settings.filterColor) }
-	var orientationExpanded by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) {
@@ -295,7 +293,59 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		)
 	}
 
-	AnimatedVisibility(visible = openverseEnabled) {
+	OpenverseLicenseSettings(settings, onSave)
+
+	val pexafyEnabled = WallpaperSource.PEXAFY in settings.configuredSources
+	AnimatedVisibility(visible = wallhavenEnabled || pexafyEnabled) {
+		WallhavenFilterSettings(
+			settings = settings,
+			filterColor = filterColor,
+			onFilterColorChange = { filterColor = it },
+			onSave = onSave
+		)
+	}
+
+	WallpaperOrientationSetting(settings, onSave)
+
+	Spacer(Modifier.height(16.dp))
+
+	ToggleSetting(
+		label = stringResource(R.string.settings_label_avoid_blurry),
+		subtitle = stringResource(R.string.settings_subtitle_avoid_blurry),
+		checked = settings.avoidBlurryWallpapers,
+		onToggle = { onSave(settings.copy(avoidBlurryWallpapers = it)) }
+	)
+
+	Spacer(Modifier.height(16.dp))
+
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		modifier = Modifier
+			.fillMaxWidth()
+			.clickable { onNavigateToBlocklist() }
+			.padding(vertical = 8.dp)
+	) {
+		Column(modifier = Modifier.weight(1f)) {
+			Text(stringResource(R.string.blocklist_settings_row))
+			Text(
+				stringResource(R.string.blocklist_settings_subtitle, settings.blockedIds.size),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+		}
+
+		Icon(
+			Icons.AutoMirrored.Filled.KeyboardArrowRight,
+			contentDescription = null,
+			tint = MaterialTheme.colorScheme.onSurfaceVariant
+		)
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OpenverseLicenseSettings(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+	AnimatedVisibility(visible = WallpaperSource.OPENVERSE in settings.enabledSources) {
 		var licenseExpanded by remember { mutableStateOf(false) }
 
 		Column {
@@ -337,26 +387,19 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 			)
 		}
 	}
+}
 
-	val pexafyEnabled = WallpaperSource.PEXAFY in settings.configuredSources
-	AnimatedVisibility(visible = wallhavenEnabled || pexafyEnabled) {
-		WallhavenFilterSettings(
-			settings = settings,
-			filterColor = filterColor,
-			onFilterColorChange = { filterColor = it },
-			onSave = onSave
-		)
-	}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WallpaperOrientationSetting(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+	var orientationExpanded by remember { mutableStateOf(false) }
+
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_wallpaper_orientation))
 
 	ExposedDropdownMenuBox(expanded = orientationExpanded, onExpandedChange = { orientationExpanded = it }) {
 		OutlinedTextField(
-			value = when (settings.wallpaperOrientation) {
-				WallpaperOrientation.AUTOMATIC -> stringResource(R.string.settings_orientation_automatic)
-				WallpaperOrientation.PORTRAIT -> stringResource(R.string.settings_orientation_portrait)
-				WallpaperOrientation.LANDSCAPE -> stringResource(R.string.settings_orientation_landscape)
-			},
+			value = stringResource(wallpaperOrientationLabel(settings.wallpaperOrientation)),
 			onValueChange = {},
 			readOnly = true,
 			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = orientationExpanded) },
@@ -368,15 +411,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		ExposedDropdownMenu(expanded = orientationExpanded, onDismissRequest = { orientationExpanded = false }) {
 			WallpaperOrientation.entries.forEach { orientation ->
 				DropdownMenuItem(
-					text = {
-						Text(
-							when (orientation) {
-								WallpaperOrientation.AUTOMATIC -> stringResource(R.string.settings_orientation_automatic)
-								WallpaperOrientation.PORTRAIT -> stringResource(R.string.settings_orientation_portrait)
-								WallpaperOrientation.LANDSCAPE -> stringResource(R.string.settings_orientation_landscape)
-							}
-						)
-					},
+					text = { Text(stringResource(wallpaperOrientationLabel(orientation))) },
 					onClick = {
 						if (orientation != settings.wallpaperOrientation) {
 							onSave(settings.copy(wallpaperOrientation = orientation))
@@ -395,40 +430,12 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(top = 4.dp)
 	)
+}
 
-	Spacer(Modifier.height(16.dp))
-
-	ToggleSetting(
-		label = stringResource(R.string.settings_label_avoid_blurry),
-		subtitle = stringResource(R.string.settings_subtitle_avoid_blurry),
-		checked = settings.avoidBlurryWallpapers,
-		onToggle = { onSave(settings.copy(avoidBlurryWallpapers = it)) }
-	)
-
-	Spacer(Modifier.height(16.dp))
-
-	Row(
-		verticalAlignment = Alignment.CenterVertically,
-		modifier = Modifier
-			.fillMaxWidth()
-			.clickable { onNavigateToBlocklist() }
-			.padding(vertical = 8.dp)
-	) {
-		Column(modifier = Modifier.weight(1f)) {
-			Text(stringResource(R.string.blocklist_settings_row))
-			Text(
-				stringResource(R.string.blocklist_settings_subtitle, settings.blockedIds.size),
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
-			)
-		}
-
-		Icon(
-			Icons.AutoMirrored.Filled.KeyboardArrowRight,
-			contentDescription = null,
-			tint = MaterialTheme.colorScheme.onSurfaceVariant
-		)
-	}
+private fun wallpaperOrientationLabel(orientation: WallpaperOrientation) = when (orientation) {
+	WallpaperOrientation.AUTOMATIC -> R.string.settings_orientation_automatic
+	WallpaperOrientation.PORTRAIT -> R.string.settings_orientation_portrait
+	WallpaperOrientation.LANDSCAPE -> R.string.settings_orientation_landscape
 }
 
 @Composable

@@ -37,13 +37,26 @@ import xyz.attacktive.wallhavend.domain.model.requiresPexafySetup
 @Composable
 internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewModel) {
 	val saving by viewModel.savingProvider.collectAsStateWithLifecycle()
-	val selected = settings.configuredSources
 	var showPexafySetup by rememberSaveable { mutableStateOf(false) }
 
 	// Credentials deliberately use remember, not rememberSaveable: drafts must not enter saved-state bundles.
 	var wallhavenKey by remember(settings.apiKey) { mutableStateOf(settings.apiKey) }
 	var pexafyKey by remember(settings.pexafyApiKey) { mutableStateOf(settings.pexafyApiKey) }
-	val uriHandler = LocalUriHandler.current
+
+	ProviderSourceChips(settings, saving, onShowPexafySetup = { showPexafySetup = true }, onToggleSource = viewModel::toggleSource)
+
+	AnimatedVisibility(visible = showPexafySetup || settings.requiresPexafySetup || settings.pexafyApiKey.isNotBlank()) {
+		PexafyKeySettings(settings, pexafyKey, onKeyChange = { pexafyKey = it }, saving = saving, onSave = viewModel::savePexafyKey)
+	}
+
+	AnimatedVisibility(visible = WallpaperSource.WALLHAVEN in settings.configuredSources || settings.apiKey.isNotBlank()) {
+		WallhavenKeySettings(settings.apiKey, wallhavenKey, onKeyChange = { wallhavenKey = it }, saving = saving, onSave = viewModel::saveWallhavenKey)
+	}
+}
+
+@Composable
+private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, onShowPexafySetup: () -> Unit, onToggleSource: (WallpaperSource) -> Unit) {
+	val selected = settings.configuredSources
 
 	Text(stringResource(R.string.settings_label_sources), style = MaterialTheme.typography.labelLarge)
 
@@ -53,9 +66,9 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 				selected = source in selected,
 				onClick = {
 					if (source == WallpaperSource.PEXAFY && settings.pexafyApiKey.isBlank()) {
-						showPexafySetup = true
+						onShowPexafySetup()
 					} else {
-						viewModel.toggleSource(source)
+						onToggleSource(source)
 					}
 				},
 				label = { Text(stringResource(source.nameRes)) },
@@ -64,76 +77,62 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 			)
 		}
 	}
+}
 
-	AnimatedVisibility(visible = showPexafySetup || settings.requiresPexafySetup || settings.pexafyApiKey.isNotBlank()) {
-		Column {
-			val enabled = WallpaperSource.PEXAFY in selected
-			val removing = pexafyKey.isBlank() && settings.pexafyApiKey.isNotBlank()
-			val needsReplacement = removing && enabled && selected.size == 1
-			val hint = when {
-				needsReplacement -> R.string.provider_key_choose_replacement
-				settings.pexafyApiKey.isBlank() -> R.string.provider_pexafy_setup_required
-				pexafyKey != settings.pexafyApiKey -> R.string.provider_key_unsaved
-				else -> R.string.provider_key_not_validated
-			}
+@Composable
+private fun PexafyKeySettings(settings: AppSettings, key: String, onKeyChange: (String) -> Unit, saving: Boolean, onSave: (String, Boolean) -> Unit) {
+	val editor = PexafyKeyEditorState(settings, key)
+	val uriHandler = LocalUriHandler.current
 
-			Spacer(Modifier.height(8.dp))
+	Column {
+		Spacer(Modifier.height(8.dp))
 
-			OutlinedTextField(
-				value = pexafyKey,
-				onValueChange = { pexafyKey = it },
-				label = { Text(stringResource(R.string.settings_label_pexafy_api_key)) },
-				supportingText = { Text(stringResource(hint)) },
-				isError = needsReplacement || (settings.pexafyApiKey.isBlank() && pexafyKey.isBlank()),
-				visualTransformation = PasswordVisualTransformation(),
-				keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-				singleLine = true,
-				enabled = !saving,
-				modifier = Modifier.fillMaxWidth()
-			)
+		OutlinedTextField(
+			value = key,
+			onValueChange = onKeyChange,
+			label = { Text(stringResource(R.string.settings_label_pexafy_api_key)) },
+			supportingText = { Text(stringResource(editor.hintRes)) },
+			isError = editor.isError,
+			visualTransformation = PasswordVisualTransformation(),
+			keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+			singleLine = true,
+			enabled = !saving,
+			modifier = Modifier.fillMaxWidth()
+		)
 
-			val action = when {
-				removing && enabled -> R.string.provider_pexafy_remove_disable
-				removing -> R.string.provider_key_remove
-				!enabled -> R.string.provider_pexafy_save_enable
-				else -> R.string.provider_key_save
-			}
-
-			val canSave = !saving && !needsReplacement && (removing || (pexafyKey.isNotBlank() && (!enabled || pexafyKey != settings.pexafyApiKey)))
-
-			Button(onClick = { viewModel.savePexafyKey(pexafyKey, enable = !enabled && pexafyKey.isNotBlank()) }, enabled = canSave) {
-				Text(stringResource(action))
-			}
-
-			Text(
-				text = stringResource(R.string.settings_link_create_pexafy_api_key),
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.primary,
-				textDecoration = TextDecoration.Underline,
-				modifier = Modifier.padding(top = 4.dp).clickable { uriHandler.openUri("https://pexafy.com/dashboard/api-keys/create") }
-			)
+		Button(onClick = { onSave(key, editor.enableOnSave) }, enabled = !saving && editor.canSave) {
+			Text(stringResource(editor.actionRes))
 		}
+
+		Text(
+			text = stringResource(R.string.settings_link_create_pexafy_api_key),
+			style = MaterialTheme.typography.bodySmall,
+			color = MaterialTheme.colorScheme.primary,
+			textDecoration = TextDecoration.Underline,
+			modifier = Modifier.padding(top = 4.dp).clickable { uriHandler.openUri("https://pexafy.com/dashboard/api-keys/create") }
+		)
 	}
+}
 
-	AnimatedVisibility(visible = WallpaperSource.WALLHAVEN in selected || settings.apiKey.isNotBlank()) {
-		Column {
-			Spacer(Modifier.height(16.dp))
+@Composable
+private fun WallhavenKeySettings(savedKey: String, key: String, onKeyChange: (String) -> Unit, saving: Boolean, onSave: (String) -> Unit) {
+	Column {
+		Spacer(Modifier.height(16.dp))
 
-			OutlinedTextField(
-				value = wallhavenKey,
-				onValueChange = { wallhavenKey = it },
-				label = { Text(stringResource(R.string.provider_wallhaven_key)) },
-				placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
-				visualTransformation = PasswordVisualTransformation(),
-				keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-				singleLine = true,
-				enabled = !saving,
-				modifier = Modifier.fillMaxWidth()
-			)
+		OutlinedTextField(
+			value = key,
+			onValueChange = onKeyChange,
+			label = { Text(stringResource(R.string.provider_wallhaven_key)) },
+			placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
+			visualTransformation = PasswordVisualTransformation(),
+			keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+			singleLine = true,
+			enabled = !saving,
+			modifier = Modifier.fillMaxWidth()
+		)
 
-			Button(onClick = { viewModel.saveWallhavenKey(wallhavenKey) }, enabled = !saving && wallhavenKey != settings.apiKey) {
-				Text(stringResource(R.string.provider_key_save))
-			}
+		Button(onClick = { onSave(key) }, enabled = !saving && key != savedKey) {
+			Text(stringResource(R.string.provider_key_save))
 		}
 	}
 }
