@@ -1,11 +1,13 @@
 package xyz.attacktive.wallhavend
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.ui.settings.PexafyKeyEditorState
+import xyz.attacktive.wallhavend.ui.settings.shouldShowPexafyKeyEditor
 
 class PexafyKeyEditorStateTest {
 	private val configured = AppSettings(enabledSources = setOf(WallpaperSource.WALLHAVEN, WallpaperSource.PEXAFY), pexafyApiKey = "saved-key")
@@ -104,5 +106,30 @@ class PexafyKeyEditorStateTest {
 		assertTrue(editor.enableOnSave)
 		assertFalse(editor.needsReplacement)
 		assertFalse(editor.isError)
+	}
+
+	@Test
+	fun `disabled Pexafy hides its editor but retains its saved key`() {
+		val disabled = configured.copy(enabledSources = setOf(WallpaperSource.WALLHAVEN))
+
+		assertTrue(configured.shouldShowPexafyKeyEditor(false))
+		assertFalse(disabled.shouldShowPexafyKeyEditor(false))
+		assertEquals("saved-key", disabled.pexafyApiKey)
+		assertTrue(disabled.copy(enabledSources = configured.enabledSources).shouldShowPexafyKeyEditor(false))
+	}
+
+	@Test
+	fun `unconfigured Pexafy shows its editor after explicit setup request`() {
+		val settings = AppSettings()
+
+		assertFalse(settings.shouldShowPexafyKeyEditor(false))
+		assertTrue(settings.shouldShowPexafyKeyEditor(true))
+	}
+
+	@Test
+	fun `restored keyless Pexafy selection still shows its setup editor`() {
+		val settings = AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY))
+
+		assertTrue(settings.shouldShowPexafyKeyEditor(false))
 	}
 }

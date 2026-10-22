@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,12 +33,19 @@ import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.configuredSources
-import xyz.attacktive.wallhavend.domain.model.requiresPexafySetup
 
 @Composable
 internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewModel) {
 	val saving by viewModel.savingProvider.collectAsStateWithLifecycle()
 	var showPexafySetup by rememberSaveable { mutableStateOf(false) }
+	val pexafySelected = WallpaperSource.PEXAFY in settings.enabledSources
+
+	// Once Pexafy is selected, dismiss temporary setup so disabling it hides the credential field.
+	LaunchedEffect(pexafySelected) {
+		if (pexafySelected) {
+			showPexafySetup = false
+		}
+	}
 
 	// Credentials deliberately use remember, not rememberSaveable: drafts must not enter saved-state bundles.
 	var wallhavenKey by remember(settings.apiKey) { mutableStateOf(settings.apiKey) }
@@ -45,11 +53,11 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 
 	ProviderSourceChips(settings, saving, onShowPexafySetup = { showPexafySetup = true }, onToggleSource = viewModel::toggleSource)
 
-	AnimatedVisibility(visible = showPexafySetup || settings.requiresPexafySetup || settings.pexafyApiKey.isNotBlank()) {
+	AnimatedVisibility(visible = settings.shouldShowPexafyKeyEditor(showPexafySetup)) {
 		PexafyKeySettings(settings, pexafyKey, onKeyChange = { pexafyKey = it }, saving = saving, onSave = viewModel::savePexafyKey)
 	}
 
-	AnimatedVisibility(visible = WallpaperSource.WALLHAVEN in settings.configuredSources || settings.apiKey.isNotBlank()) {
+	AnimatedVisibility(visible = WallpaperSource.WALLHAVEN in settings.enabledSources) {
 		WallhavenKeySettings(settings.apiKey, wallhavenKey, onKeyChange = { wallhavenKey = it }, saving = saving, onSave = viewModel::saveWallhavenKey)
 	}
 }

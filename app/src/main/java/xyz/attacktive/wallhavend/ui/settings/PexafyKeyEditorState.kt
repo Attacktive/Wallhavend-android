@@ -42,3 +42,7 @@ internal class PexafyKeyEditorState(settings: AppSettings, draftKey: String) {
 			else -> R.string.provider_key_save
 		}
 }
+
+/** The editor follows source selection, except while explicitly setting up an inactive Pexafy source. */
+internal fun AppSettings.shouldShowPexafyKeyEditor(setupRequested: Boolean) =
+	setupRequested || WallpaperSource.PEXAFY in enabledSources
