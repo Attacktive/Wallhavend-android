@@ -81,7 +81,13 @@ class ServiceStateRepository @Inject constructor() {
 
 		errorClearJob = repositoryScope.launch {
 			delay(10_000.milliseconds)
-			update { if (it.error == error) { it.copy(error = null) } else { it } }
+			update {
+				if (it.error == error) {
+					it.copy(error = null)
+				} else {
+					it
+				}
+			}
 		}
 	}
 }

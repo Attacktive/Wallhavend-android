@@ -51,10 +51,16 @@ class HomeViewModel @Inject constructor(
 			providerFailures = state.providerFailures.filterValues { it.isCurrent(settings) }
 		)
 	}
-		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
+	.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
 
 	val configurationError = settingsRepository.settings
-		.map { if (it.requiresPexafySetup) { AppError.MissingApiKey(WallpaperSource.PEXAFY) } else { null } }
+		.map {
+			if (it.requiresPexafySetup) {
+				AppError.MissingApiKey(WallpaperSource.PEXAFY)
+			} else {
+				null
+			}
+		}
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
 	val autoUpdateEnabled = settingsRepository.settings
@@ -72,6 +78,7 @@ class HomeViewModel @Inject constructor(
 	val wallpaperMetadata = settingsRepository.settings
 		.map { it.wallpaperMetadata }
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
 	private val _saveMessage = MutableSharedFlow<String>(extraBufferCapacity = 1)
 	val saveMessage = _saveMessage.asSharedFlow()
 
@@ -214,6 +221,7 @@ class HomeViewModel @Inject constructor(
 					metadata?.galleryDescription?.let { description ->
 						embedExifDescription(destinationFile, description)
 					}
+
 					MediaScannerConnection.scanFile(context, arrayOf(destinationFile.absolutePath), arrayOf(mimeType), null)
 				}
 			}

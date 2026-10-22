@@ -78,7 +78,9 @@ class PexafySetupFallbackTest(private val apiKey: String) {
 		assertEquals(setOf(WallpaperSource.PEXAFY), fixture.settingsRepository.settings.first().enabledSources)
 		assertTrue(fixture.settingsRepository.settings.first().requiresPexafySetup)
 		verify(exactly = 1) { fixture.wallpaperApplier.apply(first, WallpaperTarget.HOME) }
+
 		verify(exactly = 1) { fixture.wallpaperApplier.apply(second, WallpaperTarget.HOME) }
+
 		fixture.verifyNoNetwork()
 	}
 
@@ -92,6 +94,7 @@ class PexafySetupFallbackTest(private val apiKey: String) {
 		assertNull(fixture.stateRepository.state.value.currentWallpaperPath)
 		assertEquals(setOf(WallpaperSource.PEXAFY), fixture.settingsRepository.settings.first().enabledSources)
 		verify { fixture.wallpaperApplier wasNot Called }
+
 		fixture.verifyNoNetwork()
 	}
 
@@ -100,6 +103,7 @@ class PexafySetupFallbackTest(private val apiKey: String) {
 		val credentialFile = temporaryFolder.newFile("credentials.preferences_pb")
 		val settingsStore = PreferenceDataStoreFactory.create(scope = backgroundScope, produceFile = { settingsFile })
 		val credentialStore = PreferenceDataStoreFactory.create(scope = backgroundScope, produceFile = { credentialFile })
+
 		settingsStore.edit {
 			it[stringSetPreferencesKey("enabled_sources")] = setOf(WallpaperSource.PEXAFY.key)
 			it[stringPreferencesKey("rotation_mode")] = RotationMode.FRESH_ANY.name
@@ -131,7 +135,8 @@ class PexafySetupFallbackTest(private val apiKey: String) {
 			stateRepository = stateRepository,
 			wallpaperMutationCoordinator = WallpaperMutationCoordinator(),
 			wallpaperApplier = applier
-		).apply {
+		)
+		.apply {
 			networkStateProvider = { NetworkState(online = true, onWifi = true) }
 			screenInfoProvider = { SCREEN }
 		}
@@ -147,7 +152,9 @@ class PexafySetupFallbackTest(private val apiKey: String) {
 
 		fun verifyNoNetwork() {
 			verify { api wasNot Called }
+
 			verify { client wasNot Called }
+
 			coVerify(exactly = 0) { unselectedProvider.next(any(), any(), any()) }
 		}
 	}

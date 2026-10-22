@@ -61,7 +61,7 @@ class SettingsViewModel @Inject constructor(
 				settingsRepository.savePreferences(settings)
 				rotationScheduler.reconcile()
 			}
-				.onFailure { error -> _saveError.value = error.message ?: "Failed to save settings" }
+			.onFailure { error -> _saveError.value = error.message ?: "Failed to save settings" }
 		}
 	}
 

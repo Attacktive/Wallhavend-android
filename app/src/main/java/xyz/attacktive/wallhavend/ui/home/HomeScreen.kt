@@ -102,7 +102,9 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 				onUpdateNow = viewModel::updateNow
 			)
 
-			val errors = listOfNotNull(configurationError, state.error) + state.providerFailures.toSortedMap().values.map { it.error }
+			val providerErrors = state.providerFailures.toSortedMap().values.map { it.error }
+			val errors = listOfNotNull(configurationError, state.error) + providerErrors
+
 			errors.distinct().forEach { error ->
 				Spacer(modifier = Modifier.height(8.dp))
 				ErrorBanner(error = error)
@@ -114,7 +116,6 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 			}
 
 			val pinnedRotationIdle = autoUpdateEnabled && rotationMode == RotationMode.PINNED_ONLY && pinnedIds.isEmpty()
-
 			if (pinnedRotationIdle) {
 				Spacer(modifier = Modifier.height(8.dp))
 				PinnedIdleBanner()
@@ -143,7 +144,13 @@ private fun StatusCard(state: ServiceState, autoUpdateEnabled: Boolean) {
 		Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
 			Column(modifier = Modifier.weight(1f)) {
 				Text(
-					text = stringResource(if (autoUpdateEnabled) R.string.home_status_auto_update_on else R.string.home_status_auto_update_off),
+					text = stringResource(
+						if (autoUpdateEnabled) {
+							R.string.home_status_auto_update_on
+						} else {
+							R.string.home_status_auto_update_off
+						}
+					),
 					style = MaterialTheme.typography.labelMedium,
 					color = if (autoUpdateEnabled) {
 						MaterialTheme.colorScheme.primary
@@ -180,7 +187,15 @@ private fun QuickActions(autoUpdateEnabled: Boolean, onStartStop: () -> Unit, on
 			)
 
 			Spacer(Modifier.width(4.dp))
-			Text(stringResource(if (autoUpdateEnabled) R.string.home_action_stop else R.string.home_action_start))
+			Text(
+				stringResource(
+					if (autoUpdateEnabled) {
+						R.string.home_action_stop
+					} else {
+						R.string.home_action_start
+					}
+				)
+			)
 		}
 
 		OutlinedButton(onClick = onUpdateNow) {
