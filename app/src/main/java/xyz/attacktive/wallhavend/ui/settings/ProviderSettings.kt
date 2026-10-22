@@ -113,34 +113,49 @@ private fun ProviderSourceChips(settings: AppSettings, saving: Boolean, pexafySe
 			val isSelected = source in selected
 			val isPendingSetup = source == WallpaperSource.PEXAFY && pexafyChipState == PexafyChipState.PENDING_SETUP
 
-			FilterChip(
+			ProviderSourceChip(
+				source = source,
 				selected = isSelected,
+				pendingSetup = isPendingSetup,
+				saving = saving,
 				onClick = {
 					if (source == WallpaperSource.PEXAFY && settings.pexafyApiKey.isBlank()) {
 						onTogglePexafySetup()
 					} else {
 						onToggleSource(source)
 					}
-				},
-				label = { Text(stringResource(source.nameRes)) },
-				enabled = !saving,
-				colors = if (isPendingSetup) {
-					FilterChipDefaults.filterChipColors(
-						containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-						labelColor = MaterialTheme.colorScheme.primary
-					)
-				} else {
-					FilterChipDefaults.filterChipColors()
-				},
-				border = if (isPendingSetup) {
-					BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
-				} else {
-					FilterChipDefaults.filterChipBorder(enabled = !saving, selected = isSelected)
-				},
-				modifier = Modifier.padding(end = 8.dp)
+				}
 			)
 		}
 	}
+}
+
+@Composable
+private fun ProviderSourceChip(source: WallpaperSource, selected: Boolean, pendingSetup: Boolean, saving: Boolean, onClick: () -> Unit) {
+	val colors = if (pendingSetup) {
+		FilterChipDefaults.filterChipColors(
+			containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+			labelColor = MaterialTheme.colorScheme.primary
+		)
+	} else {
+		FilterChipDefaults.filterChipColors()
+	}
+
+	val border = if (pendingSetup) {
+		BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+	} else {
+		FilterChipDefaults.filterChipBorder(enabled = !saving, selected = selected)
+	}
+
+	FilterChip(
+		selected = selected,
+		onClick = onClick,
+		label = { Text(stringResource(source.nameRes)) },
+		enabled = !saving,
+		colors = colors,
+		border = border,
+		modifier = Modifier.padding(end = 8.dp)
+	)
 }
 
 @Composable
