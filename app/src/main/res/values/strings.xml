@@ -93,8 +93,8 @@
 	<string name="error_apply_failed">⚠ Failed to apply wallpaper: %s</string>
 	<string name="error_network_error">⚠ Network error: %s</string>
 	<string name="error_network_error_source">⚠ Can\'t reach %1$s — retrying automatically</string>
-	<string name="error_missing_api_key">⚠ %1$s requires an API key — add one in Settings → Advanced</string>
-	<string name="error_invalid_api_key">⚠ Invalid %1$s API key — check your key in Settings → Advanced</string>
+	<string name="error_missing_api_key">⚠ %1$s requires an API key — add one in Settings → Content</string>
+	<string name="error_invalid_api_key">⚠ Invalid %1$s API key — check your key in Settings → Content</string>
 	<string name="error_quota_exceeded">⚠ %1$s monthly quota exceeded — resets on the 1st of the month</string>
 	<string name="error_rate_limited">⚠ %1$s rate limit reached — retrying after %2$ds</string>
 	<string name="error_rate_limited_generic">⚠ %1$s rate limit reached — retrying automatically</string>

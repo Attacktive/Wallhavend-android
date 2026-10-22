@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="provider_wallhaven_key">Clave API de Wallhaven (opcional, obligatoria para NSFW)</string>
+	<string name="provider_pexafy_setup_required">Pexafy requiere una clave API. Seguirá inactivo hasta que guardes la clave y lo actives.</string>
+	<string name="provider_pexafy_cancel_setup">Cancelar</string>
+	<string name="provider_pexafy_save_enable">Guardar y activar Pexafy</string>
+	<string name="provider_pexafy_remove_disable">Eliminar clave y desactivar Pexafy</string>
+	<string name="provider_key_remove">Eliminar clave</string>
+	<string name="provider_key_save">Guardar clave</string>
+	<string name="provider_key_choose_replacement">Selecciona Wallhaven u Openverse arriba antes de eliminar la clave. Tu clave actual seguirá guardada hasta que confirmes su eliminación.</string>
+	<string name="provider_key_unsaved">Los cambios solo se aplican al guardarlos.</string>
+	<string name="provider_key_not_validated">Guardar una clave no comprueba su validez. Los errores de credenciales, cuota y conexión se muestran al usar Pexafy.</string>
+</resources>

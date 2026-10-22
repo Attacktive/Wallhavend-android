@@ -93,8 +93,8 @@
 	<string name="error_apply_failed">⚠ Échec de l\'application du fond d\'écran : %s</string>
 	<string name="error_network_error">⚠ Erreur réseau : %s</string>
 	<string name="error_network_error_source">⚠ Impossible de joindre %1$s — nouvelle tentative automatique</string>
-	<string name="error_missing_api_key">⚠ %1$s nécessite une clé API — ajoutez-en une dans Paramètres → Avancé</string>
-	<string name="error_invalid_api_key">⚠ Clé API %1$s invalide — vérifiez votre clé dans Paramètres → Avancé</string>
+	<string name="error_missing_api_key">⚠ %1$s nécessite une clé API — ajoutez-en une dans Paramètres → Contenu</string>
+	<string name="error_invalid_api_key">⚠ Clé API %1$s invalide — vérifiez votre clé dans Paramètres → Contenu</string>
 	<string name="error_quota_exceeded">⚠ Quota mensuel %1$s dépassé — réinitialisation le 1er du mois</string>
 	<string name="error_rate_limited">⚠ Limite de débit %1$s atteinte — nouvelle tentative dans %2$ds</string>
 	<string name="error_rate_limited_generic">⚠ Limite de débit %1$s atteinte — nouvelle tentative automatique</string>

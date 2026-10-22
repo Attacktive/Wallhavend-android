@@ -4,16 +4,18 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import xyz.attacktive.wallhavend.domain.model.AppSettings
-import xyz.attacktive.wallhavend.domain.model.NoResultsException
-import xyz.attacktive.wallhavend.domain.model.ScreenInfo
-import xyz.attacktive.wallhavend.domain.model.UndersizedWallpaperException
 import xyz.attacktive.wallhavend.domain.model.InvalidApiKeyException
 import xyz.attacktive.wallhavend.domain.model.MissingApiKeyException
+import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.QuotaExceededException
 import xyz.attacktive.wallhavend.domain.model.RateLimitedException
+import xyz.attacktive.wallhavend.domain.model.ScreenInfo
+import xyz.attacktive.wallhavend.domain.model.UndersizedWallpaperException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
+import xyz.attacktive.wallhavend.domain.model.configuredSources
+import xyz.attacktive.wallhavend.domain.model.requiresPexafySetup
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 /**
@@ -23,12 +25,18 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 @Singleton
 class WallpaperRepository @Inject constructor(
 	private val providers: Set<@JvmSuppressWildcards WallpaperProvider>,
-	private val fileManager: WallpaperFileManager
+	private val fileManager: WallpaperFileManager,
+	private val stateRepository: ServiceStateRepository = ServiceStateRepository()
 ) {
 	suspend fun next(settings: AppSettings, screenInfo: ScreenInfo): Result<WallpaperRotationResult> {
+		val configuredSources = settings.configuredSources
+		if (configuredSources.isEmpty() && settings.requiresPexafySetup) {
+			return Result.failure(MissingApiKeyException(WallpaperSource.PEXAFY))
+		}
+
 		val failures = mutableListOf<Throwable>()
 
-		val enabledProviders = providers.filter { it.source in settings.enabledSources }
+		val enabledProviders = providers.filter { it.source in configuredSources }
 			.shuffled()
 
 		val minimumWidth = screenInfo.width.takeIf { settings.avoidBlurryWallpapers }
@@ -44,6 +52,8 @@ class WallpaperRepository @Inject constructor(
 				minimumWidth = minimumWidth,
 				minimumHeight = minimumHeight
 			)
+
+			stateRepository.recordProviderResult(provider.source, settings, attempt.exceptionOrNull())
 
 			if (attempt.isSuccess) {
 				val (wallpaper, file) = attempt.getOrThrow()

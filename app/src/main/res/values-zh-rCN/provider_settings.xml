@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="provider_wallhaven_key">Wallhaven API 密钥（可选，NSFW 内容必需）</string>
+	<string name="provider_pexafy_setup_required">Pexafy 需要 API 密钥。在保存密钥并启用之前，Pexafy 将保持停用状态。</string>
+	<string name="provider_pexafy_cancel_setup">取消</string>
+	<string name="provider_pexafy_save_enable">保存并启用 Pexafy</string>
+	<string name="provider_pexafy_remove_disable">删除密钥并停用 Pexafy</string>
+	<string name="provider_key_remove">删除密钥</string>
+	<string name="provider_key_save">保存密钥</string>
+	<string name="provider_key_choose_replacement">删除密钥之前，请在上方选择 Wallhaven 或 Openverse。在确认删除之前，当前密钥会继续保留。</string>
+	<string name="provider_key_unsaved">更改仅在保存后生效。</string>
+	<string name="provider_key_not_validated">保存密钥不会验证其有效性。使用 Pexafy 时会显示凭据、配额和连接错误。</string>
+</resources>

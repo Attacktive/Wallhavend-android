@@ -93,8 +93,8 @@
 	<string name="error_apply_failed">⚠ 壁纸应用失败: %s</string>
 	<string name="error_network_error">⚠ 网络错误: %s</string>
 	<string name="error_network_error_source">⚠ 无法连接到 %1$s — 正在自动重试</string>
-	<string name="error_missing_api_key">⚠ %1$s 需要 API 密钥 — 请在“设置 → 高级”中添加</string>
-	<string name="error_invalid_api_key">⚠ %1$s API 密钥无效 — 请在“设置 → 高级”中检查您的密钥</string>
+	<string name="error_missing_api_key">⚠ %1$s 需要 API 密钥 — 请在“设置 → 内容”中添加</string>
+	<string name="error_invalid_api_key">⚠ %1$s API 密钥无效 — 请在“设置 → 内容”中检查您的密钥</string>
 	<string name="error_quota_exceeded">⚠ %1$s 月度配额已用尽 — 每月 1 日重置</string>
 	<string name="error_rate_limited">⚠ 已达到 %1$s 速率限制 — 将在 %2$d 秒后重试</string>
 	<string name="error_rate_limited_generic">⚠ 已达到 %1$s 速率限制 — 正在自动重试</string>

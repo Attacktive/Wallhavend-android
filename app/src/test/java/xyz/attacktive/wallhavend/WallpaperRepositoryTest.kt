@@ -1,23 +1,26 @@
 package xyz.attacktive.wallhavend
 
+import io.mockk.coEvery
+import io.mockk.mockk
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
-import io.mockk.coEvery
-import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.AppSettings
-import xyz.attacktive.wallhavend.domain.model.NoResultsException
+import xyz.attacktive.wallhavend.domain.model.InvalidApiKeyException
 import xyz.attacktive.wallhavend.domain.model.MissingApiKeyException
+import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.QuotaExceededException
-import xyz.attacktive.wallhavend.domain.model.UndersizedWallpaperException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
+import xyz.attacktive.wallhavend.domain.model.UndersizedWallpaperException
 import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
+import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.WallpaperProvider
 import xyz.attacktive.wallhavend.domain.repository.WallpaperRepository
 import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
@@ -36,6 +39,39 @@ class WallpaperRepositoryTest {
 	private fun makeWallpaper(id: String) = Wallpaper(identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id), directUrl = "https://cdn/w/$id.jpg")
 
 	private fun createRepository(vararg providers: WallpaperProvider) = WallpaperRepository(providers.toSet(), fileManager)
+
+	@Test
+	fun `keyless Pexafy is never consulted regardless of provider order`() = runTest {
+		val wallpaper = makeWallpaper("anonymous")
+		coEvery { fileManager.download(wallpaper) } returns Result.success(File("/tmp/anonymous.jpg"))
+
+		listOf("", " ", "\t\n").forEach { key ->
+			val pexafy = FakeWallpaperProvider(Result.failure(MissingApiKeyException(WallpaperSource.PEXAFY)), WallpaperSource.PEXAFY)
+			val wallhaven = FakeWallpaperProvider(Result.success(wallpaper))
+			val repository = createRepository(pexafy, wallhaven)
+			val settings = AppSettings(enabledSources = setOf(WallpaperSource.WALLHAVEN, WallpaperSource.PEXAFY), pexafyApiKey = key)
+
+			repeat(shuffleAttempts) {
+				assertEquals(wallpaper, repository.next(settings, screen).getOrThrow().wallpaper)
+			}
+
+			assertFalse(pexafy.consulted)
+		}
+	}
+
+	@Test
+	fun `successful fallback does not erase a known unattempted Pexafy failure`() = runTest {
+		val wallpaper = makeWallpaper("fallback")
+		coEvery { fileManager.download(wallpaper) } returns Result.success(File("/tmp/fallback.jpg"))
+
+		val settings = AppSettings(enabledSources = setOf(WallpaperSource.WALLHAVEN, WallpaperSource.PEXAFY), pexafyApiKey = "test-key")
+		val stateRepository = ServiceStateRepository()
+		stateRepository.recordProviderResult(WallpaperSource.PEXAFY, settings, InvalidApiKeyException(WallpaperSource.PEXAFY))
+
+		val repository = WallpaperRepository(setOf(FakeWallpaperProvider(Result.success(wallpaper))), fileManager, stateRepository)
+		assertTrue(repository.next(settings, screen).isSuccess)
+		assertEquals(AppError.InvalidApiKey(WallpaperSource.PEXAFY), stateRepository.state.value.providerFailures[WallpaperSource.PEXAFY]?.error)
+	}
 
 	@Test
 	fun `next returns the picked wallpaper alongside its downloaded file`() = runTest {
@@ -158,7 +194,7 @@ class WallpaperRepositoryTest {
 		val warnings = mutableListOf<Throwable?>()
 		repeat(shuffleAttempts) {
 			val result = repository.next(
-				AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY, WallpaperSource.OPENVERSE)),
+				AppSettings(pexafyApiKey = "test-key", enabledSources = setOf(WallpaperSource.PEXAFY, WallpaperSource.OPENVERSE)),
 				screen
 			)
 			val rotationResult = result.getOrNull()
@@ -193,7 +229,7 @@ class WallpaperRepositoryTest {
 		}
 
 		val result = createRepository(pexafy).next(
-			AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY), avoidBlurryWallpapers = true),
+			AppSettings(pexafyApiKey = "test-key", enabledSources = setOf(WallpaperSource.PEXAFY), avoidBlurryWallpapers = true),
 			screen
 		)
 
@@ -206,7 +242,7 @@ class WallpaperRepositoryTest {
 		val blockedIds = setOf("pexafy_uuid-1", "wallhaven_abc123", "openverse_uuid-2")
 
 		createRepository(pexafy).next(
-			AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY), blockedIds = blockedIds),
+			AppSettings(pexafyApiKey = "test-key", enabledSources = setOf(WallpaperSource.PEXAFY), blockedIds = blockedIds),
 			screen
 		)
 

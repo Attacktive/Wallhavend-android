@@ -1,7 +1,5 @@
 package xyz.attacktive.wallhavend.ui.settings
 
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -65,13 +63,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
@@ -80,6 +78,7 @@ import xyz.attacktive.wallhavend.domain.model.UPDATE_INTERVAL_OPTIONS
 import xyz.attacktive.wallhavend.domain.model.WallpaperOrientation
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import xyz.attacktive.wallhavend.domain.model.configuredSources
 import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.LicenseFilter
 import xyz.attacktive.wallhavend.domain.model.query.Purity
@@ -151,7 +150,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit
 						.padding(16.dp)
 				) {
 					when (selectedTab) {
-						0 -> ContentTab(settings = settings, onSave = viewModel::save, onNavigateToBlocklist = onNavigateToBlocklist)
+						0 -> ContentTab(settings = settings, onSave = viewModel::save, onNavigateToBlocklist = onNavigateToBlocklist, providerSettings = { ProviderSettings(settings, viewModel) })
 						1 -> ScheduleTab(settings = settings, onSave = viewModel::save)
 						2 -> AdvancedTab(settings = settings, onSave = viewModel::save)
 					}
@@ -184,7 +183,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit
 					.padding(horizontal = 16.dp, vertical = 8.dp)
 			) {
 				// Credit only what is actually being searched, and in a fixed order so turning a source on and off doesn't shuffle the footer.
-				settings.enabledSources
+				settings.configuredSources
 					.sorted()
 					.forEach { source ->
 						Text(
@@ -216,12 +215,10 @@ fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit
 	}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onNavigateToBlocklist: () -> Unit) {
+private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onNavigateToBlocklist: () -> Unit, providerSettings: @Composable () -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
 	var filterColor by rememberSaveable { mutableStateOf(settings.filterColor) }
-	var orientationExpanded by remember { mutableStateOf(false) }
 
 	LaunchedEffect(settings.searchQuery) {
 		if (searchQuery != settings.searchQuery) {
@@ -247,14 +244,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		onPersist = { onSave(settings.copy(filterColor = it)) }
 	)
 
-	SectionLabel(stringResource(R.string.settings_label_sources))
-
-	MultiSelectChips(
-		entries = WallpaperSource.entries,
-		selected = settings.enabledSources,
-		nameRes = { it.nameRes },
-		onSelectionChange = { onSave(settings.copy(enabledSources = it)) }
-	)
+	providerSettings()
 
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_search_query))
@@ -303,7 +293,59 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		)
 	}
 
-	AnimatedVisibility(visible = openverseEnabled) {
+	OpenverseLicenseSettings(settings, onSave)
+
+	val pexafyEnabled = WallpaperSource.PEXAFY in settings.configuredSources
+	AnimatedVisibility(visible = wallhavenEnabled || pexafyEnabled) {
+		WallhavenFilterSettings(
+			settings = settings,
+			filterColor = filterColor,
+			onFilterColorChange = { filterColor = it },
+			onSave = onSave
+		)
+	}
+
+	WallpaperOrientationSetting(settings, onSave)
+
+	Spacer(Modifier.height(16.dp))
+
+	ToggleSetting(
+		label = stringResource(R.string.settings_label_avoid_blurry),
+		subtitle = stringResource(R.string.settings_subtitle_avoid_blurry),
+		checked = settings.avoidBlurryWallpapers,
+		onToggle = { onSave(settings.copy(avoidBlurryWallpapers = it)) }
+	)
+
+	Spacer(Modifier.height(16.dp))
+
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		modifier = Modifier
+			.fillMaxWidth()
+			.clickable { onNavigateToBlocklist() }
+			.padding(vertical = 8.dp)
+	) {
+		Column(modifier = Modifier.weight(1f)) {
+			Text(stringResource(R.string.blocklist_settings_row))
+			Text(
+				stringResource(R.string.blocklist_settings_subtitle, settings.blockedIds.size),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+		}
+
+		Icon(
+			Icons.AutoMirrored.Filled.KeyboardArrowRight,
+			contentDescription = null,
+			tint = MaterialTheme.colorScheme.onSurfaceVariant
+		)
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OpenverseLicenseSettings(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+	AnimatedVisibility(visible = WallpaperSource.OPENVERSE in settings.enabledSources) {
 		var licenseExpanded by remember { mutableStateOf(false) }
 
 		Column {
@@ -345,26 +387,19 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 			)
 		}
 	}
+}
 
-	val pexafyEnabled = WallpaperSource.PEXAFY in settings.enabledSources
-	AnimatedVisibility(visible = wallhavenEnabled || pexafyEnabled) {
-		WallhavenFilterSettings(
-			settings = settings,
-			filterColor = filterColor,
-			onFilterColorChange = { filterColor = it },
-			onSave = onSave
-		)
-	}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WallpaperOrientationSetting(settings: AppSettings, onSave: (AppSettings) -> Unit) {
+	var orientationExpanded by remember { mutableStateOf(false) }
+
 	Spacer(Modifier.height(16.dp))
 	SectionLabel(stringResource(R.string.settings_label_wallpaper_orientation))
 
 	ExposedDropdownMenuBox(expanded = orientationExpanded, onExpandedChange = { orientationExpanded = it }) {
 		OutlinedTextField(
-			value = when (settings.wallpaperOrientation) {
-				WallpaperOrientation.AUTOMATIC -> stringResource(R.string.settings_orientation_automatic)
-				WallpaperOrientation.PORTRAIT -> stringResource(R.string.settings_orientation_portrait)
-				WallpaperOrientation.LANDSCAPE -> stringResource(R.string.settings_orientation_landscape)
-			},
+			value = stringResource(wallpaperOrientationLabel(settings.wallpaperOrientation)),
 			onValueChange = {},
 			readOnly = true,
 			trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = orientationExpanded) },
@@ -376,15 +411,7 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		ExposedDropdownMenu(expanded = orientationExpanded, onDismissRequest = { orientationExpanded = false }) {
 			WallpaperOrientation.entries.forEach { orientation ->
 				DropdownMenuItem(
-					text = {
-						Text(
-							when (orientation) {
-								WallpaperOrientation.AUTOMATIC -> stringResource(R.string.settings_orientation_automatic)
-								WallpaperOrientation.PORTRAIT -> stringResource(R.string.settings_orientation_portrait)
-								WallpaperOrientation.LANDSCAPE -> stringResource(R.string.settings_orientation_landscape)
-							}
-						)
-					},
+					text = { Text(stringResource(wallpaperOrientationLabel(orientation))) },
 					onClick = {
 						if (orientation != settings.wallpaperOrientation) {
 							onSave(settings.copy(wallpaperOrientation = orientation))
@@ -403,40 +430,12 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 		color = MaterialTheme.colorScheme.onSurfaceVariant,
 		modifier = Modifier.padding(top = 4.dp)
 	)
+}
 
-	Spacer(Modifier.height(16.dp))
-
-	ToggleSetting(
-		label = stringResource(R.string.settings_label_avoid_blurry),
-		subtitle = stringResource(R.string.settings_subtitle_avoid_blurry),
-		checked = settings.avoidBlurryWallpapers,
-		onToggle = { onSave(settings.copy(avoidBlurryWallpapers = it)) }
-	)
-
-	Spacer(Modifier.height(16.dp))
-
-	Row(
-		verticalAlignment = Alignment.CenterVertically,
-		modifier = Modifier
-			.fillMaxWidth()
-			.clickable { onNavigateToBlocklist() }
-			.padding(vertical = 8.dp)
-	) {
-		Column(modifier = Modifier.weight(1f)) {
-			Text(stringResource(R.string.blocklist_settings_row))
-			Text(
-				stringResource(R.string.blocklist_settings_subtitle, settings.blockedIds.size),
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
-			)
-		}
-
-		Icon(
-			Icons.AutoMirrored.Filled.KeyboardArrowRight,
-			contentDescription = null,
-			tint = MaterialTheme.colorScheme.onSurfaceVariant
-		)
-	}
+private fun wallpaperOrientationLabel(orientation: WallpaperOrientation) = when (orientation) {
+	WallpaperOrientation.AUTOMATIC -> R.string.settings_orientation_automatic
+	WallpaperOrientation.PORTRAIT -> R.string.settings_orientation_portrait
+	WallpaperOrientation.LANDSCAPE -> R.string.settings_orientation_landscape
 }
 
 @Composable
@@ -725,34 +724,6 @@ private fun ScheduleTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 
 @Composable
 private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
-	var apiKey by rememberSaveable { mutableStateOf(settings.apiKey) }
-	var pexafyApiKey by rememberSaveable { mutableStateOf(settings.pexafyApiKey) }
-	val uriHandler = LocalUriHandler.current
-
-	LaunchedEffect(settings.apiKey) {
-		if (apiKey != settings.apiKey) {
-			apiKey = settings.apiKey
-		}
-	}
-
-	LaunchedEffect(settings.pexafyApiKey) {
-		if (pexafyApiKey != settings.pexafyApiKey) {
-			pexafyApiKey = settings.pexafyApiKey
-		}
-	}
-
-	PersistOnChange(
-		value = apiKey,
-		upstream = settings.apiKey,
-		onPersist = { onSave(settings.copy(apiKey = it)) }
-	)
-
-	PersistOnChange(
-		value = pexafyApiKey,
-		upstream = settings.pexafyApiKey,
-		onPersist = { onSave(settings.copy(pexafyApiKey = it)) }
-	)
-
 	SectionLabel(stringResource(R.string.settings_label_pool_size))
 
 	Text(
@@ -778,47 +749,6 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 		}
 	}
 
-	AnimatedVisibility(visible = WallpaperSource.WALLHAVEN in settings.enabledSources) {
-		Column {
-			Spacer(Modifier.height(16.dp))
-			SectionLabel(stringResource(R.string.settings_label_api_key))
-
-			OutlinedTextField(
-				value = apiKey,
-				onValueChange = { apiKey = it },
-				placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
-				visualTransformation = PasswordVisualTransformation(),
-				keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-				modifier = Modifier.fillMaxWidth()
-			)
-		}
-	}
-
-	AnimatedVisibility(visible = WallpaperSource.PEXAFY in settings.enabledSources) {
-		Column {
-			Spacer(Modifier.height(16.dp))
-			SectionLabel(stringResource(R.string.settings_label_pexafy_api_key))
-
-			OutlinedTextField(
-				value = pexafyApiKey,
-				onValueChange = { pexafyApiKey = it },
-				placeholder = { Text(stringResource(R.string.settings_placeholder_pexafy_api_key)) },
-				visualTransformation = PasswordVisualTransformation(),
-				keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-				modifier = Modifier.fillMaxWidth()
-			)
-
-			Text(
-				text = stringResource(R.string.settings_link_create_pexafy_api_key),
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.primary,
-				textDecoration = TextDecoration.Underline,
-				modifier = Modifier
-					.padding(top = 4.dp)
-					.clickable { uriHandler.openUri("https://pexafy.com/dashboard/api-keys/create") }
-			)
-		}
-	}
 }
 
 @Composable

@@ -1,15 +1,5 @@
 package xyz.attacktive.wallhavend.ui.home
 
-import java.io.File
-import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import android.content.Context
 import android.media.MediaScannerConnection
 import android.os.Build
@@ -18,10 +8,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import xyz.attacktive.wallhavend.R
+import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ServiceState
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
+import xyz.attacktive.wallhavend.domain.model.providerSource
+import xyz.attacktive.wallhavend.domain.model.requiresPexafySetup
 import xyz.attacktive.wallhavend.domain.repository.ServiceStateRepository
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.service.RotationScheduler
@@ -40,8 +45,23 @@ class HomeViewModel @Inject constructor(
 	private val rotationScheduler: RotationScheduler,
 	@param:ApplicationContext private val context: Context
 ): ViewModel() {
-	val serviceState = stateRepository.state
-		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
+	val serviceState = combine(stateRepository.state, settingsRepository.settings) { state, settings ->
+		state.copy(
+			error = state.error?.takeIf { it.providerSource == null },
+			providerFailures = state.providerFailures.filterValues { it.isCurrent(settings) }
+		)
+	}
+	.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ServiceState())
+
+	val configurationError = settingsRepository.settings
+		.map {
+			if (it.requiresPexafySetup) {
+				AppError.MissingApiKey(WallpaperSource.PEXAFY)
+			} else {
+				null
+			}
+		}
+		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
 	val autoUpdateEnabled = settingsRepository.settings
 		.map { it.autoUpdateEnabled }
@@ -58,6 +78,7 @@ class HomeViewModel @Inject constructor(
 	val wallpaperMetadata = settingsRepository.settings
 		.map { it.wallpaperMetadata }
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
 	private val _saveMessage = MutableSharedFlow<String>(extraBufferCapacity = 1)
 	val saveMessage = _saveMessage.asSharedFlow()
 
@@ -200,6 +221,7 @@ class HomeViewModel @Inject constructor(
 					metadata?.galleryDescription?.let { description ->
 						embedExifDescription(destinationFile, description)
 					}
+
 					MediaScannerConnection.scanFile(context, arrayOf(destinationFile.absolutePath), arrayOf(mimeType), null)
 				}
 			}

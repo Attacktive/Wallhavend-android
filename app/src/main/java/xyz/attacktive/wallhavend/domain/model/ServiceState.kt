@@ -6,5 +6,6 @@ data class ServiceState(
 	val previousWallpaperPath: String? = null,
 	val poolPaths: List<String> = emptyList(),
 	val isOnline: Boolean = true,
-	val error: AppError? = null
+	val error: AppError? = null,
+	val providerFailures: Map<WallpaperSource, ProviderFailure> = emptyMap()
 )

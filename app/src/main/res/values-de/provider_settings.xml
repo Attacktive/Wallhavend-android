@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="provider_wallhaven_key">Wallhaven-API-Schlüssel (optional, für NSFW erforderlich)</string>
+	<string name="provider_pexafy_setup_required">Pexafy benötigt einen API-Schlüssel. Es bleibt inaktiv, bis du den Schlüssel speicherst und Pexafy aktivierst.</string>
+	<string name="provider_pexafy_cancel_setup">Abbrechen</string>
+	<string name="provider_pexafy_save_enable">Speichern &amp; Pexafy aktivieren</string>
+	<string name="provider_pexafy_remove_disable">Schlüssel entfernen &amp; Pexafy deaktivieren</string>
+	<string name="provider_key_remove">Schlüssel entfernen</string>
+	<string name="provider_key_save">Schlüssel speichern</string>
+	<string name="provider_key_choose_replacement">Wähle oben Wallhaven oder Openverse aus, bevor du den Schlüssel entfernst. Dein aktueller Schlüssel bleibt gespeichert, bis du das Entfernen bestätigst.</string>
+	<string name="provider_key_unsaved">Änderungen werden erst beim Speichern wirksam.</string>
+	<string name="provider_key_not_validated">Das Speichern prüft nicht die Gültigkeit des Schlüssels. Fehler bei Zugangsdaten, Kontingent und Verbindung werden bei der Nutzung von Pexafy gemeldet.</string>
+</resources>

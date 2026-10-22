@@ -93,8 +93,8 @@
 	<string name="error_apply_failed">⚠ 壁紙の適用に失敗しました: %s</string>
 	<string name="error_network_error">⚠ ネットワークエラー: %s</string>
 	<string name="error_network_error_source">⚠ %1$s に接続できません — 自動的に再試行します</string>
-	<string name="error_missing_api_key">⚠ %1$s にはAPIキーが必要です — 設定 → 詳細設定で追加してください</string>
-	<string name="error_invalid_api_key">⚠ %1$s のAPIキーが無効です — 設定 → 詳細設定でキーを確認してください</string>
+	<string name="error_missing_api_key">⚠ %1$s にはAPIキーが必要です — 設定 → コンテンツで追加してください</string>
+	<string name="error_invalid_api_key">⚠ %1$s のAPIキーが無効です — 設定 → コンテンツでキーを確認してください</string>
 	<string name="error_quota_exceeded">⚠ %1$s の月間クォータを超過しました — 毎月1日にリセットされます</string>
 	<string name="error_rate_limited">⚠ %1$s のレート制限に達しました — %2$d秒後に再試行します</string>
 	<string name="error_rate_limited_generic">⚠ %1$s のレート制限に達しました — 自動的に再試行します</string>

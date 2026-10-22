@@ -93,8 +93,8 @@
 	<string name="error_apply_failed">⚠ Hintergrundbild konnte nicht angewendet werden: %s</string>
 	<string name="error_network_error">⚠ Netzwerkfehler: %s</string>
 	<string name="error_network_error_source">⚠ %1$s ist nicht erreichbar — automatischer Neuversuch</string>
-	<string name="error_missing_api_key">⚠ %1$s erfordert einen API-Key — fügen Sie einen unter Einstellungen → Erweitert hinzu</string>
-	<string name="error_invalid_api_key">⚠ Ungültiger %1$s API-Key — überprüfen Sie Ihren Key unter Einstellungen → Erweitert</string>
+	<string name="error_missing_api_key">⚠ %1$s erfordert einen API-Key — fügen Sie einen unter Einstellungen → Inhalt hinzu</string>
+	<string name="error_invalid_api_key">⚠ Ungültiger %1$s API-Key — überprüfen Sie Ihren Key unter Einstellungen → Inhalt</string>
 	<string name="error_quota_exceeded">⚠ Monatliches Kontingent für %1$s überschritten — wird am 1. des Monats zurückgesetzt</string>
 	<string name="error_rate_limited">⚠ %1$s-Ratenlimit erreicht — erneuter Versuch nach %2$ds</string>
 	<string name="error_rate_limited_generic">⚠ %1$s-Ratenlimit erreicht — automatischer Neuversuch</string>

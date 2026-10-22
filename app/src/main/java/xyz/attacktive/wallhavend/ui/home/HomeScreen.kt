@@ -1,8 +1,5 @@
 package xyz.attacktive.wallhavend.ui.home
 
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -53,6 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 import xyz.attacktive.wallhavend.BuildConfig
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppError
@@ -64,6 +64,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 @Composable
 fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
+	val configurationError by viewModel.configurationError.collectAsStateWithLifecycle()
 	val autoUpdateEnabled by viewModel.autoUpdateEnabled.collectAsStateWithLifecycle()
 	val pinnedIds by viewModel.pinnedIds.collectAsStateWithLifecycle()
 	val rotationMode by viewModel.rotationMode.collectAsStateWithLifecycle()
@@ -101,7 +102,10 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 				onUpdateNow = viewModel::updateNow
 			)
 
-			state.error?.let { error ->
+			val providerErrors = state.providerFailures.toSortedMap().values.map { it.error }
+			val errors = listOfNotNull(configurationError, state.error) + providerErrors
+
+			errors.distinct().forEach { error ->
 				Spacer(modifier = Modifier.height(8.dp))
 				ErrorBanner(error = error)
 			}
@@ -112,7 +116,6 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 			}
 
 			val pinnedRotationIdle = autoUpdateEnabled && rotationMode == RotationMode.PINNED_ONLY && pinnedIds.isEmpty()
-
 			if (pinnedRotationIdle) {
 				Spacer(modifier = Modifier.height(8.dp))
 				PinnedIdleBanner()
@@ -141,7 +144,13 @@ private fun StatusCard(state: ServiceState, autoUpdateEnabled: Boolean) {
 		Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
 			Column(modifier = Modifier.weight(1f)) {
 				Text(
-					text = stringResource(if (autoUpdateEnabled) R.string.home_status_auto_update_on else R.string.home_status_auto_update_off),
+					text = stringResource(
+						if (autoUpdateEnabled) {
+							R.string.home_status_auto_update_on
+						} else {
+							R.string.home_status_auto_update_off
+						}
+					),
 					style = MaterialTheme.typography.labelMedium,
 					color = if (autoUpdateEnabled) {
 						MaterialTheme.colorScheme.primary
@@ -178,7 +187,15 @@ private fun QuickActions(autoUpdateEnabled: Boolean, onStartStop: () -> Unit, on
 			)
 
 			Spacer(Modifier.width(4.dp))
-			Text(stringResource(if (autoUpdateEnabled) R.string.home_action_stop else R.string.home_action_start))
+			Text(
+				stringResource(
+					if (autoUpdateEnabled) {
+						R.string.home_action_stop
+					} else {
+						R.string.home_action_start
+					}
+				)
+			)
 		}
 
 		OutlinedButton(onClick = onUpdateNow) {
