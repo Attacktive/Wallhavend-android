@@ -1,8 +1,5 @@
 package xyz.attacktive.wallhavend.ui.home
 
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -53,6 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 import xyz.attacktive.wallhavend.BuildConfig
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppError
@@ -64,6 +64,7 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 @Composable
 fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
 	val state by viewModel.serviceState.collectAsStateWithLifecycle()
+	val configurationError by viewModel.configurationError.collectAsStateWithLifecycle()
 	val autoUpdateEnabled by viewModel.autoUpdateEnabled.collectAsStateWithLifecycle()
 	val pinnedIds by viewModel.pinnedIds.collectAsStateWithLifecycle()
 	val rotationMode by viewModel.rotationMode.collectAsStateWithLifecycle()
@@ -101,7 +102,8 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 				onUpdateNow = viewModel::updateNow
 			)
 
-			state.error?.let { error ->
+			val errors = listOfNotNull(configurationError, state.error) + state.providerFailures.toSortedMap().values.map { it.error }
+			errors.distinct().forEach { error ->
 				Spacer(modifier = Modifier.height(8.dp))
 				ErrorBanner(error = error)
 			}

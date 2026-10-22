@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="provider_wallhaven_key">Wallhaven API キー（任意、NSFW には必須）</string>
+	<string name="provider_pexafy_setup_required">Pexafy には API キーが必要です。キーを保存して有効にするまで、Pexafy は無効のままです。</string>
+	<string name="provider_pexafy_save_enable">保存して Pexafy を有効にする</string>
+	<string name="provider_pexafy_remove_disable">キーを削除して Pexafy を無効にする</string>
+	<string name="provider_key_remove">キーを削除</string>
+	<string name="provider_key_save">キーを保存</string>
+	<string name="provider_key_choose_replacement">キーを削除する前に、上で Wallhaven または Openverse を選択してください。削除を確定するまで、現在のキーは保存されたままです。</string>
+	<string name="provider_key_unsaved">変更は保存した後に適用されます。</string>
+	<string name="provider_key_not_validated">キーを保存しても有効性は確認されません。認証情報、利用枠、接続のエラーは Pexafy の使用時に表示されます。</string>
+</resources>

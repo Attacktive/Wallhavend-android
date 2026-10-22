@@ -1,12 +1,5 @@
 package xyz.attacktive.wallhavend.domain.repository
 
-import javax.inject.Inject
-import javax.inject.Qualifier
-import javax.inject.Singleton
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -15,21 +8,32 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import kotlinx.serialization.encodeToString
+import javax.inject.Inject
+import javax.inject.Qualifier
+import javax.inject.Singleton
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 import xyz.attacktive.wallhavend.domain.model.WallpaperOrientation
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
+import xyz.attacktive.wallhavend.domain.model.configuredSources
 import xyz.attacktive.wallhavend.domain.model.query.Category
 import xyz.attacktive.wallhavend.domain.model.query.LicenseFilter
 import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
+import xyz.attacktive.wallhavend.domain.model.withPexafyKey
 import xyz.attacktive.wallhavend.util.AppLogger
 
 @Qualifier
@@ -47,6 +51,8 @@ class SettingsRepository @Inject constructor(
 	private val logger: AppLogger
 ) {
 	internal constructor(dataStore: DataStore<Preferences>, logger: AppLogger) : this(dataStore, dataStore, logger)
+
+	private val providerConfigurationMutex = Mutex()
 
 	private object Keys {
 		val ENABLED_SOURCES = stringSetPreferencesKey("enabled_sources")
@@ -134,19 +140,26 @@ class SettingsRepository @Inject constructor(
 		)
 	}
 
-	suspend fun save(settings: AppSettings) {
+	suspend fun save(settings: AppSettings) = saveSettings(settings, includeProviderConfiguration = true)
+
+	/** Ordinary settings edits must not replay a stale provider selection or credential snapshot. */
+	suspend fun savePreferences(settings: AppSettings) = saveSettings(settings, includeProviderConfiguration = false)
+
+	private suspend fun saveSettings(settings: AppSettings, includeProviderConfiguration: Boolean) = providerConfigurationMutex.withLock {
 		logger.debug(TAG, "save: ${settings.redactedForLog()}")
 
-		credentialDataStore.edit { credentials ->
-			credentials[CredentialKeys.API_KEY] = settings.apiKey
-			credentials[CredentialKeys.PEXAFY_API_KEY] = settings.pexafyApiKey
+		if (includeProviderConfiguration) {
+			credentialDataStore.edit { credentials ->
+				credentials[CredentialKeys.API_KEY] = settings.apiKey
+				credentials[CredentialKeys.PEXAFY_API_KEY] = settings.pexafyApiKey
+			}
 		}
 
 		dataStore.edit { preferences ->
 			// Sources persist by their stable key rather than their enum name, for the same reason wallpaper ids do: the stored value has to outlive any renaming in the code.
-			preferences[Keys.ENABLED_SOURCES] = settings.enabledSources
-				.map { it.key }
-				.toSet()
+			if (includeProviderConfiguration) {
+				preferences[Keys.ENABLED_SOURCES] = settings.enabledSources.map { it.key }.toSet()
+			}
 
 			preferences[Keys.SEARCH_QUERY] = settings.searchQuery
 
@@ -178,6 +191,47 @@ class SettingsRepository @Inject constructor(
 		}
 
 		logger.debug(TAG, "save() completed")
+	}
+
+	/** Provider changes operate on the latest persisted selection, not a composable's snapshot. */
+	suspend fun toggleSource(source: WallpaperSource) = providerConfigurationMutex.withLock {
+		val current = settings.first()
+		val selected = current.configuredSources
+		val updated = when {
+			source in selected && selected.size > 1 -> selected - source
+			source in selected -> selected
+			source == WallpaperSource.PEXAFY && current.pexafyApiKey.isBlank() -> throw IllegalArgumentException("Pexafy requires an API key")
+			else -> selected + source
+		}
+
+		writeSources(updated)
+	}
+
+	suspend fun saveWallhavenKey(key: String) = providerConfigurationMutex.withLock {
+		credentialDataStore.edit { it[CredentialKeys.API_KEY] = key.trim() }
+		Unit
+	}
+
+	suspend fun savePexafyKey(key: String, enable: Boolean) = providerConfigurationMutex.withLock {
+		val current = settings.first()
+		val updated = current.withPexafyKey(key, enable)
+
+		// Two DataStores cannot commit together: disable before deletion, but store a key before activation.
+		if (updated.pexafyApiKey.isBlank()) {
+			writeSources(updated.enabledSources)
+		}
+
+		credentialDataStore.edit { it[CredentialKeys.PEXAFY_API_KEY] = updated.pexafyApiKey }
+
+		if (updated.pexafyApiKey.isNotBlank() && updated.enabledSources != current.enabledSources) {
+			writeSources(updated.enabledSources)
+		}
+	}
+
+	private suspend fun writeSources(sources: Set<WallpaperSource>) {
+		require(sources.isNotEmpty()) { "Select another source before removing Pexafy" }
+
+		dataStore.edit { it[Keys.ENABLED_SOURCES] = sources.map { source -> source.key }.toSet() }
 	}
 
 	/*

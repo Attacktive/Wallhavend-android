@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="provider_wallhaven_key">Clé API Wallhaven (facultative, requise pour le contenu NSFW)</string>
+	<string name="provider_pexafy_setup_required">Pexafy nécessite une clé API. Il reste inactif tant que vous ne sauvegardez pas la clé et ne l’activez pas.</string>
+	<string name="provider_pexafy_save_enable">Enregistrer et activer Pexafy</string>
+	<string name="provider_pexafy_remove_disable">Supprimer la clé et désactiver Pexafy</string>
+	<string name="provider_key_remove">Supprimer la clé</string>
+	<string name="provider_key_save">Enregistrer la clé</string>
+	<string name="provider_key_choose_replacement">Sélectionnez Wallhaven ou Openverse ci-dessus avant de supprimer la clé. Votre clé actuelle reste enregistrée jusqu’à confirmation de sa suppression.</string>
+	<string name="provider_key_unsaved">Les modifications ne prennent effet qu’une fois enregistrées.</string>
+	<string name="provider_key_not_validated">Enregistrer une clé ne vérifie pas sa validité. Les erreurs d’identifiants, de quota et de connexion sont signalées lors de l’utilisation de Pexafy.</string>
+</resources>
