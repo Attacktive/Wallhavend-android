@@ -38,11 +38,11 @@ import xyz.attacktive.wallhavend.domain.model.configuredSources
 internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewModel) {
 	val saving by viewModel.savingProvider.collectAsStateWithLifecycle()
 	var showPexafySetup by rememberSaveable { mutableStateOf(false) }
-	val pexafySelected = WallpaperSource.PEXAFY in settings.enabledSources
+	val pexafyConfigured = WallpaperSource.PEXAFY in settings.configuredSources
 
-	// Once Pexafy is selected, dismiss temporary setup so disabling it hides the credential field.
-	LaunchedEffect(pexafySelected) {
-		if (pexafySelected) {
+	// Once Pexafy becomes configured, dismiss temporary setup so disabling it hides the credential field.
+	LaunchedEffect(pexafyConfigured) {
+		if (pexafyConfigured) {
 			showPexafySetup = false
 		}
 	}
