@@ -57,7 +57,7 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 	val focusManager = LocalFocusManager.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 
-	val dismissPexafySetup = {
+	val dismissPexafySetup: () -> Unit = {
 		showPexafySetup = false
 		pexafyKey = settings.pexafyApiKey
 		focusManager.clearFocus()
@@ -78,13 +78,19 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 	)
 
 	AnimatedVisibility(visible = settings.shouldShowPexafyKeyEditor(showPexafySetup)) {
+		val cancelPexafySetup = if (settings.canDismissPexafySetup(showPexafySetup)) {
+			dismissPexafySetup
+		} else {
+			null
+		}
+
 		PexafyKeySettings(
 			settings = settings,
 			key = pexafyKey,
 			onKeyChange = { pexafyKey = it },
 			saving = saving,
 			onSave = viewModel::savePexafyKey,
-			onCancel = if (settings.canDismissPexafySetup(showPexafySetup)) dismissPexafySetup else null
+			onCancel = cancelPexafySetup
 		)
 	}
 
