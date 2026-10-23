@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       target_version:
-        description: 'Beta version to promote. Blank = latest completed beta.'
+        description: 'Beta version to promote. Blank = latest published beta.'
         required: false
         type: 'string'
   repository_dispatch:

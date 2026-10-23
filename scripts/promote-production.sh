@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Promote an already-published beta version to Google Play production without rebuilding it.
-# An explicit target must be an existing Wallhavend tag whose exact versionCode is completed on the beta track.
-# With no target, the latest completed beta versionCode is mapped back to its Wallhavend tag.
+# An explicit target must match a Wallhavend tag and a published beta artifact.
+# With no target, the latest published beta versionCode is mapped back to its Wallhavend tag.
 set -euo pipefail
+
+# shellcheck source=scripts/play-release-state.sh
+source "$(dirname "${BASH_SOURCE[0]}")/play-release-state.sh"
 
 PACKAGE_NAME='xyz.attacktive.wallhavend'
 TARGET_VERSION="${1:-${TARGET_VERSION:-}}"
@@ -149,28 +152,26 @@ if [ -n "${GITHUB_ACTIONS:-}" ]; then
 	echo "::add-mask::${access_token}"
 fi
 
-edit="$(play_api POST 'edits' '{}')"
-edit_id="$(jq -r '.id // empty' <<< "${edit}")"
-if [ -z "${edit_id}" ]; then
-	echo 'Google Play did not return an edit ID' >&2
-	exit 1
-fi
+# Release history retains published beta artifacts while newer changes are awaiting review.
+beta_releases="$(play_api GET 'tracks/beta/releases')"
+production_releases="$(play_api GET 'tracks/production/releases')"
+summarize_play_releases beta <<< "${beta_releases}"
+summarize_play_releases production <<< "${production_releases}"
 
-beta_track="$(play_api GET "edits/${edit_id}/tracks/beta")"
 if [ -z "${TARGET_VERSION}" ]; then
-	target_version_code="$(jq -r '[.releases[]? | select(.status == "completed") | .versionCodes[]? | tonumber] | max // empty' <<< "${beta_track}")"
+	target_version_code="$(latest_published_version_code <<< "${beta_releases}")"
 	if [ -z "${target_version_code}" ]; then
-		echo 'Beta has no completed release to promote' >&2
+		echo 'Beta has no published release to promote' >&2
 		exit 1
 	fi
 
 	TARGET_VERSION="$(tag_for_version_code "${target_version_code}" || true)"
 	if [ -z "${TARGET_VERSION}" ]; then
-		echo "Could not map latest completed beta versionCode ${target_version_code} to a Git tag" >&2
+		echo "Could not map latest published beta versionCode ${target_version_code} to a Git tag" >&2
 		exit 1
 	fi
 	if [[ ! "${TARGET_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-		echo "Latest completed beta versionCode ${target_version_code} maps to a non-semantic tag: ${TARGET_VERSION}" >&2
+		echo "Latest published beta versionCode ${target_version_code} maps to a non-semantic tag: ${TARGET_VERSION}" >&2
 		exit 1
 	fi
 
@@ -180,11 +181,32 @@ if [ -z "${TARGET_VERSION}" ]; then
 		exit 1
 	fi
 else
-	beta_status="$(jq -r --arg version_code "${target_version_code}" '[.releases[]? | select(.status == "completed" and any(.versionCodes[]?; (. | tostring) == ($version_code | tostring)))] | if length > 0 then "completed" else empty end' <<< "${beta_track}")"
-	if [ "${beta_status}" != 'completed' ]; then
-		echo "Version ${TARGET_VERSION} (${target_version_code}) is not a completed beta release" >&2
+	if ! is_published_version_code "${target_version_code}" <<< "${beta_releases}"; then
+		state="$(release_states_for_version_code "${target_version_code}" <<< "${beta_releases}")"
+		echo "Version ${TARGET_VERSION} (${target_version_code}) is not a published beta release (state: ${state})" >&2
 		exit 1
 	fi
+fi
+
+# Do not disturb pending Play reviews. ERROR_IF_IN_REVIEW at commit also protects other tracks and races.
+beta_in_review="$(releases_in_review <<< "${beta_releases}")"
+production_in_review="$(releases_in_review <<< "${production_releases}")"
+if [ -n "${beta_in_review}" ] || [ -n "${production_in_review}" ]; then
+	echo 'Production promotion blocked: Google Play has releases in review; existing reviews will not be canceled.' >&2
+	if [ -n "${beta_in_review}" ]; then
+		printf '  Beta: %s\n' "${beta_in_review}" >&2
+	fi
+	if [ -n "${production_in_review}" ]; then
+		printf '  Production: %s\n' "${production_in_review}" >&2
+	fi
+	exit 1
+fi
+
+edit="$(play_api POST 'edits' '{}')"
+edit_id="$(jq -r '.id // empty' <<< "${edit}")"
+if [ -z "${edit_id}" ]; then
+	echo 'Google Play did not return an edit ID' >&2
+	exit 1
 fi
 
 production_track="$(play_api GET "edits/${edit_id}/tracks/production")"
