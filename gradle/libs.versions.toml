@@ -19,7 +19,7 @@ coreKtx = "1.19.1"
 activityCompose = "1.13.0"
 junit = "4.13.2"
 coroutinesTest = "1.11.0"
-mockk = "1.14.11"
+mockk = "1.14.12"
 exifinterface = "1.4.2"
 
 [libraries]
