@@ -10,13 +10,13 @@ internal class MediaStoreExporter(private val contentResolver: ContentResolver) 
 	fun save(file: File, mimeType: String, metadata: WallpaperMetadata? = null) {
 		val description = metadata?.galleryDescription
 		val sourceFile = if (description != null) {
-			val tempFile = File.createTempFile("wallhavend_export_", ".${file.extension}")
+			val temporaryFile = File.createTempFile("wallhavend_export_", ".${file.extension}")
 			try {
-				file.copyTo(tempFile, overwrite = true)
-				embedExifDescription(tempFile, description)
-				tempFile
+				file.copyTo(temporaryFile, overwrite = true)
+				embedExifDescription(temporaryFile, description)
+				temporaryFile
 			} catch (exception: Throwable) {
-				tempFile.delete()
+				temporaryFile.delete()
 				throw exception
 			}
 		} else {

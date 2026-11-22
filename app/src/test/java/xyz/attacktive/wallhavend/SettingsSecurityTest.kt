@@ -24,14 +24,14 @@ import xyz.attacktive.wallhavend.domain.repository.clearRestoredApiKeys
 
 class SettingsSecurityTest {
 	@get:Rule
-	val tmpFolder = TemporaryFolder()
+	val temporaryFolder = TemporaryFolder()
 
 	private fun dataStore(file: File, scope: CoroutineScope) = PreferenceDataStoreFactory.create(
 		scope = scope,
 		produceFile = { file }
 	)
 
-	private fun TestScope.dataStore(name: String) = dataStore(tmpFolder.newFile("$name.preferences_pb"), backgroundScope)
+	private fun TestScope.dataStore(name: String) = dataStore(temporaryFolder.newFile("$name.preferences_pb"), backgroundScope)
 
 	@Test
 	fun `API key is stored outside the normal settings DataStore`() = runTest {
@@ -67,7 +67,7 @@ class SettingsSecurityTest {
 	fun `restoring a legacy settings snapshot discards API key`() = runTest {
 		val apiKey = stringPreferencesKey("api_key")
 		val searchQuery = stringPreferencesKey("search_query")
-		val snapshotFile = tmpFolder.newFile("legacy_snapshot.preferences_pb")
+		val snapshotFile = temporaryFolder.newFile("legacy_snapshot.preferences_pb")
 		val legacyScope = CoroutineScope(backgroundScope.coroutineContext + Job())
 		val legacyStore = dataStore(snapshotFile, legacyScope)
 
@@ -78,7 +78,7 @@ class SettingsSecurityTest {
 
 		legacyScope.coroutineContext.job.cancelAndJoin()
 
-		val restoredSettingsFile = tmpFolder.newFile("restored_settings.preferences_pb")
+		val restoredSettingsFile = temporaryFolder.newFile("restored_settings.preferences_pb")
 		snapshotFile.copyTo(restoredSettingsFile, overwrite = true)
 
 		val settingsStore = dataStore(restoredSettingsFile, backgroundScope)

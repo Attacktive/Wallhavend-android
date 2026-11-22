@@ -32,11 +32,11 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperRotationExecutor
 
 class WallpaperRotationExecutorRestoreTest {
 	@get:Rule
-	val tmpFolder = TemporaryFolder()
+	val temporaryFolder = TemporaryFolder()
 
 	@Test
 	fun `manual mutation before restore does not hide the cached pool`() = runTest {
-		val cached = File(tmpFolder.root, "cached.jpg").also { it.writeText("cached") }
+		val cached = File(temporaryFolder.root, "cached.jpg").also { it.writeText("cached") }
 		val settingsRepository = mockk<SettingsRepository>()
 		every { settingsRepository.settings } returns flowOf(AppSettings())
 		coEvery { settingsRepository.loadServiceState() } returns Triple(123L, cached.absolutePath, null)
@@ -70,7 +70,7 @@ class WallpaperRotationExecutorRestoreTest {
 
 	@Test
 	fun `performUpdate maps Pexafy MissingApiKey, QuotaExceeded, and RateLimited exceptions to actionable AppErrors`() = runTest {
-		val cached = File(tmpFolder.root, "cached.jpg").also { it.writeText("cached") }
+		val cached = File(temporaryFolder.root, "cached.jpg").also { it.writeText("cached") }
 		val settingsRepository = mockk<SettingsRepository>(relaxed = true)
 		every { settingsRepository.settings } returns flowOf(AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY)))
 
@@ -110,7 +110,7 @@ class WallpaperRotationExecutorRestoreTest {
 
 	@Test
 	fun `performUpdate remembers thumbnail URL when a Pexafy wallpaper is fetched`() = runTest {
-		val downloaded = File(tmpFolder.root, "pexafy_p1.jpg").also { it.writeText("image") }
+		val downloaded = File(temporaryFolder.root, "pexafy_p1.jpg").also { it.writeText("image") }
 		val identity = WallpaperIdentity(WallpaperSource.PEXAFY, "p1")
 		val wallpaper = Wallpaper(identity, "https://cdn/p1.jpg", thumbnailUrl = "https://cdn/p1-thumb.jpg")
 
@@ -147,7 +147,7 @@ class WallpaperRotationExecutorRestoreTest {
 
 	@Test
 	fun `performUpdate surfaces Pexafy error even when Wallhaven succeeds as fallback`() = runTest {
-		val downloaded = File(tmpFolder.root, "wh.jpg").also { it.writeText("image") }
+		val downloaded = File(temporaryFolder.root, "wh.jpg").also { it.writeText("image") }
 		val wallpaper = Wallpaper(WallpaperIdentity(WallpaperSource.WALLHAVEN, "wh"), "https://cdn/wh.jpg")
 
 		val settingsRepository = mockk<SettingsRepository>(relaxed = true)
@@ -188,7 +188,7 @@ class WallpaperRotationExecutorRestoreTest {
 
 	@Test
 	fun `performUpdate surfaces MissingApiKey when Pexafy is enabled with blank key even if Wallhaven succeeds without contacting Pexafy`() = runTest {
-		val downloaded = File(tmpFolder.root, "wh.jpg").also { it.writeText("image") }
+		val downloaded = File(temporaryFolder.root, "wh.jpg").also { it.writeText("image") }
 		val wallpaper = Wallpaper(WallpaperIdentity(WallpaperSource.WALLHAVEN, "wh"), "https://cdn/wh.jpg")
 
 		val settingsRepository = mockk<SettingsRepository>(relaxed = true)

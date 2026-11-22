@@ -33,7 +33,7 @@ class RotationScheduler @Inject constructor(
 	private val alarmManager = context.getSystemService(AlarmManager::class.java)
 	private val workManager by lazy { WorkManager.getInstance(context) }
 
-	suspend fun start(): Boolean = mutex.withLock {
+	suspend fun start() = mutex.withLock {
 		val settings = settingsRepository.settings.first()
 		if (settings.autoUpdateEnabled) {
 			reconcileLocked(RotationReconciliationTrigger.FOREGROUND)
@@ -94,7 +94,7 @@ class RotationScheduler @Inject constructor(
 		armAlarm(nextDelivery)
 	}
 
-	internal suspend fun prepareAutomaticWork(delivery: RotationDelivery, workId: String): Boolean = mutex.withLock {
+	internal suspend fun prepareAutomaticWork(delivery: RotationDelivery, workId: String) = mutex.withLock {
 		val settings = settingsRepository.settings.first()
 		val state = scheduleRepository.read()
 		val currentBootCount = currentBootCount()
@@ -207,17 +207,13 @@ class RotationScheduler @Inject constructor(
 		return successorState
 	}
 
-	private fun armAlarm(delivery: RotationDelivery, triggerElapsedRealtime: Long = delivery.dueElapsedRealtime) {
-		alarmManager.setAndAllowWhileIdle(
-			AlarmManager.ELAPSED_REALTIME_WAKEUP,
-			triggerElapsedRealtime,
-			alarmPendingIntent(delivery)
-		)
-	}
+	private fun armAlarm(delivery: RotationDelivery, triggerElapsedRealtime: Long = delivery.dueElapsedRealtime) = alarmManager.setAndAllowWhileIdle(
+		AlarmManager.ELAPSED_REALTIME_WAKEUP,
+		triggerElapsedRealtime,
+		alarmPendingIntent(delivery)
+	)
 
-	private fun cancelAlarm() {
-		alarmManager.cancel(alarmPendingIntent(RotationDelivery(0, 0, 0)))
-	}
+	private fun cancelAlarm() = alarmManager.cancel(alarmPendingIntent(RotationDelivery(0, 0, 0)))
 
 	private fun alarmPendingIntent(delivery: RotationDelivery) = PendingIntent.getBroadcast(
 		context,

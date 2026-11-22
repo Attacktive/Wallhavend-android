@@ -19,41 +19,31 @@ import xyz.attacktive.wallhavend.domain.service.successorDueForWork
 
 class RotationSchedulerTest {
 	@Test
-	fun `overdue delivery advances to one phase-aligned future deadline`() {
-		assertEquals(400L, nextDueAfter(dueElapsedRealtime = 100, intervalMillis = 100, nowElapsedRealtime = 350))
-	}
+	fun `overdue delivery advances to one phase-aligned future deadline`() = assertEquals(400L, nextDueAfter(dueElapsedRealtime = 100, intervalMillis = 100, nowElapsedRealtime = 350))
 
 	@Test
-	fun `delivery exactly on a boundary advances to the following slot`() {
-		assertEquals(400L, nextDueAfter(dueElapsedRealtime = 300, intervalMillis = 100, nowElapsedRealtime = 300))
-	}
+	fun `delivery exactly on a boundary advances to the following slot`() = assertEquals(400L, nextDueAfter(dueElapsedRealtime = 300, intervalMillis = 100, nowElapsedRealtime = 300))
 
 	@Test
-	fun `early delivery keeps the original deadline`() {
-		assertEquals(300L, nextDueAfter(dueElapsedRealtime = 300, intervalMillis = 100, nowElapsedRealtime = 250))
-	}
+	fun `early delivery keeps the original deadline`() = assertEquals(300L, nextDueAfter(dueElapsedRealtime = 300, intervalMillis = 100, nowElapsedRealtime = 250))
 
 	@Test
-	fun `same boot and interval preserve the existing deadline`() {
-		assertEquals(
-			RotationReconciliationAction.ARM_EXISTING,
-			reconciliationAction(
-				trigger = RotationReconciliationTrigger.FOREGROUND,
-				state = scheduleState()
-			)
+	fun `same boot and interval preserve the existing deadline`() = assertEquals(
+		RotationReconciliationAction.ARM_EXISTING,
+		reconciliationAction(
+			trigger = RotationReconciliationTrigger.FOREGROUND,
+			state = scheduleState()
 		)
-	}
+	)
 
 	@Test
-	fun `foreground reconciliation resets a changed interval`() {
-		assertEquals(
-			RotationReconciliationAction.INITIALIZE,
-			reconciliationAction(
-				trigger = RotationReconciliationTrigger.FOREGROUND,
-				state = scheduleState(intervalMinutes = 30)
-			)
+	fun `foreground reconciliation resets a changed interval`() = assertEquals(
+		RotationReconciliationAction.INITIALIZE,
+		reconciliationAction(
+			trigger = RotationReconciliationTrigger.FOREGROUND,
+			state = scheduleState(intervalMinutes = 30)
 		)
-	}
+	)
 
 	@Test
 	fun `boot recovery honors auto start setting`() {
@@ -78,40 +68,34 @@ class RotationSchedulerTest {
 	}
 
 	@Test
-	fun `package replacement does not bypass disabled boot recovery`() {
-		assertEquals(
-			RotationReconciliationAction.INACTIVE,
-			reconciliationAction(
-				trigger = RotationReconciliationTrigger.PACKAGE_REPLACED,
-				state = scheduleState(bootCount = 4),
-				autoStartOnBoot = false
-			)
+	fun `package replacement does not bypass disabled boot recovery`() = assertEquals(
+		RotationReconciliationAction.INACTIVE,
+		reconciliationAction(
+			trigger = RotationReconciliationTrigger.PACKAGE_REPLACED,
+			state = scheduleState(bootCount = 4),
+			autoStartOnBoot = false
 		)
-	}
+	)
 
 	@Test
-	fun `package replacement bootstraps a legacy enabled install`() {
-		assertEquals(
-			RotationReconciliationAction.INITIALIZE,
-			reconciliationAction(
-				trigger = RotationReconciliationTrigger.PACKAGE_REPLACED,
-				state = RotationScheduleState(),
-				autoStartOnBoot = false
-			)
+	fun `package replacement bootstraps a legacy enabled install`() = assertEquals(
+		RotationReconciliationAction.INITIALIZE,
+		reconciliationAction(
+			trigger = RotationReconciliationTrigger.PACKAGE_REPLACED,
+			state = RotationScheduleState(),
+			autoStartOnBoot = false
 		)
-	}
+	)
 
 	@Test
-	fun `disabled scheduling is inert`() {
-		assertEquals(
-			RotationReconciliationAction.INACTIVE,
-			reconciliationAction(
-				trigger = RotationReconciliationTrigger.FOREGROUND,
-				state = scheduleState(),
-				autoUpdateEnabled = false
-			)
+	fun `disabled scheduling is inert`() = assertEquals(
+		RotationReconciliationAction.INACTIVE,
+		reconciliationAction(
+			trigger = RotationReconciliationTrigger.FOREGROUND,
+			state = scheduleState(),
+			autoUpdateEnabled = false
 		)
-	}
+	)
 
 	@Test
 	fun `stale alarm deliveries are rejected`() {
@@ -125,9 +109,7 @@ class RotationSchedulerTest {
 	}
 
 	@Test
-	fun `new automatic work claims a ready slot`() {
-		assertEquals(AutomaticWorkClaimAction.CLAIM, claimAction(scheduleState(generation = 3), workId = "worker-a"))
-	}
+	fun `new automatic work claims a ready slot`() = assertEquals(AutomaticWorkClaimAction.CLAIM, claimAction(scheduleState(generation = 3), workId = "worker-a"))
 
 	@Test
 	fun `interrupted automatic work resumes with the same durable work id`() {
@@ -152,19 +134,13 @@ class RotationSchedulerTest {
 	}
 
 	@Test
-	fun `redelivery of the same schedule slot uses the same unique work name`() {
-		assertEquals(automaticWorkName(delivery()), automaticWorkName(delivery()))
-	}
+	fun `redelivery of the same schedule slot uses the same unique work name`() = assertEquals(automaticWorkName(delivery()), automaticWorkName(delivery()))
 
 	@Test
-	fun `worker recovery advances an uncommitted successor deadline`() {
-		assertEquals(1_200L, successorDueForWork(nextDueElapsedRealtime = 1_000, deliveryDueElapsedRealtime = 1_000, intervalMillis = 100, nowElapsedRealtime = 1_150))
-	}
+	fun `worker recovery advances an uncommitted successor deadline`() = assertEquals(1_200L, successorDueForWork(nextDueElapsedRealtime = 1_000, deliveryDueElapsedRealtime = 1_000, intervalMillis = 100, nowElapsedRealtime = 1_150))
 
 	@Test
-	fun `worker recovery preserves an already committed successor deadline`() {
-		assertEquals(1_300L, successorDueForWork(nextDueElapsedRealtime = 1_300, deliveryDueElapsedRealtime = 1_000, intervalMillis = 100, nowElapsedRealtime = 1_150))
-	}
+	fun `worker recovery preserves an already committed successor deadline`() = assertEquals(1_300L, successorDueForWork(nextDueElapsedRealtime = 1_300, deliveryDueElapsedRealtime = 1_000, intervalMillis = 100, nowElapsedRealtime = 1_150))
 
 	private fun claimAction(state: RotationScheduleState, workId: String) = automaticWorkClaimAction(
 		autoUpdateEnabled = true,

@@ -40,12 +40,12 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperRotationExecutor
 
 class WallpaperServiceMutationTest {
 	@get:Rule
-	val tmpFolder = TemporaryFolder()
+	val temporaryFolder = TemporaryFolder()
 
 	@Test
 	fun `a manual update waits for a scheduled update through persistence`() = runTest {
-		val first = File(tmpFolder.root, "first.jpg").also { it.writeText("first") }
-		val second = File(tmpFolder.root, "second.jpg").also { it.writeText("second") }
+		val first = File(temporaryFolder.root, "first.jpg").also { it.writeText("first") }
+		val second = File(temporaryFolder.root, "second.jpg").also { it.writeText("second") }
 		val firstEntered = CountDownLatch(1)
 		val releaseFirst = CountDownLatch(1)
 		val secondEntered = CountDownLatch(1)
@@ -94,8 +94,8 @@ class WallpaperServiceMutationTest {
 
 	@Test
 	fun `queued apply keeps current and previous persistence in application order`() = runTest {
-		val first = File(tmpFolder.root, "first.jpg").also { it.writeText("first") }
-		val second = File(tmpFolder.root, "second.jpg").also { it.writeText("second") }
+		val first = File(temporaryFolder.root, "first.jpg").also { it.writeText("first") }
+		val second = File(temporaryFolder.root, "second.jpg").also { it.writeText("second") }
 		val firstEntered = CountDownLatch(1)
 		val releaseFirst = CountDownLatch(1)
 		val secondApplied = CountDownLatch(1)
@@ -140,12 +140,12 @@ class WallpaperServiceMutationTest {
 
 	@Test
 	fun `online update trim waits for an in-flight wallpaper apply`() = runTest {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-		val applying = File(wallpapersDir, "applying.jpg").also {
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+		val applying = File(wallpapersDirectory, "applying.jpg").also {
 			it.writeText("applying")
 			it.setLastModified(1)
 		}
-		val downloaded = File(wallpapersDir, "downloaded.jpg").also {
+		val downloaded = File(wallpapersDirectory, "downloaded.jpg").also {
 			it.writeText("downloaded")
 			it.setLastModified(2)
 		}
@@ -172,7 +172,7 @@ class WallpaperServiceMutationTest {
 		coEvery { wallpaperRepository.next(any(), any()) } returns Result.success(WallpaperRotationResult(wallpaper, downloaded))
 
 		val executor = executor(
-			fileManager = WallpaperFileManager(wallpapersDir, mockk(relaxed = true)),
+			fileManager = WallpaperFileManager(wallpapersDirectory, mockk(relaxed = true)),
 			settingsRepository = settingsRepository(AppSettings(rotationMode = RotationMode.FRESH_ANY, poolSize = 1)),
 			wallpaperRepository = wallpaperRepository,
 			wallpaperApplier = applier,

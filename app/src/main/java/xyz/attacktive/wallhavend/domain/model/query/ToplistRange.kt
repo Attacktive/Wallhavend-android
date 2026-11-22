@@ -13,6 +13,6 @@ enum class ToplistRange(val apiValue: String, @get:StringRes val nameRes: Int) {
 	ONE_YEAR("1y", R.string.settings_toplist_range_1y);
 
 	companion object {
-		fun fromApiValue(value: String) = entries.firstOrNull { it.apiValue == value } ?: ONE_MONTH
+		fun fromApiValue(value: String) = entries.find { it.apiValue == value } ?: ONE_MONTH
 	}
 }

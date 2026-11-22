@@ -202,24 +202,22 @@ private fun PexafyKeySettings(settings: AppSettings, key: String, onKeyChange: (
 }
 
 @Composable
-private fun WallhavenKeySettings(savedKey: String, key: String, onKeyChange: (String) -> Unit, saving: Boolean, onSave: (String) -> Unit) {
-	Column {
-		Spacer(Modifier.height(16.dp))
+private fun WallhavenKeySettings(savedKey: String, key: String, onKeyChange: (String) -> Unit, saving: Boolean, onSave: (String) -> Unit) = Column {
+	Spacer(Modifier.height(16.dp))
 
-		OutlinedTextField(
-			value = key,
-			onValueChange = onKeyChange,
-			label = { Text(stringResource(R.string.provider_wallhaven_key)) },
-			placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
-			visualTransformation = PasswordVisualTransformation(),
-			keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-			singleLine = true,
-			enabled = !saving,
-			modifier = Modifier.fillMaxWidth()
-		)
+	OutlinedTextField(
+		value = key,
+		onValueChange = onKeyChange,
+		label = { Text(stringResource(R.string.provider_wallhaven_key)) },
+		placeholder = { Text(stringResource(R.string.settings_placeholder_api_key)) },
+		visualTransformation = PasswordVisualTransformation(),
+		keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+		singleLine = true,
+		enabled = !saving,
+		modifier = Modifier.fillMaxWidth()
+	)
 
-		Button(onClick = { onSave(key) }, enabled = !saving && key != savedKey) {
-			Text(stringResource(R.string.provider_key_save))
-		}
+	Button(onClick = { onSave(key) }, enabled = !saving && key != savedKey) {
+		Text(stringResource(R.string.provider_key_save))
 	}
 }

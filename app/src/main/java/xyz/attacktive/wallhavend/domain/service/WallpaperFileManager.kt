@@ -18,7 +18,7 @@ private const val PART_SUFFIX = ".part"
 private const val EXPORT_PREFIX = "wallhavend_export_"
 
 class WallpaperFileManager(private val wallpaperDir: File, private val okHttpClient: OkHttpClient) {
-	private val dir: File get() = wallpaperDir.also { it.mkdirs() }
+	private val wallpaperDirectory: File get() = wallpaperDir.also { it.mkdirs() }
 
 	suspend fun download(
 		wallpaper: Wallpaper,
@@ -35,8 +35,8 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 				.use { response ->
 					check(response.isSuccessful) { "HTTP ${response.code}" }
 
-					val file = File(dir, wallpaper.identity.toFileName(response.imageExtension()))
-					val partialFile = File.createTempFile(".${file.name}.", PART_SUFFIX, dir)
+					val file = File(wallpaperDirectory, wallpaper.identity.toFileName(response.imageExtension()))
+					val partialFile = File.createTempFile(".${file.name}.", PART_SUFFIX, wallpaperDirectory)
 
 					try {
 						response.body
@@ -47,7 +47,8 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 
 						if (minimumWidth != null && minimumHeight != null) {
 							val dimensions = readImageDimensions(partialFile)
-							if (dimensions != null && (dimensions.first < minimumWidth || dimensions.second < minimumHeight)) {
+							val isUndersized = dimensions != null && (dimensions.first < minimumWidth || dimensions.second < minimumHeight)
+							if (isUndersized && dimensions != null) {
 								throw UndersizedWallpaperException(
 									width = dimensions.first,
 									height = dimensions.second,
@@ -88,7 +89,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 	}
 
 	private fun sortedFiles() =
-		dir.listFiles()
+		wallpaperDirectory.listFiles()
 			?.filterNot { it.name.endsWith(PART_SUFFIX) || it.name.startsWith(EXPORT_PREFIX) }
 			?.sortedByDescending { it.lastModified() }
 			?: emptyList()

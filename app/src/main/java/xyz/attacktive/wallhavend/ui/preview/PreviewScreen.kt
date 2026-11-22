@@ -338,16 +338,14 @@ private fun evictAndAdvance(
 }
 
 @Composable
-private fun PreviewAction(icon: ImageVector, label: String, onClick: () -> Unit) {
-	Column(
-		modifier = Modifier
-			.clickable(onClick = onClick)
-			.padding(horizontal = 12.dp, vertical = 4.dp),
-		horizontalAlignment = Alignment.CenterHorizontally
-	) {
-		Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
-		Text(text = label, color = Color.White, style = MaterialTheme.typography.labelSmall)
-	}
+private fun PreviewAction(icon: ImageVector, label: String, onClick: () -> Unit) = Column(
+	modifier = Modifier
+		.clickable(onClick = onClick)
+		.padding(horizontal = 12.dp, vertical = 4.dp),
+	horizontalAlignment = Alignment.CenterHorizontally
+) {
+	Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+	Text(text = label, color = Color.White, style = MaterialTheme.typography.labelSmall)
 }
 
 /** Launches the home screen so the freshly-applied wallpaper is visible immediately. */

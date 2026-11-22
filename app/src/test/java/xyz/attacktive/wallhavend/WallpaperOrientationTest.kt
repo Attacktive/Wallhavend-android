@@ -11,19 +11,13 @@ class WallpaperOrientationTest {
 	private val landscapeTablet = ScreenInfo("16x10", 2560, 1600)
 
 	@Test
-	fun `automatic keeps the natural orientation`() {
-		assertEquals(portraitTablet, portraitTablet.forWallpaperOrientation(WallpaperOrientation.AUTOMATIC))
-	}
+	fun `automatic keeps the natural orientation`() = assertEquals(portraitTablet, portraitTablet.forWallpaperOrientation(WallpaperOrientation.AUTOMATIC))
 
 	@Test
-	fun `landscape swaps a portrait-natural tablet`() {
-		assertEquals(landscapeTablet, portraitTablet.forWallpaperOrientation(WallpaperOrientation.LANDSCAPE))
-	}
+	fun `landscape swaps a portrait-natural tablet`() = assertEquals(landscapeTablet, portraitTablet.forWallpaperOrientation(WallpaperOrientation.LANDSCAPE))
 
 	@Test
-	fun `portrait swaps a landscape-natural tablet`() {
-		assertEquals(portraitTablet, landscapeTablet.forWallpaperOrientation(WallpaperOrientation.PORTRAIT))
-	}
+	fun `portrait swaps a landscape-natural tablet`() = assertEquals(portraitTablet, landscapeTablet.forWallpaperOrientation(WallpaperOrientation.PORTRAIT))
 
 	@Test
 	fun `an override matching the natural orientation changes nothing`() {

@@ -38,7 +38,7 @@ class RotationScheduleRepository @Inject constructor(@RotationScheduleDataStore 
 		val LAST_COMPLETED_DUE_ELAPSED_REALTIME = longPreferencesKey("last_completed_due_elapsed_realtime")
 	}
 
-	internal suspend fun read(): RotationScheduleState = dataStore.data.first()
+	internal suspend fun read() = dataStore.data.first()
 		.run {
 			RotationScheduleState(
 				nextDueElapsedRealtime = get(Keys.NEXT_DUE_ELAPSED_REALTIME),

@@ -11,6 +11,6 @@ enum class Sorting(val apiValue: String, @get:StringRes val nameRes: Int) {
 	TOPLIST("toplist", R.string.settings_sorting_toplist);
 
 	companion object {
-		fun fromApiValue(value: String) = entries.firstOrNull { it.apiValue == value } ?: RANDOM
+		fun fromApiValue(value: String) = entries.find { it.apiValue == value } ?: RANDOM
 	}
 }

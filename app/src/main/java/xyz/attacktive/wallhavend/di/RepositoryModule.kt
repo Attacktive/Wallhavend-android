@@ -3,8 +3,6 @@ package xyz.attacktive.wallhavend.di
 import java.io.File
 import javax.inject.Singleton
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.Module
 import dagger.Provides
@@ -36,22 +34,22 @@ object RepositoryModule {
 	@Provides
 	@Singleton
 	@SettingsDataStore
-	fun provideSettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.settingsDataStore
+	fun provideSettingsDataStore(@ApplicationContext context: Context) = context.settingsDataStore
 
 	@Provides
 	@Singleton
 	@CredentialDataStore
-	fun provideCredentialDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.credentialDataStore
+	fun provideCredentialDataStore(@ApplicationContext context: Context) = context.credentialDataStore
 
 	@Provides
 	@Singleton
 	@RotationScheduleDataStore
-	fun provideRotationScheduleDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.rotationScheduleDataStore
+	fun provideRotationScheduleDataStore(@ApplicationContext context: Context) = context.rotationScheduleDataStore
 
 	@Provides
 	@Singleton
 	@WallhavenSelectionDataStore
-	fun provideWallhavenSelectionDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.wallhavenSelectionDataStore
+	fun provideWallhavenSelectionDataStore(@ApplicationContext context: Context) = context.wallhavenSelectionDataStore
 
 	@Provides
 	@Singleton
@@ -60,9 +58,9 @@ object RepositoryModule {
 	@Provides
 	@Singleton
 	fun provideWallpaperFileManager(@ApplicationContext context: Context, okHttpClient: OkHttpClient): WallpaperFileManager {
-		val dir = File(context.filesDir, "wallpapers")
+		val wallpaperDirectory = File(context.filesDir, "wallpapers")
 
-		return WallpaperFileManager(dir, okHttpClient)
+		return WallpaperFileManager(wallpaperDirectory, okHttpClient)
 	}
 
 	/** Every source binds itself into this set, so WallpaperRepository blends whatever is registered without naming any of them. */

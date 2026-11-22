@@ -30,14 +30,12 @@ import xyz.attacktive.wallhavend.ui.picker.WallpaperPickerViewModel
 
 class WallpaperPickerTest {
 	@get:Rule
-	val tmpFolder = TemporaryFolder()
+	val temporaryFolder = TemporaryFolder()
 
 	private val mainDispatcher = UnconfinedTestDispatcher()
 
 	@Before
-	fun setUp() {
-		Dispatchers.setMain(mainDispatcher)
-	}
+	fun setUp() = Dispatchers.setMain(mainDispatcher)
 
 	@After
 	fun tearDown() {
@@ -62,7 +60,7 @@ class WallpaperPickerTest {
 	fun `createResultIntent rejects a missing wallpaper`() {
 		mockkStatic(FileProvider::class)
 		val context = mockk<Context>()
-		val file = File(tmpFolder.root, "missing.jpg")
+		val file = File(temporaryFolder.root, "missing.jpg")
 
 		assertThrows(IllegalArgumentException::class.java) {
 			WallpaperPickerActivity.createResultIntent(context, file)
@@ -83,7 +81,7 @@ class WallpaperPickerTest {
 
 		every { mockContext.packageName } returns "xyz.attacktive.wallhavend"
 
-		val file = tmpFolder.newFile("wallhaven_abc.jpg")
+		val file = temporaryFolder.newFile("wallhaven_abc.jpg")
 
 		every { FileProvider.getUriForFile(mockContext, "xyz.attacktive.wallhavend.fileprovider", file) } returns mockUri
 		every { ClipData.newRawUri(null, mockUri) } returns mockClipData
@@ -113,7 +111,7 @@ class WallpaperPickerTest {
 
 		every { mockContext.packageName } returns "xyz.attacktive.wallhavend"
 
-		val file = tmpFolder.newFile("openverse_xyz.png")
+		val file = temporaryFolder.newFile("openverse_xyz.png")
 
 		every { FileProvider.getUriForFile(mockContext, "xyz.attacktive.wallhavend.fileprovider", file) } returns mockUri
 		every { ClipData.newRawUri(null, mockUri) } returns mockClipData

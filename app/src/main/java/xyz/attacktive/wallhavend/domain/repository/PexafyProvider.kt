@@ -20,7 +20,6 @@ import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.QuotaExceededException
 import xyz.attacktive.wallhavend.domain.model.RateLimitedException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
-import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.keywords
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
@@ -81,7 +80,7 @@ class PexafyProvider(
 		}
 	)
 
-	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>): Result<Wallpaper> = mutex.withLock {
+	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>) = mutex.withLock {
 		val key = settings.toSearchKey(screenInfo)
 		val precheckFailure = prepareSearchState(key)
 		if (precheckFailure != null) {
@@ -89,12 +88,12 @@ class PexafyProvider(
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds) }
-		val dto = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
+		val photo = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
 			?: return@withLock Result.failure(NoResultsException())
 
-		servedIds.add(dto.photoId)
+		servedIds.add(photo.photoId)
 
-		Result.success(dto.toDomain())
+		Result.success(photo.toDomain())
 	}
 
 	private fun prepareSearchState(key: SearchKey): Throwable? {
@@ -203,7 +202,8 @@ class PexafyProvider(
 
 		return allWindows.all { window ->
 			val state = cursorStates[window]
-			state != null && !state.hasMore && (now - state.issuedAtMs < CURSOR_TTL_MS)
+			val isExhausted = state != null && !state.hasMore && (now - state.issuedAtMs < CURSOR_TTL_MS)
+			isExhausted
 		}
 	}
 
@@ -238,7 +238,8 @@ class PexafyProvider(
 		val now = clock()
 		val active = allWindowsFor(key).filter { window ->
 			val state = cursorStates[window]
-			state == null || state.hasMore || now - state.issuedAtMs >= CURSOR_TTL_MS
+			val isActive = state == null || state.hasMore || now - state.issuedAtMs >= CURSOR_TTL_MS
+			isActive
 		}
 
 		return active.sortedWith(

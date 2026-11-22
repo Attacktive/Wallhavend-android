@@ -35,14 +35,14 @@ import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 class SettingsRepositoryTest {
 	@get:Rule
-	val tmpFolder = TemporaryFolder()
+	val temporaryFolder = TemporaryFolder()
 
 	private fun wallhaven(id: String) = WallpaperIdentity(WallpaperSource.WALLHAVEN, id)
 
 	private fun TestScope.createRepository(): SettingsRepository {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("test_prefs.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("test_prefs.preferences_pb") }
 		)
 
 		return SettingsRepository(dataStore, FakeAppLogger())
@@ -70,7 +70,7 @@ class SettingsRepositoryTest {
 	fun `an install that predates a second source keeps rotating Wallhaven alone`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("legacy_sources.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("legacy_sources.preferences_pb") }
 		)
 
 		dataStore.edit { prefs -> prefs[stringPreferencesKey("search_query")] = "mountains" }
@@ -97,7 +97,7 @@ class SettingsRepositoryTest {
 	fun `a stored source that no longer exists falls back rather than emptying the rotation`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("unknown_source.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("unknown_source.preferences_pb") }
 		)
 
 		dataStore.edit { prefs -> prefs[stringSetPreferencesKey("enabled_sources")] = setOf("someday") }
@@ -111,7 +111,7 @@ class SettingsRepositoryTest {
 	fun `legacy unmetered_only key does not influence rotation mode`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("legacy_prefs.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("legacy_prefs.preferences_pb") }
 		)
 
 		dataStore.edit { prefs ->
@@ -127,7 +127,7 @@ class SettingsRepositoryTest {
 	fun `legacy pool size of 0 migrates to the new minimum of 1`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("migrate_pool.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("migrate_pool.preferences_pb") }
 		)
 
 		dataStore.edit { prefs -> prefs[intPreferencesKey("pool_size")] = 0 }
@@ -167,7 +167,7 @@ class SettingsRepositoryTest {
 	fun `legacy wifiOnly false migrates to fresh-any rotation mode`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("migrate_any.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("migrate_any.preferences_pb") }
 		)
 
 		dataStore.edit { prefs -> prefs[booleanPreferencesKey("wifi_only")] = false }
@@ -181,7 +181,7 @@ class SettingsRepositoryTest {
 	fun `legacy wifiOnly true migrates to fresh-wifi rotation mode`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("migrate_wifi.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("migrate_wifi.preferences_pb") }
 		)
 
 		dataStore.edit { prefs -> prefs[booleanPreferencesKey("wifi_only")] = true }
@@ -195,7 +195,7 @@ class SettingsRepositoryTest {
 	fun `explicit rotation mode wins over legacy wifiOnly`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("explicit_mode.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("explicit_mode.preferences_pb") }
 		)
 
 		dataStore.edit { prefs ->
@@ -258,7 +258,7 @@ class SettingsRepositoryTest {
 	fun `unpinning clears a pin stored before wallpapers carried a source`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("legacy_pins.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("legacy_pins.preferences_pb") }
 		)
 
 		dataStore.edit { prefs -> prefs[stringSetPreferencesKey("pinned_ids")] = setOf("abc123") }
@@ -273,7 +273,7 @@ class SettingsRepositoryTest {
 	fun `unblocking clears a block stored before wallpapers carried a source`() = runTest {
 		val dataStore = PreferenceDataStoreFactory.create(
 			scope = backgroundScope,
-			produceFile = { tmpFolder.newFile("legacy_blocks.preferences_pb") }
+			produceFile = { temporaryFolder.newFile("legacy_blocks.preferences_pb") }
 		)
 
 		dataStore.edit { prefs -> prefs[stringSetPreferencesKey("blocked_ids")] = setOf("abc123") }
@@ -303,7 +303,7 @@ class SettingsRepositoryTest {
 
 	@Test
 	fun `auto-update enabled survives a process restart`() = runTest {
-		val file = tmpFolder.newFile("intent_prefs.preferences_pb")
+		val file = temporaryFolder.newFile("intent_prefs.preferences_pb")
 
 		val firstScope = CoroutineScope(backgroundScope.coroutineContext + Job())
 		val firstProcess = SettingsRepository(

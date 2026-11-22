@@ -15,7 +15,6 @@ import xyz.attacktive.wallhavend.data.api.dto.toDomain
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
-import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.keywords
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
@@ -67,7 +66,7 @@ class WallhavenProvider @Inject constructor(
 		}
 	)
 
-	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>): Result<Wallpaper> = mutex.withLock {
+	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>) = mutex.withLock {
 		val key = settings.toSearchKey(screenInfo)
 		val fingerprint = key.fingerprint()
 		var state = selectionStore.read()
@@ -76,10 +75,10 @@ class WallhavenProvider @Inject constructor(
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds, state) }
-		val dto = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
+		val wallpaper = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
 			?: return@withLock Result.failure(NoResultsException())
 
-		Result.success(dto.toDomain())
+		Result.success(wallpaper.toDomain())
 	}
 
 	/*

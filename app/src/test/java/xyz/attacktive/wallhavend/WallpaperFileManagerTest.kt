@@ -24,7 +24,7 @@ import xyz.attacktive.wallhavend.domain.service.WallpaperFileManager
 
 class WallpaperFileManagerTest {
 	@get:Rule
-	val tmpFolder = TemporaryFolder()
+	val temporaryFolder = TemporaryFolder()
 
 	private val server = MockWebServer()
 	private lateinit var manager: WallpaperFileManager
@@ -32,13 +32,11 @@ class WallpaperFileManagerTest {
 	@Before
 	fun setUp() {
 		server.start()
-		manager = WallpaperFileManager(File(tmpFolder.root, "wallpapers"), OkHttpClient())
+		manager = WallpaperFileManager(File(temporaryFolder.root, "wallpapers"), OkHttpClient())
 	}
 
 	@After
-	fun tearDown() {
-		server.shutdown()
-	}
+	fun tearDown() = server.shutdown()
 
 	private fun makeWallpaper(id: String, path: String) = Wallpaper(identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, id), directUrl = server.url(path).toString())
 
@@ -97,17 +95,17 @@ class WallpaperFileManagerTest {
 		server.enqueue(interruptedJpegResponse(ByteArray(10_000) { it.toByte() }))
 
 		val result = manager.download(makeWallpaper("abc123", "/abc.jpg"))
-		val wallpapersDir = File(tmpFolder.root, "wallpapers")
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers")
 
 		assertTrue(result.isFailure)
 		assertEquals(emptyList<File>(), manager.listAll())
-		assertTrue(wallpapersDir.listFiles().orEmpty().isEmpty())
+		assertTrue(wallpapersDirectory.listFiles().orEmpty().isEmpty())
 	}
 
 	@Test
 	fun `failed redownload preserves existing wallpaper`() = runTest {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-		val existing = File(wallpapersDir, "wallhaven_abc123.jpg").also { it.writeText("existing") }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+		val existing = File(wallpapersDirectory, "wallhaven_abc123.jpg").also { it.writeText("existing") }
 		server.enqueue(interruptedJpegResponse(ByteArray(10_000) { it.toByte() }))
 
 		val result = manager.download(makeWallpaper("abc123", "/abc.jpg"))
@@ -115,13 +113,13 @@ class WallpaperFileManagerTest {
 		assertTrue(result.isFailure)
 		assertEquals("existing", existing.readText())
 		assertEquals(listOf(existing), manager.listAll())
-		assertTrue(wallpapersDir.listFiles().orEmpty().none { it.name.endsWith(".part") })
+		assertTrue(wallpapersDirectory.listFiles().orEmpty().none { it.name.endsWith(".part") })
 	}
 
 	@Test
 	fun `successful redownload replaces existing wallpaper`() = runTest {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-		val existing = File(wallpapersDir, "wallhaven_abc123.jpg").also { it.writeText("existing") }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+		val existing = File(wallpapersDirectory, "wallhaven_abc123.jpg").also { it.writeText("existing") }
 		val replacement = ByteArray(100) { (it + 1).toByte() }
 		server.enqueue(MockResponse().setBody(Buffer().write(replacement)).addHeader("Content-Type", "image/jpeg"))
 
@@ -130,23 +128,23 @@ class WallpaperFileManagerTest {
 		assertTrue(result.isSuccess)
 		assertEquals(existing, result.getOrNull())
 		assertArrayEquals(replacement, existing.readBytes())
-		assertTrue(wallpapersDir.listFiles().orEmpty().none { it.name.endsWith(".part") })
+		assertTrue(wallpapersDirectory.listFiles().orEmpty().none { it.name.endsWith(".part") })
 	}
 
 	@Test
 	fun `listAll ignores partial downloads`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-		val wallpaper = File(wallpapersDir, "wallhaven_abc123.jpg").also { it.writeText("data") }
-		File(wallpapersDir, ".wallhaven_interrupted.jpg.123.part").writeText("partial")
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+		val wallpaper = File(wallpapersDirectory, "wallhaven_abc123.jpg").also { it.writeText("data") }
+		File(wallpapersDirectory, ".wallhaven_interrupted.jpg.123.part").writeText("partial")
 
 		assertEquals(listOf(wallpaper), manager.listAll())
 	}
 
 	@Test
 	fun `listAll returns files sorted by last modified descending`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
 		val files = (1..3).map { i ->
-			File(wallpapersDir, "w$i.jpg").also {
+			File(wallpapersDirectory, "w$i.jpg").also {
 				it.writeText("data")
 				it.setLastModified(System.currentTimeMillis() + i * 1000L)
 			}
@@ -161,15 +159,13 @@ class WallpaperFileManagerTest {
 	}
 
 	@Test
-	fun `listAll returns empty list when no files exist`() {
-		assertEquals(emptyList<File>(), manager.listAll())
-	}
+	fun `listAll returns empty list when no files exist`() = assertEquals(emptyList<File>(), manager.listAll())
 
 	@Test
 	fun `trimToSize keeps newest N files`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
 		val files = (1..5).map { i ->
-			File(wallpapersDir, "w$i.jpg")
+			File(wallpapersDirectory, "w$i.jpg")
 				.also {
 					it.writeText("data")
 					it.setLastModified(System.currentTimeMillis() + i * 1000L)
@@ -187,8 +183,8 @@ class WallpaperFileManagerTest {
 
 	@Test
 	fun `trimToSize with 0 deletes all files`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-		val files = (0..2).map { File(wallpapersDir, "w$it.jpg").also { f -> f.writeText("data") } }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+		val files = (0..2).map { File(wallpapersDirectory, "w$it.jpg").also { f -> f.writeText("data") } }
 		val kept = manager.trimToSize(0)
 		assertEquals(0, kept.size)
 
@@ -197,9 +193,9 @@ class WallpaperFileManagerTest {
 
 	@Test
 	fun `trimToSize keeps a pinned file even when it is older than the cutoff`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
 		val files = (1..5).map { i ->
-			File(wallpapersDir, "w$i.jpg")
+			File(wallpapersDirectory, "w$i.jpg")
 				.also {
 					it.writeText("data")
 					it.setLastModified(System.currentTimeMillis() + i * 1000L)
@@ -219,9 +215,9 @@ class WallpaperFileManagerTest {
 
 	@Test
 	fun `trimToSize keeps pinned files when maxSize is 0`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-		val rotating = File(wallpapersDir, "rot.jpg").also { it.writeText("data") }
-		val pinned = File(wallpapersDir, "pin.jpg").also { it.writeText("data") }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+		val rotating = File(wallpapersDirectory, "rot.jpg").also { it.writeText("data") }
+		val pinned = File(wallpapersDirectory, "pin.jpg").also { it.writeText("data") }
 
 		val kept = manager.trimToSize(0, setOf("pin"))
 
@@ -232,10 +228,10 @@ class WallpaperFileManagerTest {
 
 	@Test
 	fun `trimToSize keeps a file pinned under either spelling of its id`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-		val legacy = File(wallpapersDir, "legacy.jpg").also { it.writeText("data") }
-		val qualified = File(wallpapersDir, "wallhaven_fresh.jpg").also { it.writeText("data") }
-		val rotating = File(wallpapersDir, "wallhaven_rot.jpg").also { it.writeText("data") }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+		val legacy = File(wallpapersDirectory, "legacy.jpg").also { it.writeText("data") }
+		val qualified = File(wallpapersDirectory, "wallhaven_fresh.jpg").also { it.writeText("data") }
+		val rotating = File(wallpapersDirectory, "wallhaven_rot.jpg").also { it.writeText("data") }
 
 		// A pin made before wallpapers were qualified is bare; one made after is qualified. Both must hold.
 		val kept = manager.trimToSize(0, setOf("legacy", "wallhaven_fresh"))
@@ -248,9 +244,9 @@ class WallpaperFileManagerTest {
 
 	@Test
 	fun `pinned files do not count toward maxSize`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
 		val files = (1..4).map { i ->
-			File(wallpapersDir, "w$i.jpg")
+			File(wallpapersDirectory, "w$i.jpg")
 				.also {
 					it.writeText("data")
 					it.setLastModified(System.currentTimeMillis() + i * 1000L)
@@ -269,9 +265,9 @@ class WallpaperFileManagerTest {
 
 	@Test
 	fun `trimToSize and listAll ignore scratch export files and do not evict rotating wallpapers for them`() {
-		val wallpapersDir = File(tmpFolder.root, "wallpapers").also { it.mkdirs() }
-		val wallpaper = File(wallpapersDir, "wallhaven_1.jpg").also { it.writeText("data") }
-		File(wallpapersDir, "wallhavend_export_scratch.jpg").also { it.writeText("scratch") }
+		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+		val wallpaper = File(wallpapersDirectory, "wallhaven_1.jpg").also { it.writeText("data") }
+		File(wallpapersDirectory, "wallhavend_export_scratch.jpg").also { it.writeText("scratch") }
 
 		assertEquals(listOf(wallpaper), manager.listAll())
 

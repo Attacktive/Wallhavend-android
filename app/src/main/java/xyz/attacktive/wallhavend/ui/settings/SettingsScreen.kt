@@ -345,48 +345,46 @@ private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onN
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun OpenverseLicenseSettings(settings: AppSettings, onSave: (AppSettings) -> Unit) {
-	AnimatedVisibility(visible = WallpaperSource.OPENVERSE in settings.enabledSources) {
-		var licenseExpanded by remember { mutableStateOf(false) }
+private fun OpenverseLicenseSettings(settings: AppSettings, onSave: (AppSettings) -> Unit) = AnimatedVisibility(visible = WallpaperSource.OPENVERSE in settings.enabledSources) {
+	var licenseExpanded by remember { mutableStateOf(false) }
 
-		Column {
-			Spacer(Modifier.height(16.dp))
-			SectionLabel(stringResource(R.string.settings_label_license))
+	Column {
+		Spacer(Modifier.height(16.dp))
+		SectionLabel(stringResource(R.string.settings_label_license))
 
-			ExposedDropdownMenuBox(expanded = licenseExpanded, onExpandedChange = { licenseExpanded = it }) {
-				OutlinedTextField(
-					value = stringResource(settings.licenseFilter.nameRes),
-					onValueChange = {},
-					readOnly = true,
-					trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = licenseExpanded) },
-					modifier = Modifier
-						.fillMaxWidth()
-						.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-				)
+		ExposedDropdownMenuBox(expanded = licenseExpanded, onExpandedChange = { licenseExpanded = it }) {
+			OutlinedTextField(
+				value = stringResource(settings.licenseFilter.nameRes),
+				onValueChange = {},
+				readOnly = true,
+				trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = licenseExpanded) },
+				modifier = Modifier
+					.fillMaxWidth()
+					.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+			)
 
-				ExposedDropdownMenu(expanded = licenseExpanded, onDismissRequest = { licenseExpanded = false }) {
-					LicenseFilter.entries.forEach { option ->
-						DropdownMenuItem(
-							text = { Text(stringResource(option.nameRes)) },
-							onClick = {
-								if (option != settings.licenseFilter) {
-									onSave(settings.copy(licenseFilter = option))
-								}
-
-								licenseExpanded = false
+			ExposedDropdownMenu(expanded = licenseExpanded, onDismissRequest = { licenseExpanded = false }) {
+				LicenseFilter.entries.forEach { option ->
+					DropdownMenuItem(
+						text = { Text(stringResource(option.nameRes)) },
+						onClick = {
+							if (option != settings.licenseFilter) {
+								onSave(settings.copy(licenseFilter = option))
 							}
-						)
-					}
+
+							licenseExpanded = false
+						}
+					)
 				}
 			}
-
-			Text(
-				text = stringResource(R.string.settings_hint_license),
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-				modifier = Modifier.padding(top = 4.dp)
-			)
 		}
+
+		Text(
+			text = stringResource(R.string.settings_hint_license),
+			style = MaterialTheme.typography.bodySmall,
+			color = MaterialTheme.colorScheme.onSurfaceVariant,
+			modifier = Modifier.padding(top = 4.dp)
+		)
 	}
 }
 
@@ -445,20 +443,18 @@ private fun WallhavenFilterSettings(
 	filterColor: String,
 	onFilterColorChange: (String) -> Unit,
 	onSave: (AppSettings) -> Unit
-) {
-	Column {
-		FilterColorSettings(
-			settings = settings,
-			filterColor = filterColor,
-			onFilterColorChange = onFilterColorChange,
-			onSave = onSave
-		)
+) = Column {
+	FilterColorSettings(
+		settings = settings,
+		filterColor = filterColor,
+		onFilterColorChange = onFilterColorChange,
+		onSave = onSave
+	)
 
-		SortingSettings(
-			settings = settings,
-			onSave = onSave
-		)
-	}
+	SortingSettings(
+		settings = settings,
+		onSave = onSave
+	)
 }
 
 @Composable
@@ -557,7 +553,9 @@ private fun SortingSettings(settings: AppSettings, onSave: (AppSettings) -> Unit
 		)
 	}
 
-	AnimatedVisibility(visible = settings.sorting == Sorting.TOPLIST && WallpaperSource.WALLHAVEN in settings.enabledSources) {
+	val showToplistRange = settings.sorting == Sorting.TOPLIST && WallpaperSource.WALLHAVEN in settings.enabledSources
+
+	AnimatedVisibility(visible = showToplistRange) {
 		ToplistRangeSetting(
 			settings = settings,
 			onSave = onSave
@@ -753,16 +751,14 @@ private fun AdvancedTab(settings: AppSettings, onSave: (AppSettings) -> Unit) {
 }
 
 @Composable
-private fun <T> MultiSelectChips(entries: List<T>, selected: Set<T>, nameRes: (T) -> Int, onSelectionChange: (Set<T>) -> Unit) {
-	Row {
-		entries.forEach { entry ->
-			FilterChip(
-				selected = entry in selected,
-				onClick = { onSelectionChange(selected.toggleKeepingOne(entry)) },
-				label = { Text(stringResource(nameRes(entry))) },
-				modifier = Modifier.padding(end = 8.dp)
-			)
-		}
+private fun <T> MultiSelectChips(entries: List<T>, selected: Set<T>, nameRes: (T) -> Int, onSelectionChange: (Set<T>) -> Unit) = Row {
+	entries.forEach { entry ->
+		FilterChip(
+			selected = entry in selected,
+			onClick = { onSelectionChange(selected.toggleKeepingOne(entry)) },
+			label = { Text(stringResource(nameRes(entry))) },
+			modifier = Modifier.padding(end = 8.dp)
+		)
 	}
 }
 
@@ -774,19 +770,17 @@ internal fun <T> Set<T>.toggleKeepingOne(item: T) = when {
 }
 
 @Composable
-private fun ToggleSetting(label: String, subtitle: String, checked: Boolean, onToggle: (Boolean) -> Unit) {
-	Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-		Column(modifier = Modifier.weight(1f)) {
-			Text(label)
-			Text(
-				subtitle,
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
-			)
-		}
-
-		Switch(checked = checked, onCheckedChange = onToggle)
+private fun ToggleSetting(label: String, subtitle: String, checked: Boolean, onToggle: (Boolean) -> Unit) = Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+	Column(modifier = Modifier.weight(1f)) {
+		Text(label)
+		Text(
+			subtitle,
+			style = MaterialTheme.typography.bodySmall,
+			color = MaterialTheme.colorScheme.onSurfaceVariant
+		)
 	}
+
+	Switch(checked = checked, onCheckedChange = onToggle)
 }
 
 @Composable
@@ -814,14 +808,12 @@ private fun PersistOnChange(value: String, upstream: String, onPersist: (String)
 }
 
 @Composable
-private fun SectionLabel(text: String) {
-	Text(
-		text = text,
-		style = MaterialTheme.typography.labelLarge,
-		color = MaterialTheme.colorScheme.onSurfaceVariant,
-		modifier = Modifier.padding(bottom = 4.dp)
-	)
-}
+private fun SectionLabel(text: String) = Text(
+	text = text,
+	style = MaterialTheme.typography.labelLarge,
+	color = MaterialTheme.colorScheme.onSurfaceVariant,
+	modifier = Modifier.padding(bottom = 4.dp)
+)
 
 private data class Swatch(val hex: String, val argb: Int, val luminance: Float)
 
@@ -832,10 +824,10 @@ private val SWATCHES: List<Swatch> = listOf(
 	"cc6633", "996633", "663300", "000000", "999999", "cccccc", "ffffff", "424153"
 ).map { hex ->
 	val argb = (hex.toLong(16) or 0xFF000000).toInt()
-	val r = (argb shr 16) and 0xFF
-	val g = (argb shr 8) and 0xFF
-	val b = argb and 0xFF
-	val luminance = (0.299f * r + 0.587f * g + 0.114f * b) / 255f
+	val red = (argb shr 16) and 0xFF
+	val green = (argb shr 8) and 0xFF
+	val blue = argb and 0xFF
+	val luminance = (0.299f * red + 0.587f * green + 0.114f * blue) / 255f
 
 	Swatch(hex, argb, luminance)
 }

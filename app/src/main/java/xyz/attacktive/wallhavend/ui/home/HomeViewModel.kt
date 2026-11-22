@@ -105,9 +105,7 @@ class HomeViewModel @Inject constructor(
 
 	fun updateNow() = WallpaperService.updateNow(context)
 
-	fun applyFromPool(path: String) {
-		WallpaperService.applyPath(context, path)
-	}
+	fun applyFromPool(path: String) = WallpaperService.applyPath(context, path)
 
 	fun togglePin(identity: WallpaperIdentity) {
 		viewModelScope.launch(Dispatchers.IO) {
@@ -174,7 +172,7 @@ class HomeViewModel @Inject constructor(
 		}
 
 		val previousPath = state.previousWallpaperPath
-		val newPrev = if (previousPath != null && previousPath in evicted) {
+		val newPreviousPath = if (previousPath != null && previousPath in evicted) {
 			newPaths.getOrNull(1)
 		} else {
 			previousPath
@@ -184,14 +182,14 @@ class HomeViewModel @Inject constructor(
 			it.copy(
 				poolPaths = newPaths,
 				currentWallpaperPath = newCurrent,
-				previousWallpaperPath = newPrev
+				previousWallpaperPath = newPreviousPath
 			)
 		}
 
 		settingsRepository.saveServiceState(
 			state.lastUpdatedMs ?: System.currentTimeMillis(),
 			newCurrent,
-			newPrev
+			newPreviousPath
 		)
 	}
 

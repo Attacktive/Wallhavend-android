@@ -19,6 +19,6 @@ enum class WallpaperSource(
 	PEXAFY("pexafy", R.string.source_pexafy, R.string.settings_powered_by_pexafy, "https://pexafy.com");
 
 	companion object {
-		fun fromKey(key: String) = entries.firstOrNull { it.key == key }
+		fun fromKey(key: String) = entries.find { it.key == key }
 	}
 }

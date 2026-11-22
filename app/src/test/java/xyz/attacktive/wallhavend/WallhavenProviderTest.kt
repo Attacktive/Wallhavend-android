@@ -196,16 +196,16 @@ class WallhavenProviderTest {
 		} returns makePage(count = 1, currentPage = 2, lastPage = 2)
 
 		// First call - should request page 1
-		val res1 = provider.next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
-		assertEquals("w-1-1", res1.getOrNull()?.identity?.id)
+		val firstResult = provider.next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
+		assertEquals("w-1-1", firstResult.getOrNull()?.identity?.id)
 
 		// Second call - cache is empty, should request page 2
-		val res2 = provider.next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
-		assertEquals("w-2-1", res2.getOrNull()?.identity?.id)
+		val secondResult = provider.next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
+		assertEquals("w-2-1", secondResult.getOrNull()?.identity?.id)
 
 		// Third call - cache is empty, currentPage (3) > lastPage (2), should wrap back and request page 1
-		val res3 = provider.next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
-		assertEquals("w-1-1", res3.getOrNull()?.identity?.id)
+		val thirdResult = provider.next(AppSettings(sorting = Sorting.VIEWS), portraitScreen, emptySet())
+		assertEquals("w-1-1", thirdResult.getOrNull()?.identity?.id)
 
 		// Verify page 1 was requested twice, page 2 was requested once
 		coVerify(exactly = 2) {

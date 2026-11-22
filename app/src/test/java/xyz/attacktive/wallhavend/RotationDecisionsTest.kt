@@ -37,9 +37,7 @@ class RotationDecisionsTest {
 	}
 
 	@Test
-	fun `pinned-only never auto-downloads`() {
-		assertFalse(shouldDownload(RotationMode.PINNED_ONLY, online = true, onWifi = true, forceDownload = false))
-	}
+	fun `pinned-only never auto-downloads`() = assertFalse(shouldDownload(RotationMode.PINNED_ONLY, online = true, onWifi = true, forceDownload = false))
 
 	@Test
 	fun `nextInCycle returns null for an empty pool`() {
@@ -48,22 +46,14 @@ class RotationDecisionsTest {
 	}
 
 	@Test
-	fun `nextInCycle starts at the first entry when nothing is current`() {
-		assertEquals("/a.jpg", nextInCycle(listOf("/a.jpg", "/b.jpg"), current = null))
-	}
+	fun `nextInCycle starts at the first entry when nothing is current`() = assertEquals("/a.jpg", nextInCycle(listOf("/a.jpg", "/b.jpg"), current = null))
 
 	@Test
-	fun `nextInCycle advances to the following entry`() {
-		assertEquals("/b.jpg", nextInCycle(listOf("/a.jpg", "/b.jpg", "/c.jpg"), current = "/a.jpg"))
-	}
+	fun `nextInCycle advances to the following entry`() = assertEquals("/b.jpg", nextInCycle(listOf("/a.jpg", "/b.jpg", "/c.jpg"), current = "/a.jpg"))
 
 	@Test
-	fun `nextInCycle wraps around past the last entry`() {
-		assertEquals("/a.jpg", nextInCycle(listOf("/a.jpg", "/b.jpg"), current = "/b.jpg"))
-	}
+	fun `nextInCycle wraps around past the last entry`() = assertEquals("/a.jpg", nextInCycle(listOf("/a.jpg", "/b.jpg"), current = "/b.jpg"))
 
 	@Test
-	fun `nextInCycle starts over when the current path is not in the pool`() {
-		assertEquals("/a.jpg", nextInCycle(listOf("/a.jpg", "/b.jpg"), current = "/gone.jpg"))
-	}
+	fun `nextInCycle starts over when the current path is not in the pool`() = assertEquals("/a.jpg", nextInCycle(listOf("/a.jpg", "/b.jpg"), current = "/gone.jpg"))
 }

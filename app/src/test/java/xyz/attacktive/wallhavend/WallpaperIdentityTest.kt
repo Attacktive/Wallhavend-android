@@ -55,9 +55,7 @@ class WallpaperIdentityTest {
 	}
 
 	@Test
-	fun `a legacy file name and its qualified form are the same wallpaper`() {
-		assertEquals(WallpaperIdentity.parse("abc123"), WallpaperIdentity.parse("wallhaven_abc123"))
-	}
+	fun `a legacy file name and its qualified form are the same wallpaper`() = assertEquals(WallpaperIdentity.parse("abc123"), WallpaperIdentity.parse("wallhaven_abc123"))
 
 	@Test
 	fun `matches accepts both the qualified and the legacy bare form`() {

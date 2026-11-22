@@ -5,6 +5,4 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
 @Composable
-fun WallhavendTheme(content: @Composable () -> Unit) {
-	MaterialTheme(colorScheme = darkColorScheme(), content = content)
-}
+fun WallhavendTheme(content: @Composable () -> Unit) = MaterialTheme(colorScheme = darkColorScheme(), content = content)

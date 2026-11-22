@@ -138,13 +138,9 @@ class WallpaperService: Service() {
 		const val ACTION_APPLY_PATH = "xyz.attacktive.wallhavend.APPLY_PATH"
 		const val EXTRA_PATH = "path"
 
-		fun updateNow(context: Context) {
-			start(context, ACTION_UPDATE_NOW)
-		}
+		fun updateNow(context: Context) = start(context, ACTION_UPDATE_NOW)
 
-		fun rollNow(context: Context) {
-			start(context, ACTION_ROLL_NOW)
-		}
+		fun rollNow(context: Context) = start(context, ACTION_ROLL_NOW)
 
 		fun applyPath(context: Context, path: String) {
 			val intent = Intent(context, WallpaperService::class.java)
@@ -194,7 +190,7 @@ internal class OneShotTracker {
 		}
 	}
 
-	fun finish(): Int? = synchronized(lock) {
+	fun finish() = synchronized(lock) {
 		check(activeCount > 0) { "No one-shot command is active" }
 		activeCount--
 		if (activeCount > 0) {

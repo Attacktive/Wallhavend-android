@@ -27,7 +27,8 @@ class RotationAlarmReceiver: BroadcastReceiver() {
 			intent.getIntExtra(RotationScheduler.EXTRA_BOOT_COUNT, -1)
 		)
 
-		if (delivery.dueElapsedRealtime < 0 || delivery.generation < 0 || delivery.bootCount < 0) {
+		val hasInvalidDelivery = delivery.dueElapsedRealtime < 0 || delivery.generation < 0 || delivery.bootCount < 0
+		if (hasInvalidDelivery) {
 			return
 		}
 

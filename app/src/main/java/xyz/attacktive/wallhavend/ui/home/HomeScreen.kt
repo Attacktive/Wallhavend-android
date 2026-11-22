@@ -139,126 +139,120 @@ fun HomeScreen(onNavigateToSettings: () -> Unit, onNavigateToPreview: (String) -
 }
 
 @Composable
-private fun StatusCard(state: ServiceState, autoUpdateEnabled: Boolean) {
-	Card(modifier = Modifier.fillMaxWidth()) {
-		Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-			Column(modifier = Modifier.weight(1f)) {
-				Text(
-					text = stringResource(
-						if (autoUpdateEnabled) {
-							R.string.home_status_auto_update_on
-						} else {
-							R.string.home_status_auto_update_off
-						}
-					),
-					style = MaterialTheme.typography.labelMedium,
-					color = if (autoUpdateEnabled) {
-						MaterialTheme.colorScheme.primary
+private fun StatusCard(state: ServiceState, autoUpdateEnabled: Boolean) = Card(modifier = Modifier.fillMaxWidth()) {
+	Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+		Column(modifier = Modifier.weight(1f)) {
+			Text(
+				text = stringResource(
+					if (autoUpdateEnabled) {
+						R.string.home_status_auto_update_on
 					} else {
-						MaterialTheme.colorScheme.onSurfaceVariant
+						R.string.home_status_auto_update_off
 					}
-				)
-
-				state.lastUpdatedMs?.let { timestamp ->
-					val formattedTime = SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale)
-						.format(Date(timestamp))
-
-					Text(
-						text = stringResource(R.string.home_status_last_updated, formattedTime),
-						style = MaterialTheme.typography.bodySmall
-					)
+				),
+				style = MaterialTheme.typography.labelMedium,
+				color = if (autoUpdateEnabled) {
+					MaterialTheme.colorScheme.primary
+				} else {
+					MaterialTheme.colorScheme.onSurfaceVariant
 				}
+			)
+
+			state.lastUpdatedMs?.let { timestamp ->
+				val formattedTime = SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale)
+					.format(Date(timestamp))
+
+				Text(
+					text = stringResource(R.string.home_status_last_updated, formattedTime),
+					style = MaterialTheme.typography.bodySmall
+				)
 			}
 		}
 	}
 }
 
 @Composable
-private fun QuickActions(autoUpdateEnabled: Boolean, onStartStop: () -> Unit, onUpdateNow: () -> Unit) {
-	Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-		Button(onClick = onStartStop) {
-			Icon(
-				imageVector = if (autoUpdateEnabled) {
-					Icons.Default.Stop
+private fun QuickActions(autoUpdateEnabled: Boolean, onStartStop: () -> Unit, onUpdateNow: () -> Unit) = Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+	Button(onClick = onStartStop) {
+		Icon(
+			imageVector = if (autoUpdateEnabled) {
+				Icons.Default.Stop
+			} else {
+				Icons.Default.PlayArrow
+			},
+			contentDescription = null
+		)
+
+		Spacer(Modifier.width(4.dp))
+		Text(
+			stringResource(
+				if (autoUpdateEnabled) {
+					R.string.home_action_stop
 				} else {
-					Icons.Default.PlayArrow
-				},
-				contentDescription = null
+					R.string.home_action_start
+				}
 			)
+		)
+	}
 
-			Spacer(Modifier.width(4.dp))
-			Text(
-				stringResource(
-					if (autoUpdateEnabled) {
-						R.string.home_action_stop
-					} else {
-						R.string.home_action_start
-					}
-				)
-			)
-		}
-
-		OutlinedButton(onClick = onUpdateNow) {
-			Icon(Icons.Default.CloudDownload, contentDescription = null)
-			Spacer(Modifier.width(4.dp))
-			Text(stringResource(R.string.home_action_download_now))
-		}
+	OutlinedButton(onClick = onUpdateNow) {
+		Icon(Icons.Default.CloudDownload, contentDescription = null)
+		Spacer(Modifier.width(4.dp))
+		Text(stringResource(R.string.home_action_download_now))
 	}
 }
 
 @Composable
-private fun WallpaperGrid(paths: List<String>, currentPath: String?, pinnedIds: Set<String>, onTap: (String) -> Unit) {
-	LazyVerticalGrid(
-		columns = GridCells.Fixed(3),
-		contentPadding = PaddingValues(vertical = 4.dp),
-		horizontalArrangement = Arrangement.spacedBy(4.dp),
-		verticalArrangement = Arrangement.spacedBy(4.dp)
-	) {
-		items(paths) { path ->
-			val isCurrent = path == currentPath
-			val isPinned = WallpaperIdentity.parse(File(path).nameWithoutExtension)
-				.matches(pinnedIds)
+private fun WallpaperGrid(paths: List<String>, currentPath: String?, pinnedIds: Set<String>, onTap: (String) -> Unit) = LazyVerticalGrid(
+	columns = GridCells.Fixed(3),
+	contentPadding = PaddingValues(vertical = 4.dp),
+	horizontalArrangement = Arrangement.spacedBy(4.dp),
+	verticalArrangement = Arrangement.spacedBy(4.dp)
+) {
+	items(paths) { path ->
+		val isCurrent = path == currentPath
+		val isPinned = WallpaperIdentity.parse(File(path).nameWithoutExtension)
+			.matches(pinnedIds)
 
-			Box(
-				modifier = Modifier
-					.aspectRatio(9f / 16f)
-					.clip(RoundedCornerShape(4.dp))
-					.then(
-						if (isCurrent) {
-							Modifier.border(
-								BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-								RoundedCornerShape(4.dp)
-							)
-						} else {
-							Modifier
-						}
-					)
-					.clickable { onTap(path) }
-			) {
-				AsyncImage(
-					model = File(path),
-					contentDescription = null,
-					contentScale = ContentScale.Crop,
-					modifier = Modifier.fillMaxSize()
-				)
-
-				if (isPinned) {
-					Box(
-						contentAlignment = Alignment.Center,
-						modifier = Modifier
-							.align(Alignment.TopEnd)
-							.padding(4.dp)
-							.size(18.dp)
-							.clip(CircleShape)
-							.background(MaterialTheme.colorScheme.primary)
-					) {
-						Icon(
-							Icons.Default.PushPin,
-							contentDescription = stringResource(R.string.cd_pinned),
-							tint = MaterialTheme.colorScheme.onPrimary,
-							modifier = Modifier.size(12.dp)
+		Box(
+			modifier = Modifier
+				.aspectRatio(9f / 16f)
+				.clip(RoundedCornerShape(4.dp))
+				.then(
+					if (isCurrent) {
+						Modifier.border(
+							BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+							RoundedCornerShape(4.dp)
 						)
+					} else {
+						Modifier
 					}
+				)
+				.clickable { onTap(path) }
+		) {
+			AsyncImage(
+				model = File(path),
+				contentDescription = null,
+				contentScale = ContentScale.Crop,
+				modifier = Modifier.fillMaxSize()
+			)
+
+			if (isPinned) {
+				Box(
+					contentAlignment = Alignment.Center,
+					modifier = Modifier
+						.align(Alignment.TopEnd)
+						.padding(4.dp)
+						.size(18.dp)
+						.clip(CircleShape)
+						.background(MaterialTheme.colorScheme.primary)
+				) {
+					Icon(
+						Icons.Default.PushPin,
+						contentDescription = stringResource(R.string.cd_pinned),
+						tint = MaterialTheme.colorScheme.onPrimary,
+						modifier = Modifier.size(12.dp)
+					)
 				}
 			}
 		}
@@ -299,23 +293,19 @@ private fun ErrorBanner(error: AppError) {
 }
 
 @Composable
-private fun OfflineBanner() {
-	Card(modifier = Modifier.fillMaxWidth()) {
-		Text(
-			text = stringResource(R.string.home_offline_banner),
-			modifier = Modifier.padding(12.dp),
-			style = MaterialTheme.typography.bodySmall
-		)
-	}
+private fun OfflineBanner() = Card(modifier = Modifier.fillMaxWidth()) {
+	Text(
+		text = stringResource(R.string.home_offline_banner),
+		modifier = Modifier.padding(12.dp),
+		style = MaterialTheme.typography.bodySmall
+	)
 }
 
 @Composable
-private fun PinnedIdleBanner() {
-	Card(modifier = Modifier.fillMaxWidth()) {
-		Text(
-			text = stringResource(R.string.home_pinned_idle_banner),
-			modifier = Modifier.padding(12.dp),
-			style = MaterialTheme.typography.bodySmall
-		)
-	}
+private fun PinnedIdleBanner() = Card(modifier = Modifier.fillMaxWidth()) {
+	Text(
+		text = stringResource(R.string.home_pinned_idle_banner),
+		modifier = Modifier.padding(12.dp),
+		style = MaterialTheme.typography.bodySmall
+	)
 }

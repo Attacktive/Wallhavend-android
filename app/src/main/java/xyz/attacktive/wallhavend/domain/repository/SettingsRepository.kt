@@ -282,17 +282,11 @@ class SettingsRepository @Inject constructor(
 		}
 	}
 
-	suspend fun rememberThumbnail(identity: WallpaperIdentity, url: String) {
-		rememberMetadata(identity, WallpaperMetadata(thumbnailUrl = url))
-	}
+	suspend fun rememberThumbnail(identity: WallpaperIdentity, url: String) = rememberMetadata(identity, WallpaperMetadata(thumbnailUrl = url))
 
-	suspend fun forgetThumbnail(identity: WallpaperIdentity) {
-		forgetMetadata(identity)
-	}
+	suspend fun forgetThumbnail(identity: WallpaperIdentity) = forgetMetadata(identity)
 
-	suspend fun retainThumbnails(keepQualifiedIds: Set<String>) {
-		retainMetadata(keepQualifiedIds)
-	}
+	suspend fun retainThumbnails(keepQualifiedIds: Set<String>) = retainMetadata(keepQualifiedIds)
 
 	/* Same isolation rationale as block/unblock: the pin set grows from the preview screen, so it gets its own key that save() leaves untouched. */
 	suspend fun pin(identity: WallpaperIdentity) {
@@ -437,6 +431,6 @@ private fun decodeWallpaperMetadata(entries: Set<String>?, legacyThumbnailEntrie
 	return decoded
 }
 
-private fun encodeWallpaperMetadata(metadataMap: Map<String, WallpaperMetadata>): Set<String> = metadataMap.entries
+private fun encodeWallpaperMetadata(metadataMap: Map<String, WallpaperMetadata>) = metadataMap.entries
 	.map { (key, metadata) -> "$key$METADATA_ENTRY_DELIMITER${METADATA_JSON.encodeToString(metadata)}" }
 	.toSet()

@@ -33,7 +33,7 @@ class RotationWorker(appContext: Context, workerParameters: WorkerParameters): C
 		inputData.getInt(RotationScheduler.EXTRA_BOOT_COUNT, -1)
 	)
 
-	private suspend fun prepare(scheduler: RotationScheduler, delivery: RotationDelivery, workId: String): PreparationResult = try {
+	private suspend fun prepare(scheduler: RotationScheduler, delivery: RotationDelivery, workId: String) = try {
 		if (scheduler.prepareAutomaticWork(delivery, workId)) {
 			PreparationResult.READY
 		} else {
@@ -51,7 +51,7 @@ class RotationWorker(appContext: Context, workerParameters: WorkerParameters): C
 		return complete(scheduler, delivery, workId, executionSucceeded)
 	}
 
-	private suspend fun execute(entryPoint: RotationWorkerEntryPoint): Boolean = try {
+	private suspend fun execute(entryPoint: RotationWorkerEntryPoint) = try {
 		val executor = entryPoint.wallpaperRotationExecutor()
 		executor.restoreState()
 		executor.performUpdate()

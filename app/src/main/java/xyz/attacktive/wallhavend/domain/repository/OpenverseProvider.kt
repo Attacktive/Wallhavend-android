@@ -13,7 +13,6 @@ import xyz.attacktive.wallhavend.data.api.dto.toDomain
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
-import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.keywords
 import xyz.attacktive.wallhavend.domain.model.query.Purity
@@ -74,7 +73,7 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 		}
 	)
 
-	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>): Result<Wallpaper> = mutex.withLock {
+	override suspend fun next(settings: AppSettings, screenInfo: ScreenInfo, blockedIds: Set<String>) = mutex.withLock {
 		val key = settings.toSearchKey(screenInfo)
 		if (key != cacheKey) {
 			cache.clear()
@@ -84,10 +83,10 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds) }
-		val dto = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
+		val image = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
 			?: return@withLock Result.failure(NoResultsException())
 
-		Result.success(dto.toDomain())
+		Result.success(image.toDomain())
 	}
 
 	/**

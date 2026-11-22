@@ -53,41 +53,37 @@ class WallpaperRotationExecutor @Inject constructor(
 	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 	internal var screenInfoProvider: () -> ScreenInfo = ::screenInfo
 
-	suspend fun restoreState() {
-		wallpaperMutationCoordinator.serialize {
-			if (stateRestored) {
-				return@serialize
-			}
-
-			val (lastUpdatedMs, currentPath, previousPath) = settingsRepository.loadServiceState()
-			val paths = fileManager.listAll()
-				.map { it.absolutePath }
-
-			stateRepository.update {
-				it.copy(
-					poolPaths = paths,
-					lastUpdatedMs = lastUpdatedMs,
-					currentWallpaperPath = currentPath,
-					previousWallpaperPath = previousPath
-				)
-			}
-			stateRestored = true
+	suspend fun restoreState() = wallpaperMutationCoordinator.serialize {
+		if (stateRestored) {
+			return@serialize
 		}
+
+		val (lastUpdatedMs, currentPath, previousPath) = settingsRepository.loadServiceState()
+		val paths = fileManager.listAll()
+			.map { it.absolutePath }
+
+		stateRepository.update {
+			it.copy(
+				poolPaths = paths,
+				lastUpdatedMs = lastUpdatedMs,
+				currentWallpaperPath = currentPath,
+				previousWallpaperPath = previousPath
+			)
+		}
+		stateRestored = true
 	}
 
-	suspend fun performUpdate(forceDownload: Boolean = false) {
-		wallpaperMutationCoordinator.serialize {
-			val settings = settingsRepository.settings.first()
-			val networkState = networkStateProvider()
-			stateRepository.update { it.copy(isOnline = networkState.online) }
+	suspend fun performUpdate(forceDownload: Boolean = false) = wallpaperMutationCoordinator.serialize {
+		val settings = settingsRepository.settings.first()
+		val networkState = networkStateProvider()
+		stateRepository.update { it.copy(isOnline = networkState.online) }
 
-			if (shouldDownload(settings.rotationMode, networkState.online, networkState.onWifi, forceDownload)) {
-				handleOnlineUpdate(settings)
-			} else if (settings.rotationMode == RotationMode.PINNED_ONLY) {
-				cyclePinnedOnly(settings)
-			} else {
-				cycleFromPool(settings)
-			}
+		if (shouldDownload(settings.rotationMode, networkState.online, networkState.onWifi, forceDownload)) {
+			handleOnlineUpdate(settings)
+		} else if (settings.rotationMode == RotationMode.PINNED_ONLY) {
+			cyclePinnedOnly(settings)
+		} else {
+			cycleFromPool(settings)
 		}
 	}
 

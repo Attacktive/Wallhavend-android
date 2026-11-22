@@ -59,7 +59,7 @@ fun closestAspectRatio(width: Int, height: Int): String {
 	val actual = width.toFloat() / height
 
 	return ASPECT_RATIO_CANDIDATES.minBy { candidate ->
-		val (w, h) = candidate.split("x").map { it.toFloat() }
-		abs(w / h - actual)
+		val (candidateWidth, candidateHeight) = candidate.split("x").map { it.toFloat() }
+		abs(candidateWidth / candidateHeight - actual)
 	}
 }

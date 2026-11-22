@@ -60,22 +60,20 @@ class WallhavenProviderProcessPersistenceTest {
 		} returns response
 	}
 
-	private fun verifySearch(exactly: Int, page: Int? = null) {
-		coVerify(exactly = exactly) {
-			wallhavenApiService.search(
-				query = any(),
-				categories = any(),
-				purity = any(),
-				ratios = any(),
-				atleast = any(),
-				sorting = any(),
-				seed = any(),
-				topRange = any(),
-				page = page ?: any(),
-				colors = any(),
-				apiKey = any()
-			)
-		}
+	private fun verifySearch(exactly: Int, page: Int? = null) = coVerify(exactly = exactly) {
+		wallhavenApiService.search(
+			query = any(),
+			categories = any(),
+			purity = any(),
+			ratios = any(),
+			atleast = any(),
+			sorting = any(),
+			seed = any(),
+			topRange = any(),
+			page = page ?: any(),
+			colors = any(),
+			apiKey = any()
+		)
 	}
 
 	@Test
