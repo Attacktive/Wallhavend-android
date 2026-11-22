@@ -9,7 +9,7 @@ jobs:
   auto-merge:
     runs-on: 'ubuntu-latest'
     # 49699333 is the GitHub.com account ID for dependabot[bot].
-    if: github.actor_id == '49699333' && github.event.pull_request.user.id == 49699333 && github.event.pull_request.head.repo.id == github.event.repository.id
+    if: github.event.sender.id == 49699333 && github.event.pull_request.user.id == 49699333 && github.event.pull_request.head.repo.id == github.event.repository.id
     steps:
       - name: 'Fetch Dependabot metadata'
         id: 'metadata'
