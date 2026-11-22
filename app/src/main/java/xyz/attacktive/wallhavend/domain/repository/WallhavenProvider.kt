@@ -75,13 +75,14 @@ class WallhavenProvider @Inject constructor(
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds, state) }
+
 		val wallpaper = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
 			?: return@withLock Result.failure(NoResultsException())
 
 		Result.success(wallpaper.toDomain())
 	}
 
-	/*
+	/**
 	 * Blocked wallpapers are filtered after the fetch, so they still occupy slots in a returned page.
 	 * Drop them when picking, and when a whole page comes back blocked, advance to the next page rather than giving up.
 	 * A genuinely empty page stops immediately, and an all-blocked search is bounded so it cannot loop forever before falling back to NoResults.
@@ -126,9 +127,11 @@ class WallhavenProvider @Inject constructor(
 	}
 
 	private suspend fun refetch(key: SearchKey, state: WallhavenSelectionState) = runCatching {
-		// Random sorting always fetches page 1 with a fresh seed.
-		// Deterministic sorts walk through pages; after the last page, wrap back to 1.
-		// currentPage is advanced to response.currentPage + 1 after each fetch.
+		/**
+		 * Random sorting always fetches page 1 with a fresh seed.
+		 * Deterministic sorts walk through pages; after the last page, wrap back to 1.
+		 * currentPage is advanced to response.currentPage + 1 after each fetch.
+		 */
 		val pageToFetch = if (key.sorting == Sorting.RANDOM) {
 			1
 		} else if (state.currentPage > state.lastPage) {
@@ -184,6 +187,7 @@ class WallhavenProvider @Inject constructor(
 		val input = buildString {
 			appendFingerprintPart(keywords.size.toString())
 			keywords.forEach { appendFingerprintPart(it) }
+
 			appendFingerprintPart(categories)
 			appendFingerprintPart(purity)
 			appendFingerprintPart(ratios)

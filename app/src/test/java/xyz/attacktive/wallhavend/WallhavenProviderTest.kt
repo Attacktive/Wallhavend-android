@@ -148,8 +148,17 @@ class WallhavenProviderTest {
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = "1080x2400",
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = "1080x2400",
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		}
 	}
@@ -162,8 +171,17 @@ class WallhavenProviderTest {
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = null,
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = null,
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		}
 	}
@@ -182,16 +200,34 @@ class WallhavenProviderTest {
 		// Page 1: lastPage = 2, returns 1 item
 		coEvery {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = 1, colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 1,
+				colors = any(),
+				apiKey = any()
 			)
 		} returns makePage(count = 1, currentPage = 1, lastPage = 2)
 
 		// Page 2: lastPage = 2, returns 1 item
 		coEvery {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 2,
+				colors = any(),
+				apiKey = any()
 			)
 		} returns makePage(count = 1, currentPage = 2, lastPage = 2)
 
@@ -210,15 +246,33 @@ class WallhavenProviderTest {
 		// Verify page 1 was requested twice, page 2 was requested once
 		coVerify(exactly = 2) {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = 1, colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 1,
+				colors = any(),
+				apiKey = any()
 			)
 		}
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 2,
+				colors = any(),
+				apiKey = any()
 			)
 		}
 	}
@@ -227,15 +281,33 @@ class WallhavenProviderTest {
 	fun `multi-keyword query fans out parallel API calls`() = runTest {
 		coEvery {
 			wallhavenApiService.search(
-				query = "ocean", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "ocean",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		} returns makePage(2, idPrefix = "ocean")
 
 		coEvery {
 			wallhavenApiService.search(
-				query = "mountains", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "mountains",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		} returns makePage(2, idPrefix = "mountains")
 
@@ -244,15 +316,33 @@ class WallhavenProviderTest {
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = "ocean", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "ocean",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		}
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = "mountains", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "mountains",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		}
 	}
@@ -261,15 +351,33 @@ class WallhavenProviderTest {
 	fun `multi-keyword merges results into combined pool`() = runTest {
 		coEvery {
 			wallhavenApiService.search(
-				query = "ocean", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "ocean",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		} returns makePage(3, idPrefix = "ocean")
 
 		coEvery {
 			wallhavenApiService.search(
-				query = "mountains", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "mountains",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		} returns makePage(2, idPrefix = "mountains")
 
@@ -306,15 +414,33 @@ class WallhavenProviderTest {
 	fun `next advances to the next page when a whole page is blocked`() = runTest {
 		coEvery {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = 1, colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 1,
+				colors = any(),
+				apiKey = any()
 			)
 		} returns makePage(count = 1, currentPage = 1, lastPage = 2)
 
 		coEvery {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 2,
+				colors = any(),
+				apiKey = any()
 			)
 		} returns makePage(count = 1, currentPage = 2, lastPage = 2)
 
@@ -323,8 +449,17 @@ class WallhavenProviderTest {
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = any(), categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = 2, colors = any(), apiKey = any()
+				query = any(),
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = 2,
+				colors = any(),
+				apiKey = any()
 			)
 		}
 	}
@@ -337,8 +472,17 @@ class WallhavenProviderTest {
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = "milky way", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "milky way",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		}
 	}
@@ -351,15 +495,33 @@ class WallhavenProviderTest {
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = "milky way", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "milky way",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		}
 
 		coVerify(exactly = 1) {
 			wallhavenApiService.search(
-				query = "deep space", categories = any(), purity = any(), ratios = any(), atleast = any(),
-				sorting = any(), seed = any(), topRange = any(), page = any(), colors = any(), apiKey = any()
+				query = "deep space",
+				categories = any(),
+				purity = any(),
+				ratios = any(),
+				atleast = any(),
+				sorting = any(),
+				seed = any(),
+				topRange = any(),
+				page = any(),
+				colors = any(),
+				apiKey = any()
 			)
 		}
 	}

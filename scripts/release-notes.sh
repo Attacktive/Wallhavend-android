@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
 #
-# Produce cleaned, flat release notes for a tag range — the single source of
-# truth shared by release.yaml (per-tag delta) and promotion-notes.yaml
-# (cumulative range for a beta -> production promotion).
+# Produce cleaned, flat release notes for a tag range — the single source of truth shared by release.yaml (per-tag delta) and promotion-notes.yaml (cumulative range for a beta -> production promotion).
 #
 # Usage: release-notes.sh <from-tag> <to-tag>
-#   <from-tag>  Exclusive lower bound. Empty => behave like a normal release and
-#               let GitHub auto-pick the previous tag (matches release.yaml).
+#   <from-tag>  Exclusive lower bound.
+#               Empty => behave like a normal release and let GitHub auto-pick the previous tag (matches release.yaml).
 #   <to-tag>    Inclusive upper bound (required).
 #
-# Prints cleaned notes to stdout. Applies no length limit; callers truncate as
-# needed (Play caps "what's new" at ~500 chars).
+# Prints cleaned notes to stdout.
+# Applies no length limit; callers truncate as needed (Play caps "what's new" at ~500 chars).
 set -euo pipefail
 
-# Conventional-commit types dropped as non-user-facing noise. refactor is kept on purpose — it can be user-visible.
+# Conventional-commit types dropped as non-user-facing noise.
+# refactor is kept on purpose — it can be user-visible.
 NOISE_TYPES='build|chore|ci|docs|style|test'
 
 # Shown when nothing user-facing survives filtering (e.g. a chore-only release), so "what's new" is never blank.
@@ -49,7 +48,8 @@ release_notes() {
 		git rev-parse -q --verify "refs/tags/${from}" >/dev/null || { echo "release-notes: tag not found: ${from}" >&2; return 1; }
 	fi
 
-	# Primary: GitHub's generated notes. A single call over the whole range is inherently one deduped list — no per-version merging needed.
+	# Primary: GitHub's generated notes.
+	# A single call over the whole range is inherently one deduped list — no per-version merging needed.
 	if [ -n "$from" ]; then
 		body="$(gh api "repos/${repo}/releases/generate-notes" -f tag_name="${to}" -f previous_tag_name="${from}" --jq '.body' 2>/dev/null || true)"
 	else

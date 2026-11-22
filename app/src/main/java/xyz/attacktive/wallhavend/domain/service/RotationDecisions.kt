@@ -4,8 +4,7 @@ import xyz.attacktive.wallhavend.domain.model.RotationMode
 
 /**
  * Whether the next rotation tick should fetch a fresh wallpaper rather than cycle the pool.
- * Downloading always requires connectivity; a forced request (the "Download now" button) overrides
- * the per-mode network rules but still cannot beat being offline.
+ * Downloading always requires connectivity; a forced request (the "Download now" button) overrides the per-mode network rules but still cannot beat being offline.
  */
 fun shouldDownload(mode: RotationMode, online: Boolean, onWifi: Boolean, forceDownload: Boolean): Boolean {
 	if (!online) {

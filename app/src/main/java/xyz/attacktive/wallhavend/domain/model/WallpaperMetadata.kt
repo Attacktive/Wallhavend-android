@@ -21,6 +21,7 @@ data class WallpaperMetadata(
 
 		val name = photographerName?.takeIf { it.isNotBlank() }
 			?: photographerUsername?.takeIf { it.isNotBlank() }
+
 		val source = upstreamSource?.takeIf { it.isNotBlank() }
 
 		return when {
@@ -34,7 +35,9 @@ data class WallpaperMetadata(
 	val galleryDescription: String? get() {
 		val parts = mutableListOf<String>()
 		displayCredit?.let { parts += it }
+
 		sourceUrl?.takeIf { it.isNotBlank() }?.let { parts += it }
+
 		licenseType?.takeIf { it.isNotBlank() }?.let { parts += "License: $it" }
 
 		return parts.joinToString(" - ").takeIf { it.isNotBlank() }

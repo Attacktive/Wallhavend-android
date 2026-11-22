@@ -37,6 +37,7 @@ class RotationScheduler @Inject constructor(
 		val settings = settingsRepository.settings.first()
 		if (settings.autoUpdateEnabled) {
 			reconcileLocked(RotationReconciliationTrigger.FOREGROUND)
+
 			return@withLock false
 		}
 
@@ -81,6 +82,7 @@ class RotationScheduler @Inject constructor(
 		val now = SystemClock.elapsedRealtime()
 		if (delivery.dueElapsedRealtime > now) {
 			armAlarm(delivery)
+
 			return@withLock
 		}
 
@@ -156,6 +158,7 @@ class RotationScheduler @Inject constructor(
 					currentBootCount
 				)
 			)
+
 			RotationReconciliationAction.INITIALIZE -> initializeLocked(settings.updateIntervalMinutes, state)
 		}
 	}
@@ -192,6 +195,7 @@ class RotationScheduler @Inject constructor(
 			(state.intervalMinutes ?: settings.updateIntervalMinutes) * MILLIS_PER_MINUTE,
 			nowElapsedRealtime
 		) ?: return state
+
 		val successorState = if (nextDue != state.nextDueElapsedRealtime) {
 			state.copy(nextDueElapsedRealtime = nextDue)
 		} else {

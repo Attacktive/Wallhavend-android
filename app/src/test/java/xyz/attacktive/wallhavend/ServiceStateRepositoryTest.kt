@@ -26,6 +26,7 @@ class ServiceStateRepositoryTest {
 	fun `update transforms state correctly`() {
 		val repository = ServiceStateRepository()
 		repository.update { it.copy(lastUpdatedMs = 12345L) }
+
 		assertEquals(12345L, repository.state.value.lastUpdatedMs)
 	}
 
@@ -33,7 +34,9 @@ class ServiceStateRepositoryTest {
 	fun `update preserves unmodified fields`() {
 		val repository = ServiceStateRepository()
 		repository.update { it.copy(lastUpdatedMs = 12345L) }
+
 		repository.update { it.copy(error = AppError.NoResults) }
+
 		assertEquals(12345L, repository.state.value.lastUpdatedMs)
 		assertEquals(AppError.NoResults, repository.state.value.error)
 	}

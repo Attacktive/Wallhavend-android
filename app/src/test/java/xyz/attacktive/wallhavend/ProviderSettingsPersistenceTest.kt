@@ -1,11 +1,5 @@
 package xyz.attacktive.wallhavend
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import java.io.IOException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -13,6 +7,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.runTest
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -34,6 +34,7 @@ class ProviderSettingsPersistenceTest {
 	fun `source activation rejects missing and whitespace credentials`() = runTest {
 		listOf("", " ", "\t\n").forEach { key ->
 			credentialStore.edit { it[pexafyKey] = key }
+
 			assertTrue(runCatching { repository.toggleSource(WallpaperSource.PEXAFY) }.exceptionOrNull() is IllegalArgumentException)
 			assertEquals(setOf(WallpaperSource.WALLHAVEN), repository.settings.first().enabledSources)
 		}
@@ -148,7 +149,9 @@ class ProviderSettingsPersistenceTest {
 	fun `concurrent source edits preserve each selection`() = runTest {
 		repository.savePexafyKey("key", enable = false)
 		val first = launch { repository.toggleSource(WallpaperSource.PEXAFY) }
+
 		val second = launch { repository.toggleSource(WallpaperSource.OPENVERSE) }
+
 		first.join()
 		second.join()
 		assertEquals(WallpaperSource.entries.toSet(), repository.settings.first().configuredSources)
@@ -157,6 +160,7 @@ class ProviderSettingsPersistenceTest {
 	@Test
 	fun `legacy keyless sole selection remains pending until an explicit choice`() = runTest {
 		settingsStore.edit { it[stringSetPreferencesKey("enabled_sources")] = setOf(WallpaperSource.PEXAFY.key) }
+
 		val loaded = repository.settings.first()
 		assertTrue(loaded.requiresPexafySetup)
 		assertTrue(loaded.configuredSources.isEmpty())

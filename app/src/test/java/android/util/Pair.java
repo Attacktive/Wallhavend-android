@@ -26,6 +26,7 @@ public class Pair<F, S> {
 		}
 
 		Pair<?, ?> pair = (Pair<?, ?>) other;
+
 		return Objects.equals(first, pair.first) && Objects.equals(second, pair.second);
 	}
 

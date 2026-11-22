@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
-import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
+import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
 
 @HiltViewModel
 class BlocklistViewModel @Inject constructor(private val settingsRepository: SettingsRepository): ViewModel() {

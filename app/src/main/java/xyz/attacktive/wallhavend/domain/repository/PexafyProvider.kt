@@ -88,6 +88,7 @@ class PexafyProvider(
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds) }
+
 		val photo = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
 			?: return@withLock Result.failure(NoResultsException())
 
@@ -133,6 +134,7 @@ class PexafyProvider(
 			lastAdmittedResults = emptyList()
 		}
 	}
+
 	private suspend fun selectNext(key: SearchKey, blockedIds: Set<String>): PexafyPhotoDto? {
 		var refetches = 0
 		var totalRequestsInCall = 0
@@ -227,6 +229,7 @@ class PexafyProvider(
 
 	private fun allWindowsFor(key: SearchKey): List<QueryWindow> {
 		val effectiveKeywords: List<String?> = key.keywords.ifEmpty { listOf(null) }
+
 		val effectiveColors: List<String?> = key.colorHexes.ifEmpty { listOf(null) }
 
 		return effectiveKeywords.flatMap { keyword ->
@@ -274,6 +277,7 @@ class PexafyProvider(
 			}
 
 		val results = responses.flatMap { it.data.orEmpty() }
+
 		val admitted = results
 			.filter { it.downloadUrl != null && key.admits(it) }
 			.shuffled()
@@ -372,6 +376,7 @@ class PexafyProvider(
 				rateLimitedUntilMs = clock() + cooldownSeconds * 1_000L
 				RateLimitedException(WallpaperSource.PEXAFY, retryAfter)
 			}
+
 			else -> exception
 		}
 	}
@@ -384,6 +389,7 @@ class PexafyProvider(
 			rateLimitedUntilMs = clock() + cooldownSeconds * 1_000L
 			RateLimitedException(WallpaperSource.PEXAFY, retryAfter)
 		}
+
 		else -> null
 	}
 

@@ -42,7 +42,6 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Wallpaper
-import androidx.compose.material.icons.outlined.PushPin as PushPinOutlined
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -71,6 +70,7 @@ import coil.compose.AsyncImage
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.ui.home.HomeViewModel
+import androidx.compose.material.icons.outlined.PushPin as PushPinOutlined
 
 @Composable
 fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
@@ -79,10 +79,9 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 	val metadata by viewModel.wallpaperMetadata.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 
-	/*
-	 * An empty pool means either it is still loading (empty on the first frame) or the last
-	 * wallpaper was just deleted. Show black and wait; a destructive action navigates back itself
-	 * when it empties the pool, so we never bounce out before the state arrives.
+	/**
+	 * An empty pool means either it is still loading (empty on the first frame) or the last wallpaper was just deleted.
+	 * Show black and wait; a destructive action navigates back itself when it empties the pool, so we never bounce out before the state arrives.
 	 */
 	if (state.poolPaths.isEmpty()) {
 		Box(
@@ -119,6 +118,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 	}
 
 	val pagerState = rememberPagerState(initialPage = initialPage) { state.poolPaths.size }
+
 	val currentPage = pagerState.currentPage.coerceIn(0, state.poolPaths.lastIndex)
 	val currentPath = state.poolPaths[currentPage]
 	val currentIdentity = WallpaperIdentity.parse(File(currentPath).nameWithoutExtension)
@@ -140,6 +140,7 @@ fun PreviewScreen(id: String, onNavigateBack: () -> Unit, viewModel: HomeViewMod
 	val resolution by produceState<String?>(initialValue = null, currentPath) {
 		value = withContext(Dispatchers.IO) {
 			val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+
 			BitmapFactory.decodeFile(currentPath, options)
 
 			if (options.outWidth > 0 && options.outHeight > 0) {
@@ -322,6 +323,7 @@ private fun evictAndAdvance(
 	if (poolSize == 1) {
 		evict()
 		onNavigateBack()
+
 		return
 	}
 

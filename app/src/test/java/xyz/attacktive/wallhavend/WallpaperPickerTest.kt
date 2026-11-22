@@ -1,6 +1,11 @@
 package xyz.attacktive.wallhavend
 
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
@@ -12,11 +17,6 @@ import io.mockk.mockkConstructor
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows

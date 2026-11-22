@@ -34,6 +34,7 @@ data class AppSettings(
 	val thumbnailUrls: Map<String, String>
 		get() = wallpaperMetadata.mapNotNull { (key, metadata) -> metadata.thumbnailUrl?.let { key to it } }.toMap()
 }
+
 val UPDATE_INTERVAL_OPTIONS = listOf(1, 5, 15, 30, 60, 180, 360, 1440)
 val POOL_SIZE_OPTIONS = listOf(1, 5, 10, 25, 50)
 
@@ -60,6 +61,7 @@ fun closestAspectRatio(width: Int, height: Int): String {
 
 	return ASPECT_RATIO_CANDIDATES.minBy { candidate ->
 		val (candidateWidth, candidateHeight) = candidate.split("x").map { it.toFloat() }
+
 		abs(candidateWidth / candidateHeight - actual)
 	}
 }

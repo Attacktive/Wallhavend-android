@@ -12,8 +12,8 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -143,6 +143,7 @@ class SettingsSecurityTest {
 		repository.settings.first()
 
 		val logs = logger.entries.joinToString("\n") { it.message }
+
 		assertFalse(logs.contains("wh-secret-123"))
 		assertFalse(logs.contains("pexafy-secret-456"))
 		assertTrue(logs.contains("pexafyApiKey=***"))

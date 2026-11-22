@@ -2,26 +2,26 @@ package xyz.attacktive.wallhavend
 
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import kotlinx.serialization.json.Json
-import okhttp3.OkHttpClient
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.junit.Assert.assertFalse
-import retrofit2.Retrofit
-import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
+import retrofit2.Retrofit
 import xyz.attacktive.wallhavend.data.api.PexafyApiService
 import xyz.attacktive.wallhavend.data.api.dto.PexafyAttributionDto
 import xyz.attacktive.wallhavend.data.api.dto.PexafyPaginationDto
@@ -112,6 +112,7 @@ class PexafyProviderTest {
 	private fun httpError(code: Int, errorCode: String, retryAfter: String? = null): HttpException {
 		val body = """{"success":false,"data":null,"error":{"code":"$errorCode","message":"$errorCode"}}"""
 			.toResponseBody("application/json".toMediaType())
+
 		val rawResponse = okhttp3.Response.Builder()
 			.code(code)
 			.message("Error")
@@ -205,7 +206,9 @@ class PexafyProviderTest {
 		provider.next(settingsWithKey(searchQuery = ""), squareScreen, emptySet())
 
 		coVerify(exactly = 1) { pexafyApiService.search(any(), null, "portrait", any(), any(), any(), any()) }
+
 		coVerify(exactly = 1) { pexafyApiService.search(any(), null, "landscape", any(), any(), any(), any()) }
+
 		coVerify(exactly = 1) { pexafyApiService.search(any(), null, "square", any(), any(), any(), any()) }
 	}
 
@@ -216,6 +219,7 @@ class PexafyProviderTest {
 		provider.next(settingsWithKey(searchQuery = "misty forest, mountain lake"), portraitScreen, emptySet())
 
 		coVerify(exactly = 1) { pexafyApiService.search(any(), "misty forest", "portrait", any(), any(), any(), any()) }
+
 		coVerify(exactly = 1) { pexafyApiService.search(any(), "mountain lake", "portrait", any(), any(), any(), any()) }
 	}
 
@@ -280,6 +284,7 @@ class PexafyProviderTest {
 		assertEquals("page1-photo", first.identity.id)
 		assertEquals("page2-photo", second.identity.id)
 		coVerify(exactly = 1) { pexafyApiService.search(any(), any(), any(), any(), any(), any(), null) }
+
 		coVerify(exactly = 1) { pexafyApiService.search(any(), any(), any(), any(), any(), any(), "cursor-page-2") }
 	}
 
@@ -306,7 +311,9 @@ class PexafyProviderTest {
 		assertEquals("page2-photo", second.identity.id)
 
 		coVerify(exactly = 0) { pexafyApiService.search(any(), any(), any(), any(), any(), any(), "stale-cursor") }
+
 		coVerify(exactly = 2) { pexafyApiService.search(any(), any(), any(), any(), any(), any(), null) }
+
 		coVerify(exactly = 1) { pexafyApiService.search(any(), any(), any(), any(), any(), any(), "fresh-cursor") }
 	}
 
@@ -439,12 +446,15 @@ class PexafyProviderTest {
 		coEvery {
 			pexafyApiService.search(any(), "w1", any(), any(), any(), any(), any())
 		} returns makePage(hasMore = false)
+
 		coEvery {
 			pexafyApiService.search(any(), "w2", any(), any(), any(), any(), any())
 		} returns makePage(hasMore = false)
+
 		coEvery {
 			pexafyApiService.search(any(), "w3", any(), any(), any(), any(), any())
 		} returns makePage(hasMore = false)
+
 		coEvery {
 			pexafyApiService.search(any(), "w4", any(), any(), any(), any(), any())
 		} returns makePage(makePhoto("w4-photo"), hasMore = false)
@@ -521,12 +531,14 @@ class PexafyProviderTest {
 		try {
 			server.start()
 			val json = Json { ignoreUnknownKeys = true }
+
 			val api = Retrofit.Builder()
 				.baseUrl(server.url("/"))
 				.client(OkHttpClient())
 				.addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
 				.build()
 				.create(PexafyApiService::class.java)
+
 			val realProvider = PexafyProvider(api) { currentTimeMs }
 
 			val wallpaper = realProvider.next(

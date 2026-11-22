@@ -1,6 +1,5 @@
 package xyz.attacktive.wallhavend.domain.repository
 
-import androidx.annotation.VisibleForTesting
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.milliseconds
@@ -12,6 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import androidx.annotation.VisibleForTesting
 import retrofit2.HttpException
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.AppSettings

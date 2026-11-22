@@ -43,6 +43,7 @@ import xyz.attacktive.wallhavend.domain.model.configuredSources
 internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewModel) {
 	val saving by viewModel.savingProvider.collectAsStateWithLifecycle()
 	var showPexafySetup by remember { mutableStateOf(false) }
+
 	val pexafyConfigured = WallpaperSource.PEXAFY in settings.configuredSources
 
 	// Once Pexafy becomes configured, dismiss temporary setup so disabling it hides the credential field.
@@ -54,7 +55,9 @@ internal fun ProviderSettings(settings: AppSettings, viewModel: SettingsViewMode
 
 	// Credentials deliberately use remember, not rememberSaveable: drafts must not enter saved-state bundles.
 	var wallhavenKey by remember(settings.apiKey) { mutableStateOf(settings.apiKey) }
+
 	var pexafyKey by remember(settings.pexafyApiKey) { mutableStateOf(settings.pexafyApiKey) }
+
 	val focusManager = LocalFocusManager.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 

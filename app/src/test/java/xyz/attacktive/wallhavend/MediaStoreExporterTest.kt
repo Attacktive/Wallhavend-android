@@ -1,13 +1,14 @@
 package xyz.attacktive.wallhavend
 
-import java.io.File
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import java.io.OutputStream
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.exifinterface.media.ExifInterface
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -18,17 +19,16 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 import xyz.attacktive.wallhavend.ui.home.MediaStoreExporter
 import xyz.attacktive.wallhavend.ui.home.embedExifDescription
-import androidx.exifinterface.media.ExifInterface
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 class MediaStoreExporterTest {
 	@get:Rule
@@ -51,6 +51,7 @@ class MediaStoreExporterTest {
 		val uri = mockk<Uri>()
 		val outputStream = ByteArrayOutputStream()
 		val bytes = ByteArray(100) { it.toByte() }
+
 		val file = temporaryFolder.newFile("wallhaven_abc123.jpg").also { it.writeBytes(bytes) }
 
 		every { contentResolver.insert(any(), any()) } returns uri
@@ -62,6 +63,7 @@ class MediaStoreExporterTest {
 		assertArrayEquals(bytes, outputStream.toByteArray())
 
 		verify(exactly = 1) { anyConstructed<ContentValues>().put(MediaStore.MediaColumns.IS_PENDING, 1) }
+
 		verify(exactly = 1) { anyConstructed<ContentValues>().put(MediaStore.MediaColumns.IS_PENDING, 0) }
 
 		verifyOrder {
@@ -87,6 +89,7 @@ class MediaStoreExporterTest {
 		}
 
 		verify(exactly = 1) { contentResolver.delete(uri, null, null) }
+
 		verify(exactly = 0) { contentResolver.update(uri, any(), null, null) }
 	}
 
@@ -94,7 +97,7 @@ class MediaStoreExporterTest {
 	fun `copy failure deletes pending item`() {
 		val contentResolver = mockk<ContentResolver>(relaxed = true)
 		val uri = mockk<Uri>()
-		val outputStream = object : OutputStream() {
+		val outputStream = object: OutputStream() {
 			override fun write(byte: Int) {
 				throw IOException("copy failed")
 			}
@@ -110,6 +113,7 @@ class MediaStoreExporterTest {
 		}
 
 		verify(exactly = 1) { contentResolver.delete(uri, null, null) }
+
 		verify(exactly = 0) { contentResolver.update(uri, any(), null, null) }
 	}
 
@@ -138,6 +142,7 @@ class MediaStoreExporterTest {
 		val jpegBytes = java.util.Base64.getDecoder().decode(
 			"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q=="
 		)
+
 		val file = temporaryFolder.newFile("pexafy_123.jpg").also { it.writeBytes(jpegBytes) }
 
 		every { contentResolver.insert(any(), any()) } returns uri
@@ -153,6 +158,7 @@ class MediaStoreExporterTest {
 		MediaStoreExporter(contentResolver).save(file, "image/jpeg", metadata)
 
 		val exportedFile = temporaryFolder.newFile("exported.jpg").also { it.writeBytes(outputStream.toByteArray()) }
+
 		val exifInterface = ExifInterface(exportedFile)
 		val actualDescription = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION)
 
@@ -169,6 +175,7 @@ class MediaStoreExporterTest {
 		val pngBytes = java.util.Base64.getDecoder().decode(
 			"iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEElEQVR4nGP8zwACTGCSAQANHQEDgslx/wAAAABJRU5ErkJggg=="
 		)
+
 		val file = temporaryFolder.newFile("pexafy_123.png").also { it.writeBytes(pngBytes) }
 
 		every { contentResolver.insert(any(), any()) } returns uri
@@ -184,6 +191,7 @@ class MediaStoreExporterTest {
 		MediaStoreExporter(contentResolver).save(file, "image/png", metadata)
 
 		val exportedFile = temporaryFolder.newFile("exported.png").also { it.writeBytes(outputStream.toByteArray()) }
+
 		val exifInterface = ExifInterface(exportedFile)
 		val actualDescription = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION)
 
@@ -196,7 +204,9 @@ class MediaStoreExporterTest {
 		val jpegBytes = java.util.Base64.getDecoder().decode(
 			"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q=="
 		)
+
 		val file = temporaryFolder.newFile("pre_q.jpg").also { it.writeBytes(jpegBytes) }
+
 		embedExifDescription(file, "Sample Description")
 
 		assertEquals("Sample Description", ExifInterface(file).getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION))
@@ -211,6 +221,7 @@ class MediaStoreExporterTest {
 		val jpegBytes = java.util.Base64.getDecoder().decode(
 			"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q=="
 		)
+
 		val file = File(wallpapersDirectory, "pexafy_123.jpg").also { it.writeBytes(jpegBytes) }
 
 		every { contentResolver.insert(any(), any()) } returns uri
@@ -242,6 +253,7 @@ class MediaStoreExporterTest {
 		}
 
 		verify(exactly = 0) { contentResolver.insert(any(), any()) }
+
 		verify(exactly = 0) { contentResolver.delete(any(), any(), any()) }
 	}
 }

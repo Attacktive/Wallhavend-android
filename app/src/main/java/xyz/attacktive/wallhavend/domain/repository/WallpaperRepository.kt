@@ -40,6 +40,7 @@ class WallpaperRepository @Inject constructor(
 			.shuffled()
 
 		val minimumWidth = screenInfo.width.takeIf { settings.avoidBlurryWallpapers }
+
 		val minimumHeight = screenInfo.height.takeIf { settings.avoidBlurryWallpapers }
 
 		for (provider in enabledProviders) {

@@ -127,6 +127,7 @@ class OpenverseProviderTest {
 		provider.next(AppSettings(searchQuery = "mountains, rivers"), portraitScreen, emptySet())
 
 		coVerify(exactly = 1) { openverseApiService.search("mountains", any(), any(), any(), any(), any(), any(), any(), any()) }
+
 		coVerify(exactly = 1) { openverseApiService.search("rivers", any(), any(), any(), any(), any(), any(), any(), any()) }
 	}
 
@@ -140,7 +141,7 @@ class OpenverseProviderTest {
 	}
 
 	@Test
-	fun `the licence tier reaches the query`() = runTest {
+	fun `the license tier reaches the query`() = runTest {
 		everySearch() returns makePage(makeImage("w1"))
 
 		provider.next(AppSettings(licenseFilter = LicenseFilter.ANY_COMMERCIAL), portraitScreen, emptySet())
@@ -149,7 +150,7 @@ class OpenverseProviderTest {
 	}
 
 	@Test
-	fun `the licence defaults to the tier that carries no obligations`() = runTest {
+	fun `the license defaults to the tier that carries no obligations`() = runTest {
 		everySearch() returns makePage(makeImage("w1"))
 
 		provider.next(AppSettings(), portraitScreen, emptySet())
@@ -166,7 +167,9 @@ class OpenverseProviderTest {
 		provider.next(AppSettings(), squareScreen, emptySet())
 
 		coVerify(exactly = 1) { openverseApiService.search(any(), any(), any(), any(), "tall", any(), any(), any(), any()) }
+
 		coVerify(exactly = 1) { openverseApiService.search(any(), any(), any(), any(), "wide", any(), any(), any(), any()) }
+
 		coVerify(exactly = 1) { openverseApiService.search(any(), any(), any(), any(), "square", any(), any(), any(), any()) }
 	}
 
@@ -178,6 +181,7 @@ class OpenverseProviderTest {
 		provider.next(AppSettings(purity = setOf(Purity.SFW, Purity.NSFW)), portraitScreen, emptySet())
 
 		coVerify(exactly = 1) { openverseApiService.search(any(), any(), any(), any(), any(), any(), false, any(), any()) }
+
 		coVerify(exactly = 1) { openverseApiService.search(any(), any(), any(), any(), any(), any(), true, any(), any()) }
 	}
 

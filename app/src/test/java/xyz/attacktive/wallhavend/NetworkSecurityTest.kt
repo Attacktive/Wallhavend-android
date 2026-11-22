@@ -15,6 +15,7 @@ class NetworkSecurityTest {
 	fun `HTTP logging redacts the Wallhaven API key`() {
 		val logs = mutableListOf<String>()
 		val logger = HttpLoggingInterceptor.Logger { message -> logs += message }
+
 		val server = MockWebServer()
 
 		server.enqueue(MockResponse())
@@ -25,6 +26,7 @@ class NetworkSecurityTest {
 			val client = OkHttpClient.Builder()
 				.addInterceptor(createBasicLoggingInterceptor(logger))
 				.build()
+
 			val request = Request.Builder()
 				.url(server.url("/search?q=mountains&apikey=super-secret"))
 				.build()
@@ -46,6 +48,7 @@ class NetworkSecurityTest {
 	fun `HTTP logging redacts the Pexafy x-api-key header`() {
 		val logs = mutableListOf<String>()
 		val logger = HttpLoggingInterceptor.Logger { message -> logs += message }
+
 		val server = MockWebServer()
 
 		server.enqueue(MockResponse())
@@ -60,6 +63,7 @@ class NetworkSecurityTest {
 					}
 				)
 				.build()
+
 			val request = Request.Builder()
 				.url(server.url("/api/v1/search/photos?q=mountains"))
 				.header("x-api-key", "pexafy_api_super_secret")

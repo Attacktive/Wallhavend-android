@@ -44,6 +44,7 @@ tag_for_version_code() {
 		code="$(version_code_for_tag "${tag}" || true)"
 		if [ "${code}" = "${wanted}" ]; then
 			printf '%s' "${tag}"
+
 			return 0
 		fi
 	done < <(git tag --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true)
@@ -76,6 +77,7 @@ play_api() {
 			jq -c '{code: (.error.code // null), status: (.error.status // null), message: (.error.message // .message // "Unknown error")}' "${response_file}" >&2 || true
 		fi
 		rm -f "${response_file}"
+
 		return 1
 	fi
 
@@ -188,7 +190,8 @@ else
 	fi
 fi
 
-# Do not disturb pending Play reviews. ERROR_IF_IN_REVIEW at commit also protects other tracks and races.
+# Do not disturb pending Play reviews.
+# ERROR_IF_IN_REVIEW at commit also protects other tracks and races.
 beta_in_review="$(releases_in_review <<< "${beta_releases}")"
 production_in_review="$(releases_in_review <<< "${production_releases}")"
 if [ -n "${beta_in_review}" ] || [ -n "${production_in_review}" ]; then

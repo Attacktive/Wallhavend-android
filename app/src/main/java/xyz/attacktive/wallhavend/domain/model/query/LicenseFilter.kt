@@ -4,8 +4,8 @@ import androidx.annotation.StringRes
 import xyz.attacktive.wallhavend.R
 
 /**
- * How permissive an Openverse result's licence may be, narrowest first.
- * Each tier names its licences outright instead of leaning on Openverse's `license_type` grouping, so the tiers stay strictly nested — widening the filter can only ever add licences, never swap one out.
+ * How permissive an Openverse result's license may be, narrowest first.
+ * Each tier names its licenses outright instead of leaning on Openverse's `license_type` grouping, so the tiers stay strictly nested — widening the filter can only ever add licenses, never swap one out.
  */
 enum class LicenseFilter(val apiValue: String, @get:StringRes val nameRes: Int) {
 	PUBLIC_DOMAIN("cc0,pdm", R.string.license_public_domain),

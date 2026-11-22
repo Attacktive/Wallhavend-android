@@ -55,7 +55,6 @@ data class WallpaperIdentity(val source: WallpaperSource, val id: String) {
 			if (separatorIndex > 0) {
 				val source = WallpaperSource.fromKey(raw.take(separatorIndex))
 				val id = raw.substring(separatorIndex + 1)
-
 				if (source != null && id.isNotEmpty()) {
 					return WallpaperIdentity(source, id)
 				}

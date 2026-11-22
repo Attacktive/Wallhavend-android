@@ -76,6 +76,7 @@ fun WallpaperPickerScreen(wallpapers: List<File>, onSelect: (File) -> Unit, onCa
 	if (isPreviewing) {
 		val initialPage = (previewIndex ?: 0).coerceIn(0, (wallpapers.size - 1).coerceAtLeast(0))
 		val pagerState = rememberPagerState(initialPage = initialPage) { wallpapers.size }
+
 		val currentFile = wallpapers.getOrNull(pagerState.currentPage)
 
 		val resolution by produceState<String?>(initialValue = null, currentFile) {
@@ -85,6 +86,7 @@ fun WallpaperPickerScreen(wallpapers: List<File>, onSelect: (File) -> Unit, onCa
 				}
 
 				val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+
 				BitmapFactory.decodeFile(currentFile.absolutePath, options)
 
 				if (options.outWidth > 0 && options.outHeight > 0) {

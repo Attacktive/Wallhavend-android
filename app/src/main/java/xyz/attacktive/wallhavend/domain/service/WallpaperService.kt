@@ -54,6 +54,7 @@ class WallpaperService: Service() {
 				intent?.getStringExtra(EXTRA_PATH)
 					?.let { executor.applySpecificPath(it) }
 			}
+
 			WallpaperServiceCommand.UNKNOWN -> stopSelfResult(startId)
 		}
 
@@ -66,6 +67,7 @@ class WallpaperService: Service() {
 		} catch (error: RuntimeException) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && error is ForegroundServiceStartNotAllowedException) {
 				stopSelfResult(startId)
+
 				return false
 			}
 
@@ -192,6 +194,7 @@ internal class OneShotTracker {
 
 	fun finish() = synchronized(lock) {
 		check(activeCount > 0) { "No one-shot command is active" }
+
 		activeCount--
 		if (activeCount > 0) {
 			return@synchronized null

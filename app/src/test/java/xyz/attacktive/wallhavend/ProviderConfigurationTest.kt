@@ -41,6 +41,7 @@ class ProviderConfigurationTest {
 	fun `removing the sole source is rejected without silently adding Wallhaven`() {
 		val settings = AppSettings(enabledSources = setOf(WallpaperSource.PEXAFY), pexafyApiKey = "key")
 		assertThrows(IllegalArgumentException::class.java) { settings.withPexafyKey("", enable = false) }
+
 		assertEquals(setOf(WallpaperSource.PEXAFY), settings.enabledSources)
 		assertEquals("key", settings.pexafyApiKey)
 	}

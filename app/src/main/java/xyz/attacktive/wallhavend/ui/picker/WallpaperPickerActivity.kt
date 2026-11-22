@@ -47,6 +47,7 @@ class WallpaperPickerActivity: ComponentActivity() {
 	private fun returnWallpaper(file: File) {
 		if (!file.exists()) {
 			handleUnavailableWallpaper()
+
 			return
 		}
 
@@ -58,6 +59,7 @@ class WallpaperPickerActivity: ComponentActivity() {
 			}
 
 			handleUnavailableWallpaper()
+
 			return
 		}
 

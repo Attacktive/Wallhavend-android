@@ -6,4 +6,10 @@ sealed interface BitIndexable {
 
 inline fun <reified T> Set<T>.toBitString() where T : Enum<T>, T : BitIndexable = enumValues<T>()
 	.sortedBy { it.bitIndex }
-	.joinToString("") { if (it in this) "1" else "0" }
+	.joinToString("") {
+		if (it in this) {
+			"1"
+		} else {
+			"0"
+		}
+	}

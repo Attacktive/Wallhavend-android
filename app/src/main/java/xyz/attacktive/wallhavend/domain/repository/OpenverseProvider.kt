@@ -50,7 +50,7 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 		keywords = keywords,
 		license = licenseFilter.apiValue,
 		aspectRatio = screenInfo.openverseAspectRatio(),
-		/*
+		/**
 		 * Openverse buckets by filesize, which flickr's and nasa's index rows don't carry, so asking for a size at all drops those two outright.
 		 * Worth it regardless: both cap their portrait images at 1024px on the long edge and so admit nothing on a modern screen either way, while asking raises wikimedia's admit rate.
 		 */
@@ -83,6 +83,7 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 		}
 
 		val selection = runCatching { selectNext(key, blockedIds) }
+
 		val image = selection.getOrElse { exception -> return@withLock Result.failure(exception) }
 			?: return@withLock Result.failure(NoResultsException())
 
@@ -122,10 +123,11 @@ class OpenverseProvider @Inject constructor(private val openverseApiService: Ope
 
 	/**
 	 * One source per fetch, rather than the whole allowlist at once.
-	 * Ranking decides what fits inside a single query's 240, and it favours whichever source indexes the most, so asking for all of them at once buries the rest — a source only becomes reachable by being asked for on its own.
+	 * Ranking decides what fits inside a single query's 240, and it favors whichever source indexes the most, so asking for all of them at once buries the rest — a source only becomes reachable by being asked for on its own.
 	 */
 	private suspend fun refetch(key: SearchKey, source: String) = runCatching {
 		val effectiveKeywords: List<String?> = key.keywords.ifEmpty { listOf(null) }
+
 		val windows = effectiveKeywords.map { PageWindow(it, source) }
 
 		val responses = coroutineScope {

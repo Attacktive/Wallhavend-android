@@ -1,5 +1,7 @@
 package xyz.attacktive.wallhavend.ui.settings
 
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -69,8 +71,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.delay
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.POOL_SIZE_OPTIONS
@@ -92,6 +92,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
 	val saveError by viewModel.saveError.collectAsStateWithLifecycle()
 	var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+
 	val scrollState = rememberScrollState()
 
 	val tabs = listOf(
@@ -219,6 +220,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit, onNavigateToBlocklist: () -> Unit
 @Composable
 private fun ContentTab(settings: AppSettings, onSave: (AppSettings) -> Unit, onNavigateToBlocklist: () -> Unit, providerSettings: @Composable () -> Unit) {
 	var searchQuery by rememberSaveable { mutableStateOf(settings.searchQuery) }
+
 	var filterColor by rememberSaveable { mutableStateOf(settings.filterColor) }
 
 	LaunchedEffect(settings.searchQuery) {
@@ -818,10 +820,35 @@ private fun SectionLabel(text: String) = Text(
 private data class Swatch(val hex: String, val argb: Int, val luminance: Float)
 
 private val SWATCHES: List<Swatch> = listOf(
-	"660000", "990000", "cc0000", "cc3333", "ea4c88", "993399", "663399",
-	"333399", "0066cc", "0099cc", "66cccc", "77cc33", "669900", "336600",
-	"666600", "999900", "cccc33", "ffff00", "ffcc33", "ff9900", "ff6600",
-	"cc6633", "996633", "663300", "000000", "999999", "cccccc", "ffffff", "424153"
+	"660000",
+	"990000",
+	"cc0000",
+	"cc3333",
+	"ea4c88",
+	"993399",
+	"663399",
+	"333399",
+	"0066cc",
+	"0099cc",
+	"66cccc",
+	"77cc33",
+	"669900",
+	"336600",
+	"666600",
+	"999900",
+	"cccc33",
+	"ffff00",
+	"ffcc33",
+	"ff9900",
+	"ff6600",
+	"cc6633",
+	"996633",
+	"663300",
+	"000000",
+	"999999",
+	"cccccc",
+	"ffffff",
+	"424153"
 ).map { hex ->
 	val argb = (hex.toLong(16) or 0xFF000000).toInt()
 	val red = (argb shr 16) and 0xFF

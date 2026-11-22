@@ -1,13 +1,5 @@
 package xyz.attacktive.wallhavend.domain.repository
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import javax.inject.Inject
 import javax.inject.Qualifier
 import javax.inject.Singleton
@@ -20,6 +12,14 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
@@ -209,6 +209,7 @@ class SettingsRepository @Inject constructor(
 
 	suspend fun saveWallhavenKey(key: String) = providerConfigurationMutex.withLock {
 		credentialDataStore.edit { it[CredentialKeys.API_KEY] = key.trim() }
+
 		Unit
 	}
 
@@ -234,13 +235,11 @@ class SettingsRepository @Inject constructor(
 		dataStore.edit { it[Keys.ENABLED_SOURCES] = sources.map { source -> source.key }.toSet() }
 	}
 
-	/*
-	 * The blocklist grows from the preview screen while the settings screen edits its own AppSettings
-	 * copy, so routing it through the whole-object save() would let one path clobber the other's writes.
+	/**
+	 * The blocklist grows from the preview screen while the settings screen edits its own AppSettings copy, so routing it through the whole-object save() would let one path clobber the other's writes.
 	 * These mutators touch only the blocked-ids key, and save() intentionally leaves that key alone.
 	 *
-	 * Ids go in qualified and come out by every form they could have been stored as, so a pin or block
-	 * made before wallpapers carried a source still gets cleared.
+	 * Ids go in qualified and come out by every form they could have been stored as, so a pin or block made before wallpapers carried a source still gets cleared.
 	 */
 	suspend fun block(identity: WallpaperIdentity) {
 		dataStore.edit { preferences ->
@@ -303,7 +302,8 @@ class SettingsRepository @Inject constructor(
 
 	suspend fun loadServiceState() = dataStore.data.first()
 		.run {
-			Triple(get(Keys.LAST_UPDATED_MS),
+			Triple(
+				get(Keys.LAST_UPDATED_MS),
 				get(Keys.CURRENT_WALLPAPER_PATH),
 				get(Keys.PREVIOUS_WALLPAPER_PATH)
 			)
@@ -328,7 +328,8 @@ class SettingsRepository @Inject constructor(
 	}
 
 	/**
-	 * Whether the user wants automatic rotation enabled. Persisting this separately from runtime work state lets scheduling survive process death.
+	 * Whether the user wants automatic rotation enabled.
+	 * Persisting this separately from runtime work state lets scheduling survive process death.
 	 * Isolated the same way as [block]/[pin]: read via [settings], written only through this mutator.
 	 */
 	suspend fun setAutoUpdateEnabled(enabled: Boolean) {

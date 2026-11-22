@@ -1,8 +1,8 @@
 package xyz.attacktive.wallhavend
 
+import android.view.Surface
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import android.view.Surface
 import xyz.attacktive.wallhavend.domain.model.naturalDimensions
 
 class NaturalDimensionsTest {

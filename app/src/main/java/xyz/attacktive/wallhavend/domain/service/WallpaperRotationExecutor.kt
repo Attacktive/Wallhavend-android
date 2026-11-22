@@ -17,15 +17,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import retrofit2.HttpException
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.AppSettings
-import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.InvalidApiKeyException
 import xyz.attacktive.wallhavend.domain.model.MissingApiKeyException
+import xyz.attacktive.wallhavend.domain.model.NoResultsException
 import xyz.attacktive.wallhavend.domain.model.QuotaExceededException
 import xyz.attacktive.wallhavend.domain.model.RateLimitedException
-import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.ScreenInfo
 import xyz.attacktive.wallhavend.domain.model.UnsupportedFormatException
+import xyz.attacktive.wallhavend.domain.model.Wallpaper
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.closestAspectRatio
@@ -70,6 +70,7 @@ class WallpaperRotationExecutor @Inject constructor(
 				previousWallpaperPath = previousPath
 			)
 		}
+
 		stateRestored = true
 	}
 
@@ -139,6 +140,7 @@ class WallpaperRotationExecutor @Inject constructor(
 
 					val remaining = fileManager.trimToSize(settings.poolSize, settings.pinnedIds)
 					val paths = remaining.map { it.absolutePath }
+
 					if (settings.wallpaperMetadata.isNotEmpty()) {
 						val activeIds = remaining.map { WallpaperIdentity.parse(it.nameWithoutExtension).qualified }.toSet() + settings.blockedIds
 						settingsRepository.retainMetadata(activeIds)
@@ -150,6 +152,7 @@ class WallpaperRotationExecutor @Inject constructor(
 					} else {
 						warning ?: persistentProviderWarning(settings)
 					}
+
 					val errorToPost = pendingWarning?.let { appErrorFor(it, settings) }
 
 					stateRepository.update { state ->

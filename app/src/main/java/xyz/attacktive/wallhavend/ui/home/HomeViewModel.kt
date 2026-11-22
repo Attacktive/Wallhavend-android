@@ -1,13 +1,5 @@
 package xyz.attacktive.wallhavend.ui.home
 
-import android.content.Context
-import android.media.MediaScannerConnection
-import android.os.Build
-import android.os.Environment
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +11,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import android.content.Context
+import android.media.MediaScannerConnection
+import android.os.Build
+import android.os.Environment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import xyz.attacktive.wallhavend.R
 import xyz.attacktive.wallhavend.domain.model.AppError
 import xyz.attacktive.wallhavend.domain.model.RotationMode

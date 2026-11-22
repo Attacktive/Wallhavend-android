@@ -79,9 +79,10 @@ fun BlocklistScreen(onNavigateBack: () -> Unit, viewModel: BlocklistViewModel = 
 			return@Scaffold
 		}
 
-		LazyColumn(modifier = Modifier
-			.fillMaxSize()
-			.padding(padding)
+		LazyColumn(
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(padding)
 		) {
 			items(blockedWallpapers, key = { it.qualified }) { identity ->
 				BlockedRow(
@@ -137,8 +138,8 @@ private fun BlockedRow(identity: WallpaperIdentity, metadata: WallpaperMetadata?
 }
 
 /**
- * Blocked wallpapers are hidden behind a placeholder so opening the list doesn't re-expose content the
- * user chose to be rid of. The thumbnail loads from the network only after an explicit tap.
+ * Blocked wallpapers are hidden behind a placeholder so opening the list doesn't re-expose content the user chose to be rid of.
+ * The thumbnail loads from the network only after an explicit tap.
  */
 @Composable
 private fun RevealableThumbnail(identity: WallpaperIdentity, thumbnailUrl: String?) {

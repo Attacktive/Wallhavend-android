@@ -1,10 +1,10 @@
 package xyz.attacktive.wallhavend
 
-import io.mockk.coEvery
-import io.mockk.mockk
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
+import io.mockk.coEvery
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -185,6 +185,7 @@ class WallpaperRepositoryTest {
 			identity = WallpaperIdentity(WallpaperSource.OPENVERSE, "ov-1"),
 			directUrl = "https://cdn/ov-1.jpg"
 		)
+
 		coEvery { fileManager.download(openverseWallpaper, any(), any()) } returns Result.success(File("/tmp/openverse_ov-1.jpg"))
 
 		val pexafy = FakeWallpaperProvider(Result.failure(QuotaExceededException(WallpaperSource.PEXAFY)), WallpaperSource.PEXAFY)
@@ -197,6 +198,7 @@ class WallpaperRepositoryTest {
 				AppSettings(pexafyApiKey = "test-key", enabledSources = setOf(WallpaperSource.PEXAFY, WallpaperSource.OPENVERSE)),
 				screen
 			)
+
 			val rotationResult = result.getOrNull()
 			assertEquals(openverseWallpaper, rotationResult?.wallpaper)
 			warnings += rotationResult?.warning
@@ -211,13 +213,16 @@ class WallpaperRepositoryTest {
 			identity = WallpaperIdentity(WallpaperSource.PEXAFY, "small-1"),
 			directUrl = "https://cdn/small-1.jpg"
 		)
+
 		val fullSized = Wallpaper(
 			identity = WallpaperIdentity(WallpaperSource.PEXAFY, "big-2"),
 			directUrl = "https://cdn/big-2.jpg"
 		)
+
 		coEvery {
 			fileManager.download(undersized, 1080, 2400)
 		} returns Result.failure(UndersizedWallpaperException(800, 1200, 1080, 2400))
+
 		coEvery {
 			fileManager.download(fullSized, 1080, 2400)
 		} returns Result.success(File("/tmp/pexafy_big-2.jpg"))

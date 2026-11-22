@@ -1,5 +1,9 @@
 package xyz.attacktive.wallhavend
 
+import java.io.File
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -9,10 +13,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.io.File
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -138,6 +138,7 @@ class PexafySetupFallbackTest(private val apiKey: String) {
 		)
 		.apply {
 			networkStateProvider = { NetworkState(online = true, onWifi = true) }
+
 			screenInfoProvider = { SCREEN }
 		}
 

@@ -45,7 +45,9 @@ class WallpaperServiceMutationTest {
 	@Test
 	fun `a manual update waits for a scheduled update through persistence`() = runTest {
 		val first = File(temporaryFolder.root, "first.jpg").also { it.writeText("first") }
+
 		val second = File(temporaryFolder.root, "second.jpg").also { it.writeText("second") }
+
 		val firstEntered = CountDownLatch(1)
 		val releaseFirst = CountDownLatch(1)
 		val secondEntered = CountDownLatch(1)
@@ -74,9 +76,11 @@ class WallpaperServiceMutationTest {
 		)
 
 		val scheduled = async(Dispatchers.Default) { executor.performUpdate(forceDownload = false) }
+
 		assertTrue(firstEntered.await(5, TimeUnit.SECONDS))
 
 		val manual = async(Dispatchers.Default) { executor.performUpdate(forceDownload = true) }
+
 		assertFalse(secondEntered.await(250, TimeUnit.MILLISECONDS))
 
 		releaseFirst.countDown()
@@ -95,7 +99,9 @@ class WallpaperServiceMutationTest {
 	@Test
 	fun `queued apply keeps current and previous persistence in application order`() = runTest {
 		val first = File(temporaryFolder.root, "first.jpg").also { it.writeText("first") }
+
 		val second = File(temporaryFolder.root, "second.jpg").also { it.writeText("second") }
+
 		val firstEntered = CountDownLatch(1)
 		val releaseFirst = CountDownLatch(1)
 		val secondApplied = CountDownLatch(1)
@@ -106,6 +112,7 @@ class WallpaperServiceMutationTest {
 			check(releaseFirst.await(5, TimeUnit.SECONDS))
 			Result.success(0)
 		}
+
 		every { applier.apply(second, WallpaperTarget.HOME) } answers {
 			secondApplied.countDown()
 			Result.success(0)
@@ -121,9 +128,11 @@ class WallpaperServiceMutationTest {
 		)
 
 		val firstApply = async(Dispatchers.Default) { executor.applySpecificPath(first.absolutePath) }
+
 		assertTrue(firstEntered.await(5, TimeUnit.SECONDS))
 
 		val secondApply = async(Dispatchers.Default) { executor.applySpecificPath(second.absolutePath) }
+
 		assertFalse(secondApplied.await(250, TimeUnit.MILLISECONDS))
 
 		releaseFirst.countDown()
@@ -141,14 +150,17 @@ class WallpaperServiceMutationTest {
 	@Test
 	fun `online update trim waits for an in-flight wallpaper apply`() = runTest {
 		val wallpapersDirectory = File(temporaryFolder.root, "wallpapers").also { it.mkdirs() }
+
 		val applying = File(wallpapersDirectory, "applying.jpg").also {
 			it.writeText("applying")
 			it.setLastModified(1)
 		}
+
 		val downloaded = File(wallpapersDirectory, "downloaded.jpg").also {
 			it.writeText("downloaded")
 			it.setLastModified(2)
 		}
+
 		val wallpaper = Wallpaper(
 			identity = WallpaperIdentity(WallpaperSource.WALLHAVEN, "downloaded"),
 			directUrl = "https://example.test/downloaded.jpg"
@@ -163,6 +175,7 @@ class WallpaperServiceMutationTest {
 			check(releaseFirst.await(5, TimeUnit.SECONDS))
 			Result.success(0)
 		}
+
 		every { applier.apply(downloaded, WallpaperTarget.HOME) } answers {
 			downloadedApplied.countDown()
 			Result.success(0)
@@ -180,11 +193,14 @@ class WallpaperServiceMutationTest {
 		)
 
 		val apply = async(Dispatchers.Default) { executor.applySpecificPath(applying.absolutePath) }
+
 		assertTrue(firstEntered.await(5, TimeUnit.SECONDS))
 
 		val update = async(Dispatchers.Default) { executor.performUpdate(forceDownload = true) }
+
 		assertFalse(downloadedApplied.await(250, TimeUnit.MILLISECONDS))
 		coVerify(exactly = 0) { wallpaperRepository.next(any(), any()) }
+
 		assertTrue(applying.exists())
 
 		releaseFirst.countDown()
@@ -234,6 +250,7 @@ class WallpaperServiceMutationTest {
 	)
 	.apply {
 		networkStateProvider = { networkState }
+
 		screenInfoProvider = { screenInfo }
 	}
 

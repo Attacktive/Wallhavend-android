@@ -57,6 +57,7 @@ class RotationSchedulerTest {
 				autoStartOnBoot = true
 			)
 		)
+
 		assertEquals(
 			RotationReconciliationAction.INACTIVE,
 			reconciliationAction(

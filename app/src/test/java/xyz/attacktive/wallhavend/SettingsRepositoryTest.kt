@@ -22,6 +22,7 @@ import org.junit.rules.TemporaryFolder
 import xyz.attacktive.wallhavend.domain.model.AppSettings
 import xyz.attacktive.wallhavend.domain.model.RotationMode
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
+import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 import xyz.attacktive.wallhavend.domain.model.WallpaperOrientation
 import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperTarget
@@ -31,7 +32,6 @@ import xyz.attacktive.wallhavend.domain.model.query.Purity
 import xyz.attacktive.wallhavend.domain.model.query.Sorting
 import xyz.attacktive.wallhavend.domain.model.query.ToplistRange
 import xyz.attacktive.wallhavend.domain.repository.SettingsRepository
-import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
 
 class SettingsRepositoryTest {
 	@get:Rule
@@ -81,7 +81,7 @@ class SettingsRepositoryTest {
 	}
 
 	@Test
-	fun `enabled sources and the licence tier round-trip`() = runTest {
+	fun `enabled sources and the license tier round-trip`() = runTest {
 		val repository = createRepository()
 		val allSources = setOf(WallpaperSource.WALLHAVEN, WallpaperSource.OPENVERSE, WallpaperSource.PEXAFY)
 
@@ -230,6 +230,7 @@ class SettingsRepositoryTest {
 		repository.save(AppSettings(searchQuery = "marker"))
 
 		val afterSave = repository.settings.first { it.searchQuery == "marker" }
+
 		assertEquals(setOf("wallhaven_abc123", "wallhaven_def456"), afterSave.pinnedIds)
 
 		repository.unpin(wallhaven("abc123"))
@@ -248,6 +249,7 @@ class SettingsRepositoryTest {
 		repository.save(AppSettings(searchQuery = "marker"))
 
 		val afterSave = repository.settings.first { it.searchQuery == "marker" }
+
 		assertEquals(setOf("wallhaven_abc123", "wallhaven_def456"), afterSave.blockedIds)
 
 		repository.unblock(wallhaven("abc123"))
@@ -292,6 +294,7 @@ class SettingsRepositoryTest {
 		repository.save(AppSettings(searchQuery = "marker", avoidBlurryWallpapers = true))
 
 		val loaded = repository.settings.first { it.searchQuery == "marker" }
+
 		assertTrue(loaded.avoidBlurryWallpapers)
 	}
 
@@ -336,10 +339,12 @@ class SettingsRepositoryTest {
 		repository.save(AppSettings(searchQuery = "marker"))
 
 		val afterSave = repository.settings.first { it.searchQuery == "marker" }
+
 		assertEquals(mapOf(identity.qualified to thumbnailUrl), afterSave.thumbnailUrls)
 
 		repository.unblock(identity)
 		val afterUnblock = repository.settings.first { it.blockedIds.isEmpty() }
+
 		assertTrue(afterUnblock.thumbnailUrls.isEmpty())
 	}
 
@@ -361,10 +366,12 @@ class SettingsRepositoryTest {
 		repository.save(AppSettings(searchQuery = "marker"))
 
 		val afterSave = repository.settings.first { it.searchQuery == "marker" }
+
 		assertEquals(mapOf(identity.qualified to metadata), afterSave.wallpaperMetadata)
 
 		repository.unblock(identity)
 		val afterUnblock = repository.settings.first { it.blockedIds.isEmpty() }
+
 		assertTrue(afterUnblock.wallpaperMetadata.isEmpty())
 	}
 }

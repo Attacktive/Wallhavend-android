@@ -32,4 +32,4 @@ jobs:
         run: 'gh api -X DELETE "$URL_TO_BRANCH"'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          URL_TO_BRANCH: "repos/${{ github.repository }}/git/refs/heads/${{ github.event.pull_request.head.ref }}"
+          URL_TO_BRANCH: repos/${{ github.repository }}/git/refs/heads/${{ github.event.pull_request.head.ref }}

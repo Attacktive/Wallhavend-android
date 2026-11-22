@@ -2,12 +2,12 @@ package xyz.attacktive.wallhavend
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import xyz.attacktive.wallhavend.domain.model.WallpaperIdentity
-import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 import xyz.attacktive.wallhavend.domain.model.WallpaperMetadata
+import xyz.attacktive.wallhavend.domain.model.WallpaperSource
 
 class WallpaperIdentityTest {
 	@Test
@@ -130,6 +130,7 @@ class WallpaperIdentityTest {
 			upstreamSource = "Pexels",
 			photographerName = "Dip Kheto"
 		)
+
 		val metadataMap = mapOf(identity.qualified to metadata)
 
 		assertEquals("https://pexafy.com/photos/019e1a0d-1a4f-7d62-856f-e6775b49785d", identity.pageUrl)

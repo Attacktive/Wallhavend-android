@@ -96,6 +96,7 @@ class WallhavenProviderProcessPersistenceTest {
 			response = makePage(count = 1, currentPage = 1, lastPage = 2),
 			page = 1
 		)
+
 		stubSearch(
 			response = makePage(count = 1, currentPage = 2, lastPage = 2),
 			page = 2
@@ -132,6 +133,7 @@ class WallhavenProviderProcessPersistenceTest {
 			response = makePage(5, idPrefix = "mountain"),
 			query = "mountains"
 		)
+
 		stubSearch(
 			response = makePage(5, idPrefix = "ocean"),
 			query = "ocean"

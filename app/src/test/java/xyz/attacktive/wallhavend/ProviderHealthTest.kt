@@ -75,6 +75,7 @@ class ProviderHealthTest {
 		repository.postError(AppError.NoResults)
 		testScheduler.advanceTimeBy(5_000)
 		repository.update { it.copy(error = AppError.UnsupportedFormat) }
+
 		testScheduler.advanceTimeBy(6_000)
 		testScheduler.runCurrent()
 		assertEquals(AppError.UnsupportedFormat, repository.state.value.error)

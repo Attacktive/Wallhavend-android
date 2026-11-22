@@ -55,7 +55,7 @@ jobs:
       - name: 'Publish job summary'
         env:
           MARKDOWN_FILE: ${{ steps.vitals.outputs.markdown-file }}
-        run: cat "$MARKDOWN_FILE" >> "$GITHUB_STEP_SUMMARY"
+        run: 'cat "$MARKDOWN_FILE" >> "$GITHUB_STEP_SUMMARY"'
 
       - name: 'Upload vitals snapshot'
         uses: 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' # v7.0.2
