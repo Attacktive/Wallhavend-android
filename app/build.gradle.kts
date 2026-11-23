@@ -22,7 +22,11 @@ val keystorePassword: String? = System.getenv("KEYSTORE_PASSWORD") ?: localPrope
 
 android {
 	namespace = "xyz.attacktive.wallhavend"
-	compileSdk = 37
+	compileSdk {
+		version = release(37) {
+			minorApiLevel = 2
+		}
+	}
 
 	defaultConfig {
 		applicationId = "xyz.attacktive.wallhavend"
