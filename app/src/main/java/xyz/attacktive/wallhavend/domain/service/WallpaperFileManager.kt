@@ -47,8 +47,7 @@ class WallpaperFileManager(private val wallpaperDir: File, private val okHttpCli
 
 						if (minimumWidth != null && minimumHeight != null) {
 							val dimensions = readImageDimensions(partialFile)
-							val isUndersized = dimensions != null && (dimensions.first < minimumWidth || dimensions.second < minimumHeight)
-							if (isUndersized && dimensions != null) {
+							if (dimensions != null && (dimensions.first < minimumWidth || dimensions.second < minimumHeight)) {
 								throw UndersizedWallpaperException(
 									width = dimensions.first,
 									height = dimensions.second,

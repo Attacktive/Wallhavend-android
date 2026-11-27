@@ -202,11 +202,13 @@ class PexafyProvider(
 
 		val now = clock()
 
-		return allWindows.all { window ->
-			val state = cursorStates[window]
-			val isExhausted = state != null && !state.hasMore && (now - state.issuedAtMs < CURSOR_TTL_MS)
-			isExhausted
-		}
+		return allWindows.all { isWindowExhausted(it, now) }
+	}
+
+	private fun isWindowExhausted(window: QueryWindow, now: Long): Boolean {
+		val state = cursorStates[window]
+
+		return state != null && !state.hasMore && now - state.issuedAtMs < CURSOR_TTL_MS
 	}
 
 	private fun recycleFallback(fallbackCandidate: PexafyPhotoDto?, blockedIds: Set<String>): PexafyPhotoDto? {
@@ -239,11 +241,7 @@ class PexafyProvider(
 
 	private fun activeWindowsFor(key: SearchKey): List<QueryWindow> {
 		val now = clock()
-		val active = allWindowsFor(key).filter { window ->
-			val state = cursorStates[window]
-			val isActive = state == null || state.hasMore || now - state.issuedAtMs >= CURSOR_TTL_MS
-			isActive
-		}
+		val active = allWindowsFor(key).filterNot { isWindowExhausted(it, now) }
 
 		return active.sortedWith(
 			compareBy(
